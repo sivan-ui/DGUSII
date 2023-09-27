@@ -1,0 +1,1 @@
+"nor_flash.c" LARGE OMF2 OPTIMIZE (9,SIZE) BROWSE INCDIR(..\USER;..\FUNC_HANDLER;..\GUI_APP) DEBUG PRINT(.\OBJ\nor_flash.lst) TABS (2) OBJECT(.\OBJ\nor_flash.obj)

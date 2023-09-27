@@ -1,0 +1,2560 @@
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MODULE
+OBJECT MODULE PLACED IN .\OBJ\module.obj
+COMPILER INVOKED BY: C:\Keil_C51\C51\BIN\C51.EXE module.c LARGE OMF2 OPTIMIZE(9,SIZE) BROWSE INCDIR(..\USER;..\FUNC_HAND
+                    -LER;..\GUI_APP) DEBUG PRINT(.\OBJ\module.lst) TABS(2) OBJECT(.\OBJ\module.obj)
+
+line level    source
+
+   1          /*
+   2           * @Author: xw.qu
+   3           * @Date: 2023-08-31 09:22:42
+   4           * @LastEditors: xw.qu
+   5           * @LastEditTime: 2023-09-27 15:35:35
+   6           * @FilePath: \USER\module.c
+   7           * @Description: relay module configuration
+   8           *
+   9           * Copyright (c) 2023 by xw.qu, All Rights Reserved.
+  10           */
+  11          #include "module.h"
+  12          #include "Uart.h"
+  13          #include "T5LLIB.h"
+  14          #include "T5lOS8051.h"
+  15          v_module_t g_var_module;
+  16          #define DEVICE_NB 10
+  17          #define DEVICE_INFOR_INDEX 14
+  18          u16 xdata num4 = 4;
+  19          unsigned char modfity_index = 0;
+  20          unsigned char var_previous_page = 0;
+  21          
+  22          unsigned char channel_number = 0;
+  23          unsigned short module_key_nb_bak = 0;
+  24          unsigned char module_select_sta_bak = 0;
+  25          unsigned short init_pwd = 8888; // default password
+  26          module_t module = {
+  27              {1},
+  28              {2},
+  29              {0},
+  30              {0},
+  31              {1},
+  32              {4},
+  33              {"·¿¼ä1"}, // ÆÕÍ¨Ä£¿é
+  34              {"Í¨µÀ1           Í¨µÀ2           Í¨µÀ3           Í¨µÀ4           Í¨µÀ5           Í¨µÀ6           Í¨µÀ7 
+             -          Í¨µÀ8           Í¨µÀ9           Í¨µÀ10          Í¨µÀ11          Í¨µÀ12          Í¨µÀ13          Í¨µÀ14        
+             -  Í¨µÀ15          Í¨µÀ16          "},
+  35          };
+  36          module_t auto_module = {
+  37              {1},
+  38              {2},
+  39              {0},
+  40              {0},
+  41              {1},
+  42              {4},
+  43              {0}, // ÆÕÍ¨Ä£¿é
+  44              {"Í¨µÀ1           Í¨µÀ2           Í¨µÀ3           Í¨µÀ4           Í¨µÀ5           Í¨µÀ6           Í¨µÀ7 
+             -          Í¨µÀ8           Í¨µÀ9           Í¨µÀ10          Í¨µÀ11          Í¨µÀ12          Í¨µÀ13          Í¨µÀ14        
+             -  Í¨µÀ15          Í¨µÀ16          "},
+  45          };
+  46          module_t st_module = {
+  47              {1},
+  48              {2},
+  49              {0},
+  50              {0},
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 2   
+
+  51              {1},
+  52              {4},
+  53              {"·¿¼ä1"}, // ÆÕÍ¨Ä£¿é
+  54              {"Í¨µÀ1           Í¨µÀ2           Í¨µÀ3           Í¨µÀ4           Í¨µÀ5           Í¨µÀ6           Í¨µÀ7 
+             -          Í¨µÀ8           Í¨µÀ9           Í¨µÀ10          Í¨µÀ11          Í¨µÀ12          Í¨µÀ13          Í¨µÀ14        
+             -  Í¨µÀ15          Í¨µÀ16          "},
+  55          };
+  56          module_t timing_module = {
+  57              {0},
+  58              {0},
+  59              {0},
+  60              {0},
+  61              {0},
+  62              {0},
+  63              {"·¿¼ä1"}, // ÆÕÍ¨Ä£¿é
+  64              {"Í¨µÀ1           Í¨µÀ2           Í¨µÀ3           Í¨µÀ4           Í¨µÀ5           Í¨µÀ6           Í¨µÀ7 
+             -          Í¨µÀ8           Í¨µÀ9           Í¨µÀ10          Í¨µÀ11          Í¨µÀ12          Í¨µÀ13          Í¨µÀ14        
+             -  Í¨µÀ15          Í¨µÀ16          "},
+  65          };
+  66          module_t temp_module = {
+  67              {0},
+  68              {0},
+  69              {0},
+  70              {0},
+  71              {0},
+  72              {0},
+  73              {"·¿¼ä1"}, // ÆÕÍ¨Ä£¿é
+  74              {"Í¨µÀ1           Í¨µÀ2           Í¨µÀ3           Í¨µÀ4           Í¨µÀ5           Í¨µÀ6           Í¨µÀ7 
+             -          Í¨µÀ8           Í¨µÀ9           Í¨µÀ10          Í¨µÀ11          Í¨µÀ12          Í¨µÀ13          Í¨µÀ14        
+             -  Í¨µÀ15          Í¨µÀ16          "},
+  75          };
+  76          unsigned char module_tab[10] = {
+  77              1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+  78              //  {2},
+  79              //  {0},
+  80              //  {0},
+  81              //  {1},
+  82              //  {4},
+  83              //  {"·¿¼ä1"},         //ÆÕÍ¨Ä£¿é
+  84              //  {"Í¨µÀ1","Í¨µÀ2","Í¨µÀ3","Í¨µÀ4","Í¨µÀ5","Í¨µÀ6","Í¨µÀ7","Í¨µÀ8","Í¨µÀ9","Í¨µÀ10","Í¨µÀ11","Í¨µÀ12","
+             -Í¨µÀ13","Í¨µÀ14","Í¨µÀ15","Í¨µÀ16"},
+  85          
+  86          };
+  87          // bit key_flag = 0;
+  88          unsigned short xdata key, num_return;
+  89          unsigned short xdata channel = 0;
+  90          unsigned short module_type = 0, module_type_bak = 0;
+  91          unsigned short adr = 0;
+  92          void timing_module_parameter_week_enable_channel_send(struct this_module *p, unsigned char channel, unsign
+             -ed char state);
+  93          void timing_module_parameter_solar_channel_send(struct this_module *p, unsigned char channel, unsigned cha
+             -r state);
+  94          void timing_module_parameter_time_frame_channel_send(struct this_module *p, unsigned char channel, unsigne
+             -d char state);
+  95          void timing_module_parameter_ongitude_latitude_send(struct this_module *p);
+  96          void timing_module_parameter_time_send(struct this_module *p);
+  97          unsigned char check_or_not_frame(unsigned short adr);
+  98          // void (*timing_module_parameter_set_send)(struct   this_module* xdata p,unsigned char channel,unsigned c
+             -har state);
+  99          // void (*fun)(module_t* p,unsigned char channel,unsigned char state);
+ 100          
+ 101          // code  void (*p_fun_tab[5])( struct   this_module xdata * p,unsigned char xdata channel,unsigned char xd
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 3   
+
+             -ata state) =
+ 102          //{
+ 103          //  timing_module_parameter_ongitude_latitude_send,
+ 104          //  timing_module_parameter_time_send,
+ 105          //  timing_module_parameter_week_enable_channel_send,
+ 106          //  timing_module_parameter_solar_channel_send,
+ 107          //  timing_module_parameter_time_frame_channel_send,
+ 108          
+ 109          //};
+ 110          // unsigned char *p_module_name;
+ 111          unsigned char xdata module_default_name[17] = {
+ 112              " "};
+ 113          unsigned char xdata module_name_tab[6][13] = {
+ 114              "ÆÕÍ¨Ä£¿é    ", // ÆÕÍ¨Ä£¿é
+ 115              "Ê±¿ØÄ£¿é    ", // Ê±¿ØÄ£¿é
+ 116              "µ÷¹âÄ£¿é    ", // µ÷¹âÄ£¿é
+ 117              "¿É¿Ø¹èÄ£¿é  ", // ¿É¿Ø¹èÄ£¿é
+ 118              "Ë«²ãÆÕÍ¨Ä£¿é", // Ë«²ãÆÕÍ¨Ä£¿é
+ 119              "Ë«²ãÊ±¿ØÄ£¿é", // Ë«²ãÊ±¿ØÄ£¿é
+ 120          
+ 121          };
+ 122          unsigned char default_module_channel_name[257] = {
+ 123              "Í¨µÀ1           Í¨µÀ2           Í¨µÀ3           Í¨µÀ4           Í¨µÀ5           Í¨µÀ6           Í¨µÀ7  
+             -         Í¨µÀ8           Í¨µÀ9           Í¨µÀ10          Í¨µÀ11          Í¨µÀ12          Í¨µÀ13          Í¨µÀ14         
+             - Í¨µÀ15          Í¨µÀ16          "};
+ 124          
+ 125          
+ 126          // »ñÈ¡¼üÖµ
+ 127          void get_key_value(unsigned short adr, unsigned short *key_value)
+ 128          {
+ 129   1        read_dgusii_vp(adr, (unsigned char *)key_value, 1);
+ 130   1      }
+ 131          // ¼üÖµÇå0
+ 132          void clear_key_value(unsigned short adr, unsigned short *key_value)
+ 133          {
+ 134   1        unsigned short key_zero = 0;
+ 135   1        USER_PRINTF("<--0x%x  key_value is---%d\n", adr, *key_value);
+ 136   1        write_dgusii_vp(adr, (unsigned char *)&key_zero, 1);
+ 137   1        //  key_flag = 1;
+ 138   1      }
+ 139          // ´¥Ãþ×´Ì¬Çå0
+ 140          void clear_touch_sta(void)
+ 141          {
+ 142   1        unsigned char tab_zero[8] = {0};
+ 143   1        write_dgusii_vp(0x16, (unsigned char *)&tab_zero, 4);
+ 144   1        //  key_flag = 1;
+ 145   1      }
+ 146          // ²éÕÒÊý¾ÝÊÇ·ñ´æÔÚ
+ 147          unsigned char check_whether_data_exists(unsigned int adr_start, unsigned char index, unsigned char flash_b
+             -lock)
+ 148          {
+ 149   1        unsigned char ch_data = 0;
+ 150   1        unsigned char tab_data[4] = {0};
+ 151   1        norflash_read(index * flash_block + adr_start, tab_data, 2);
+ 152   1        //  printf_tab(4,tab_data);
+ 153   1        if (0 == tab_data[0])
+ 154   1        {
+ 155   2          ch_data = BLANK;
+ 156   2          // USER_PRINTF("<--index %bd is blank \n", index);
+ 157   2        }
+ 158   1        else
+ 159   1          ch_data = FULL;
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 4   
+
+ 160   1      
+ 161   1        return ch_data;
+ 162   1      }
+ 163          
+ 164          // ·µ»Ø¿Õ°×Êý¾ÝÐòºÅ
+ 165          unsigned short find_index(unsigned int adr_start, unsigned char flash_size, unsigned short quantity)
+ 166          {
+ 167   1        unsigned short index = 0;
+ 168   1        for (index = 0; index < quantity; index++)
+ 169   1        {
+ 170   2          if (BLANK == check_whether_data_exists(adr_start, index, flash_size))
+ 171   2          {
+ 172   3            return index;
+ 173   3          }
+ 174   2        }
+ 175   1        return 0xffff;
+ 176   1      }
+ 177          // void return_to_previous_page(unsigned char page)
+ 178          //{
+ 179          //  pic_set(page);
+ 180          // }
+ 181          // ÉèÖÃÄ£¿éÐÅÏ¢
+ 182          void set_module_information(module_t *p, unsigned char index, unsigned short module_type)
+ 183          {
+ 184   1        unsigned short temp = 0;
+ 185   1        //  p->data_sta = 1;
+ 186   1        //  unsigned char data_sta;
+ 187   1        //  unsigned char index;
+ 188   1        //  unsigned char reserve;
+ 189   1        //  unsigned char type;
+ 190   1        //  unsigned char adr;
+ 191   1        //  unsigned char channel_nb;
+ 192   1        //  unsigned char module_name[16];
+ 193   1        //  unsigned char channel_name[16][16];
+ 194   1        //  unsigned char index = 0 ;
+ 195   1        //  for(index = 0;index<MODULE_NUB;index++)
+ 196   1        //  {
+ 197   1        //    if( BLANK == check_whether_data_exists(index))
+ 198   1        //    {
+ 199   1        //      save_module_information(p,index);
+ 200   1        // memset(p,0,sizeof(module_t));
+ 201   1        p->index = index;
+ 202   1        read_dgusii_vp(0x2000, (unsigned char *)&temp, 1);
+ 203   1        p->adr = (unsigned char)temp;
+ 204   1        read_dgusii_vp(0x1002, (unsigned char *)&temp, 1);
+ 205   1        p->channel_nb = (unsigned char)temp;
+ 206   1        // USER_PRINTF("-->module_name is %s;\n",p->module_name);
+ 207   1        read_dgusii_vp(0x3000, (unsigned char *)&p->module_name, 8);
+ 208   1        // printf_tab(16,(unsigned char *)&p->module_name);
+ 209   1        // USER_PRINTF("-->module_name is %s;\n",p->module_name);
+ 210   1      
+ 211   1        // removeWhitespace(p->module_name);
+ 212   1        // USER_PRINTF("-->module_name is %s;\n",p->module_name);
+ 213   1        read_dgusii_vp(0x3008, (unsigned char *)&p->channel_name, 128);
+ 214   1        p->data_sta = FULL;
+ 215   1        p->type = module_type;
+ 216   1        //  USER_PRINTF("P->TYEP is %d\n",module_type);
+ 217   1        //      break;
+ 218   1        //    }
+ 219   1        //  }
+ 220   1      }
+ 221          // ÏÔÊ¾Ä£¿éÐÅÏ¢
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 5   
+
+ 222          void display_module_information(module_t *p, unsigned char index)
+ 223          {
+ 224   1        unsigned char mod_infom_tab[64] = {0};
+ 225   1        unsigned char module_name_1[13] = {0};
+ 226   1        //  USER_PRINTF("-->module type is %bd\n",p->type);
+ 227   1        if (p->type <= 2)
+ 228   1        {
+ 229   2          strncpy(module_name_1, &module_name_tab[p->type], 8);
+ 230   2        }
+ 231   1        else if (p->type == 3)
+ 232   1        {
+ 233   2          strncpy(module_name_1, &module_name_tab[p->type], 10);
+ 234   2        }
+ 235   1        else
+ 236   1        {
+ 237   2          strncpy(module_name_1, &module_name_tab[p->type], 12);
+ 238   2        }
+ 239   1        //  USER_PRINTF("-->module_name is %s;\n", p->module_name);
+ 240   1        strrpl(p->module_name, " ", "");
+ 241   1        // strrpl(p->module_name, "  ", "");
+ 242   1      
+ 243   1        // sprintf(mod_infom_tab, "ÀàÐÍ:%s,Ä£¿é:%.16s,µØÖ·:%bd,Í¨µÀ:%bd", module_name_1, p->module_name, p->adr, 
+             -p->channel_nb);
+ 244   1        sprintf(mod_infom_tab, "ÀàÐÍ:%s,µØÖ·:%bd,Í¨µÀ:%bd,Ä£¿é:%s", module_name_1, p->adr, p->channel_nb, p->modu
+             -le_name);
+ 245   1        //  USER_PRINTF("-->mod_infom_tab is %s\n", mod_infom_tab);
+ 246   1        //  USER_PRINTF("-->p->index %bd\n", p->index);
+ 247   1        write_dgusii_vp(0x3520 + index * 32, (unsigned char *)mod_infom_tab, 32);
+ 248   1      }
+ 249          //ÊÇ·ñ´æÔÚÖØ¸´µØÖ·
+ 250          // unsigned char if_adr_repeat(unsigned char edit_sta,unsigned char adr,unsigned char *p)
+ 251          // {
+ 252          //  switch (edit_sta)
+ 253          //  {
+ 254          //    case ADD:
+ 255          //    if(find_nub_index(p,adr))
+ 256          //    {
+ 257          //      USER_PRINTF("--> adr already exist\n!");
+ 258          //      USER_PRINTF("--> save module information fail!\n");
+ 259          //      return 1;
+ 260          //    }   
+ 261          //    break;
+ 262          //    case MODIFY:
+ 263          //    if(find_nub_index(p,adr))
+ 264          //    {
+ 265          //      USER_PRINTF("--> adr already exist\n!");
+ 266          //      USER_PRINTF("--> save module information fail!\n");
+ 267          //      return 1;
+ 268          //    }     
+ 269          //    break;
+ 270          //    default:
+ 271          //    break;
+ 272          //  }
+ 273          //  return 0;
+ 274          
+ 275            
+ 276          // }
+ 277          // ´æ´¢Ä£¿éÐÅÏ¢
+ 278          void save_module_information(module_t *p)
+ 279          {
+ 280   1        unsigned short key_nb1 = 0;
+ 281   1        unsigned short key_nb2 = 0;
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 6   
+
+ 282   1        unsigned short temp_adr = 0;
+ 283   1        //  static unsigned char temp_index = 0;
+ 284   1        read_dgusii_vp(0x1009, (unsigned char *)&key_nb1, 1);
+ 285   1        if (1 == key_nb1)
+ 286   1        {
+ 287   2          key_nb1 = 0;
+ 288   2          write_dgusii_vp(0x1009, (unsigned char *)&key_nb1, 1);
+ 289   2          USER_PRINTF("-->ctrl_mgmt_sta\n");
+ 290   2          modfity_index = find_index(0, MODULE_FLASH_SIZE, MODULE_NUB);
+ 291   2          //    USER_PRINTF("<--get_blank_index -->%bd\n", modfity_index);
+ 292   2          write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[0], 6);
+ 293   2          write_dgus(0X1000, 4);
+ 294   2        }
+ 295   1        sys_delay_about_ms(5);
+ 296   1        read_dgusii_vp(0x1006, (unsigned char *)&key_nb2, 1);
+ 297   1        // if (key_nb2)
+ 298   1        // {
+ 299   1        //  USER_PRINTF("-->key_value ---%d\n", key_nb2);
+ 300   1        // }
+ 301   1        if ((4 == key_nb2) || (6 == key_nb2) || (8 == key_nb2) || (10 == key_nb2) || (12 == key_nb2) || (14 == ke
+             -y_nb2) || (16 == key_nb2) || (0x14 == key_nb2) || (0x24 == key_nb2))
+ 302   1        {
+ 303   2          key_nb2 = 0;
+ 304   2          sys_delay_about_ms(1);
+ 305   2          write_dgusii_vp(0x1006, (unsigned char *)&key_nb2, 1);
+ 306   2          printf_tab(20,&g_var_module.module_adr[0]);
+ 307   2          read_dgusii_vp(0x2000, (unsigned char *)&temp_adr, 1);
+ 308   2          if(find_nub_index(&g_var_module.module_adr[0],temp_adr))
+ 309   2          {
+ 310   3            pop_menu_key_ctrl(0x1f);
+ 311   3            USER_PRINTF("--> adr already exist!\n");
+ 312   3            USER_PRINTF("--> save module information fail!\n");
+ 313   3            return ;
+ 314   3          }
+ 315   2          set_module_information(p, modfity_index, (unsigned char)module_type_bak);
+ 316   2          //    USER_PRINTF("-->module_type_bak is %d\n",module_type_bak);
+ 317   2          
+ 318   2          add_arr_data(&g_var_module.module_adr[0],p->adr,modfity_index);
+ 319   2      
+ 320   2          norflash_write(modfity_index * MODULE_FLASH_SIZE, (unsigned char *)p, MODULE_FLASH_SIZE);
+ 321   2          write_dgusii_vp(0x3120 + 8 * modfity_index, (unsigned char *)p->module_name, 8);
+ 322   2          display_module_information(p, modfity_index);
+ 323   2          USER_PRINTF("-->save_module_information_ok\n");
+ 324   2          if (modfity_index >= 5)
+ 325   2          {
+ 326   3            pic_page = 88 + modfity_index / 5 - 1;
+ 327   3            pic_set(pic_page);
+ 328   3            
+ 329   3          }
+ 330   2          else
+ 331   2          {
+ 332   3            pic_page = 2;
+ 333   3            pic_set(pic_page);
+ 334   3          }
+ 335   2          module_type_bak = 0;
+ 336   2        }
+ 337   1        else if (0xff == key_nb2)
+ 338   1        {
+ 339   2          key_nb2 = 0;
+ 340   2          sys_delay_about_ms(1);
+ 341   2          write_dgusii_vp(0x1006, (unsigned char *)&key_nb2, 1);  
+ 342   2          pic_set(pic_page);  
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 7   
+
+ 343   2          // if (modfity_index >= 5)
+ 344   2          // {
+ 345   2          //  pic_set(88 + modfity_index / 5 - 1);
+ 346   2          // }
+ 347   2          // else
+ 348   2          // {
+ 349   2          //  pic_set(2);
+ 350   2          // }
+ 351   2        }
+ 352   1      
+ 353   1        //  sys_delay_about_ms(10);//Õâ¸öÑÓÊ±±ØÐë¼Ó,¿ÉÒÔ·ÀÖ¹ÄªÃûÆäÃîµÄ´íÎó
+ 354   1      }
+ 355          // ÉèÖÃÄ£¿éÑ¡ÖÐÐòºÅ touch_key_adr-0x110c; select_key_adr-0x1104
+ 356          void set_selected_sequence_number(unsigned short touch_key_adr, unsigned short select_key_adr, unsigned ch
+             -ar page_nb)
+ 357          {
+ 358   1        unsigned short key_nb = 0;
+ 359   1        static unsigned char select_sta = 0;
+ 360   1        static unsigned char page = 0;
+ 361   1        unsigned char i = 0;
+ 362   1        get_key_value(touch_key_adr, &key_nb);
+ 363   1        if ((key_nb))
+ 364   1        {
+ 365   2          for (i = 0; i < page_nb; i++)
+ 366   2          {
+ 367   3            write_dgus(select_key_adr + i, 0);
+ 368   3          }
+ 369   2          if (page != ((key_nb - 1) / 8))
+ 370   2          {
+ 371   3            page = (key_nb - 1) / 8;
+ 372   3            select_sta = 0;
+ 373   3          }
+ 374   2          select_sta = select_sta == (key_nb - (page * 8)) ? ((select_sta > 0) ? 0 : (key_nb - (page * 8))) : (key
+             -_nb - (page * 8));
+ 375   2          // USER_PRINTF("-->set_select_sta is--%bd\n", select_sta);
+ 376   2          write_dgus(select_key_adr + (key_nb - 1) / 8, select_sta);
+ 377   2          clear_key_value(touch_key_adr, &key_nb);
+ 378   2        }
+ 379   1      }
+ 380          /**
+ 381           * @brief ÉèÖÃÑ¡Ôñ¿ò
+ 382           * @param {unsigned short} touch_key_adr °´¼üµØÖ·
+ 383           * @param {unsigned short} select_key_adr ¿òµØÖ·
+ 384           * @param {unsigned char} nb ÊýÁ¿
+ 385           * @param {unsigned short} *p_key_nb_bak °´¼üÖµ±¸·Ý
+ 386           * @param {unsigned char} *p_select_sta  ¿òÑ¡±¸·Ý
+ 387           * @return {*}
+ 388           */
+ 389          void set_box_select(unsigned short touch_key_adr, unsigned short select_key_adr, unsigned char nb,unsigned
+             - short *p_key_nb_bak, unsigned char *p_select_sta)
+ 390          {
+ 391   1        unsigned short key_nb = 0;
+ 392   1        // static unsigned short key_nb_bak = 0;
+ 393   1        // static unsigned char select_sta = 0;
+ 394   1        unsigned char i = 0;
+ 395   1        get_key_value(touch_key_adr, &key_nb);
+ 396   1      
+ 397   1        if ((key_nb)) // °´¼ü´¥·¢
+ 398   1        {   
+ 399   2          for (i = 0; i < nb; i++)
+ 400   2          {
+ 401   3            if (i == key_nb - 1)
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 8   
+
+ 402   3            {
+ 403   4              continue;
+ 404   4            }
+ 405   3            write_dgus(select_key_adr + i, 0); // ³ýÁË´¥·¢µÄ¿òÆäËû¶¼Ð´0
+ 406   3          }
+ 407   2          if (*p_key_nb_bak != key_nb)
+ 408   2          {
+ 409   3            *p_key_nb_bak = key_nb;
+ 410   3            *p_select_sta = 0;
+ 411   3            
+ 412   3          }
+ 413   2          // USER_PRINTF("-->set_select_sta before is--%bd\n", select_sta);
+ 414   2          *p_select_sta ^= 1;
+ 415   2          // USER_PRINTF("-->set_select_sta after is--%bd\n", select_sta);
+ 416   2          write_dgus(select_key_adr + (key_nb - 1), *p_select_sta);
+ 417   2          clear_key_value(touch_key_adr, &key_nb);
+ 418   2        }
+ 419   1      }
+ 420          
+ 421          // »ñÈ¡Ä£¿éÑ¡ÖÐÐòºÅ 0x1104
+ 422          
+ 423          unsigned char get_box_select_number(unsigned short select_key_adr, unsigned char nb)
+ 424          {
+ 425   1        unsigned char i = 0;
+ 426   1        unsigned char seq_nb = 0;
+ 427   1        for (i = 0; i < nb; i++)
+ 428   1        {
+ 429   2          seq_nb = read_dgus(select_key_adr + i);
+ 430   2          if (seq_nb)
+ 431   2          {
+ 432   3            seq_nb = seq_nb + i;
+ 433   3            // USER_PRINTF("-->get_select_sta is--%bd\n", seq_nb);
+ 434   3            return (seq_nb);
+ 435   3          }
+ 436   2        }
+ 437   1        return 0;
+ 438   1      }
+ 439          unsigned char get_selected_sequence_number(unsigned short select_key_adr, unsigned char page)
+ 440          {
+ 441   1        unsigned char i = 0;
+ 442   1        unsigned char seq_nb = 0;
+ 443   1        for (i = 0; i < page; i++)
+ 444   1        {
+ 445   2          seq_nb = read_dgus(select_key_adr + i);
+ 446   2          if (seq_nb)
+ 447   2          {
+ 448   3            seq_nb = seq_nb + i * 8;
+ 449   3            // USER_PRINTF("-->get_select_sta is--%bd\n", seq_nb);
+ 450   3            return (seq_nb);
+ 451   3          }
+ 452   2        }
+ 453   1        return 0;
+ 454   1      }
+ 455          void delay_us(unsigned short t)
+ 456          {
+ 457   1        char i;
+ 458   1        while (t)
+ 459   1        {
+ 460   2          for (i = 0; i < 50; i++)
+ 461   2          {
+ 462   3            i = i;
+ 463   3          }
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 9   
+
+ 464   2          t--;
+ 465   2        }
+ 466   1      }
+ 467          // ¶ÁËùÔÚÒ³ÃæÖµ
+ 468          unsigned short read_pic(void)
+ 469          {
+ 470   1        unsigned short pic = 0;
+ 471   1        pic = read_dgus(0x0014);
+ 472   1        sys_delay_about_ms(2);
+ 473   1        return pic;
+ 474   1      }
+ 475          
+ 476          // Ò³ÃæÇÐ»»
+ 477          void pic_set(unsigned int pic) // picÎªÌø×ªµ½µÄÒ³Ãæ
+ 478          {
+ 479   1        unsigned short run_num = 0;
+ 480   1        run_num = 0x5A01;
+ 481   1        write_dgusii_vp(0x0085, (unsigned char *)&pic, 1);
+ 482   1        write_dgusii_vp(0x0084, (unsigned char *)&run_num, 1);
+ 483   1        while (run_num >> 8) // ¿´¸ß°ËÎ»5AÊÇ·ñÇåÁã
+ 484   1        {
+ 485   2          read_dgusii_vp(0x0084, (unsigned char *)&run_num, 1);
+ 486   2          delay_us(3000); //**********
+ 487   2        }
+ 488   1      }
+ 489          // ÉèÖÃÍ¨µÀÊýÁ¿
+ 490          void set_channel_nb(void)
+ 491          {
+ 492   1        read_dgusii_vp(0x1000, (unsigned char *)&channel, 1);
+ 493   1      
+ 494   1        //  USER_PRINTF("channel value ---- %d\n",channel);
+ 495   1        {
+ 496   2          switch (channel)
+ 497   2          {
+ 498   3          case 0:
+ 499   3            //        write_dgusii_vp(0x1002,(unsigned char *)&num4,1);
+ 500   3            //      display_icon();
+ 501   3            break;
+ 502   3          case 4:
+ 503   3            //        channel_bak = 0;
+ 504   3            write_dgusii_vp(0x1002, (unsigned char *)&channel, 1);
+ 505   3            //        write_dgus(17,54);
+ 506   3            //        channel_bak = channel;
+ 507   3            break;
+ 508   3          case 6:
+ 509   3            //        channel_bak = 0;
+ 510   3            write_dgusii_vp(0x1002, (unsigned char *)&channel, 1);
+ 511   3            //        write_dgus(17,54);
+ 512   3            //        channel_bak = channel;
+ 513   3            break;
+ 514   3          case 8:
+ 515   3            //        channel_bak = 1;
+ 516   3            write_dgusii_vp(0x1002, (unsigned char *)&channel, 1);
+ 517   3            //        write_dgus(17,55);
+ 518   3            //        channel_bak = channel;
+ 519   3            break;
+ 520   3          case 10:
+ 521   3            //        channel_bak = 1;
+ 522   3            write_dgusii_vp(0x1002, (unsigned char *)&channel, 1);
+ 523   3            //        write_dgus(17,55);
+ 524   3            //        channel_bak = channel;
+ 525   3            break;
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 10  
+
+ 526   3          case 12:
+ 527   3            //        channel_bak = 2;
+ 528   3            write_dgusii_vp(0x1002, (unsigned char *)&channel, 1);
+ 529   3            //        write_dgusii_vp(0x1003,(unsigned char*)&channel_bak,1);
+ 530   3            //        channel_bak = channel;
+ 531   3            break;
+ 532   3          case 14:
+ 533   3            //        channel_bak = 2;
+ 534   3            write_dgusii_vp(0x1002, (unsigned char *)&channel, 1);
+ 535   3            //        write_dgusii_vp(0x1003,(unsigned char*)&channel_bak,1);
+ 536   3            //        channel_bak = channel;
+ 537   3            break;
+ 538   3          case 16:
+ 539   3            //        channel_bak = 3;
+ 540   3            write_dgusii_vp(0x1002, (unsigned char *)&channel, 1);
+ 541   3            //        write_dgus(17,53);
+ 542   3            //        channel_bak = channel;
+ 543   3            break;
+ 544   3          default:
+ 545   3            //        write_dgusii_vp(0x1000,(unsigned char*)&channel_bak,1);
+ 546   3            break;
+ 547   3          }
+ 548   2        }
+ 549   1      }
+ 550          
+ 551          // ÉèÖÃÄ£¿éÀàÐÍ
+ 552          void set_module_type(void)
+ 553          {
+ 554   1      
+ 555   1        //  data_t* p;
+ 556   1        //  static char i = 0;
+ 557   1        //    //void write_dgusii_vp(unsigned int addr,unsigned char *buf,unsigned int len)
+ 558   1        //  read_dgusii_vp(0x3010,(unsigned char *)&num_test,8);
+ 559   1        //  read_dgusii_vp(0x1000,(unsigned char *)&num_return,1);
+ 560   1      
+ 561   1        //  num_test = 0X03;
+ 562   1        //  static unsigned short module_type = 0;
+ 563   1        unsigned short default_channel = 4;
+ 564   1        //  USER_PRINTF("touch key value ---- %d\n",key);
+ 565   1        read_dgusii_vp(0x1001, (unsigned char *)&module_type, 1);
+ 566   1        // if (module_type < 0xff)
+ 567   1        //  USER_PRINTF("-->MODULE_TYPE = %d\n", module_type);
+ 568   1        switch (module_type)
+ 569   1        {
+ 570   2        case 0:
+ 571   2          module_type_bak = 0;
+ 572   2          write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[module_type_bak], 6);
+ 573   2      
+ 574   2          //      set_channel_nb();
+ 575   2          //      write_dgusii_vp(0x1000,(unsigned char *)&default_channel,1);
+ 576   2          module_type = 0xff;
+ 577   2          write_dgusii_vp(0x1001, (unsigned char *)&module_type, 1);
+ 578   2          // USER_PRINTF("-->module_type_bak = %d\n", module_type_bak);
+ 579   2          break;
+ 580   2        case 1:
+ 581   2          module_type_bak = 0;
+ 582   2          write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[module_type_bak], 6);
+ 583   2          //      set_channel_nb();
+ 584   2          write_dgusii_vp(0x1000, (unsigned char *)&default_channel, 1);
+ 585   2          module_type = 0xff;
+ 586   2          write_dgusii_vp(0x1001, (unsigned char *)&module_type, 1);
+ 587   2          // USER_PRINTF("-->module_type_bak = %d\n", module_type_bak);
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 11  
+
+ 588   2          break;
+ 589   2        case 2:
+ 590   2          module_type_bak = 1;
+ 591   2          write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[module_type_bak], 6);
+ 592   2          //      set_channel_nb();
+ 593   2          write_dgusii_vp(0x1000, (unsigned char *)&default_channel, 1);
+ 594   2          module_type = 0xff;
+ 595   2          write_dgusii_vp(0x1001, (unsigned char *)&module_type, 1);
+ 596   2          // USER_PRINTF("-->module_type_bak = %d\n", module_type_bak);
+ 597   2          break;
+ 598   2      
+ 599   2        case 3:
+ 600   2          module_type_bak = 2;
+ 601   2          write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[module_type_bak], 6);
+ 602   2          write_dgusii_vp(0x1000, (unsigned char *)&default_channel, 1);
+ 603   2          module_type = 0xff;
+ 604   2          write_dgusii_vp(0x1001, (unsigned char *)&module_type, 1);
+ 605   2          //      write_dgusii_vp(0x1002,(unsigned char *)&num4,1);
+ 606   2          // USER_PRINTF("-->module_type_bak = %d\n", module_type_bak);
+ 607   2          break;
+ 608   2        case 4:
+ 609   2          module_type_bak = 3;
+ 610   2          write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[module_type_bak], 6);
+ 611   2          write_dgusii_vp(0x1000, (unsigned char *)&default_channel, 1);
+ 612   2          module_type = 0xff;
+ 613   2          write_dgusii_vp(0x1001, (unsigned char *)&module_type, 1);
+ 614   2          //      USER_PRINTF("MODULE_TYPE = %bd\n",module_type);
+ 615   2          //      write_dgusii_vp(0x1002,(unsigned char *)&num4,1);
+ 616   2          //      write_dgusii_vp(0x1000,(unsigned char *)&num,1);
+ 617   2      
+ 618   2          //      enable_touch_set(72,9,0);
+ 619   2          // USER_PRINTF("-->module_type_bak = %d\n", module_type_bak);
+ 620   2          break;
+ 621   2        case 5:
+ 622   2          module_type_bak = 4;
+ 623   2          write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[module_type_bak], 6);
+ 624   2          write_dgusii_vp(0x1000, (unsigned char *)&default_channel, 1);
+ 625   2          module_type = 0xff;
+ 626   2          write_dgusii_vp(0x1001, (unsigned char *)&module_type, 1);
+ 627   2          //      write_dgusii_vp(0x1002,(unsigned char *)&num4,1);
+ 628   2          // USER_PRINTF("-->module_type_bak = %d\n", module_type_bak);
+ 629   2          //    pic_set(84);
+ 630   2          break;
+ 631   2        case 6:
+ 632   2          module_type_bak = 5;
+ 633   2          write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[module_type_bak], 6);
+ 634   2          write_dgusii_vp(0x1000, (unsigned char *)&default_channel, 1);
+ 635   2          module_type = 0xff;
+ 636   2          write_dgusii_vp(0x1001, (unsigned char *)&module_type, 1);
+ 637   2          //      write_dgusii_vp(0x1002,(unsigned char *)&num4,1);
+ 638   2          // USER_PRINTF("-->module_type_bak = %d\n", module_type_bak);
+ 639   2      
+ 640   2          //    pic_set(84);
+ 641   2          break;
+ 642   2        default:
+ 643   2      
+ 644   2          set_channel_nb();
+ 645   2          module_type = 0xff;
+ 646   2          write_dgusii_vp(0x1001, (unsigned char *)&module_type, 1);
+ 647   2          //    module_type_bak = 0;
+ 648   2          //    USER_PRINTF("-->module_type_bak = %d\n", module_type_bak);
+ 649   2          //      USER_PRINTF("module_type_default_run\n");
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 12  
+
+ 650   2          //      USER_PRINTF("module_type_bak = %d\n",module_type_bak);
+ 651   2          //      write_dgusii_vp(0x3010,&module_p[0],8);
+ 652   2          break;
+ 653   2        }
+ 654   1        //  return 1;
+ 655   1      }
+ 656          // D7=Äê(0-0x63) D6=ÔÂ(0-0x0C) D5=ÈÕ(0-0x1F) D4=ÐÇÆÚ£¨0-0x6£© D3=Ð¡Ê±(0-0x17) D2=·ÖÖÓ(0-0x3B) D1=Ãë(0-0x3B
+             -) D0 Î´¶¨Òå
+ 657          void read_sys_time(unsigned char *p)
+ 658          {
+ 659   1        read_dgusii_vp(0x10, p, 4);
+ 660   1      }
+ 661          // ÉèÖÃÊ±¼äÇ°¶ÁÈ¡Ò»ÏÂÊ±¼ä
+ 662          void read_dgus_time(void)
+ 663          {
+ 664   1        unsigned short key_nb = 0;
+ 665   1        unsigned char rtc_parm[8] = {0};
+ 666   1        //  read_dgusii_vp(0x0010,(u8*)rtcdata,4);  //Ð´ÈëDGUS±äÁ¿¿Õ¼ä
+ 667   1      
+ 668   1        //  read_dgusii_vp(0x1008,(unsigned char *)&key_nb,1);
+ 669   1        get_key_value(0x1008, &key_nb);
+ 670   1        if (5 == key_nb)
+ 671   1        {
+ 672   2          //    USER_PRINTF(" key_value --->%d\n", key_nb);
+ 673   2          read_sys_time(rtc_parm);
+ 674   2          //    read_dgusii_vp(0x10,rtc_parm,4);
+ 675   2          // ÖØÐÂÅÅÐòrtc_parm[3] = week
+ 676   2          rtc_parm[3] = rtc_parm[4];
+ 677   2          rtc_parm[4] = rtc_parm[5];
+ 678   2          rtc_parm[5] = rtc_parm[6];
+ 679   2          rtc_parm[6] = rtc_parm[7];
+ 680   2          rtc_parm[7] = 0;
+ 681   2          printf_tab(8, rtc_parm);
+ 682   2          //    key_nb = 0;
+ 683   2          USER_PRINTF("-->read_dgus_time\n");
+ 684   2          read_dgus(0x10);
+ 685   2          //    write_dgusii_vp(0x1008,(unsigned char *)&key_nb,1);
+ 686   2          clear_key_value(0x1008, &key_nb);
+ 687   2          write_dgusii_vp(0x9d, rtc_parm, 4);
+ 688   2        }
+ 689   1      }
+ 690          /**
+ 691           * @brief ÇÐ»»¼ÌµçÆ÷Ä£¿éÏÔÊ¾½çÃæ
+ 692           * @param {module_t} *pÄ£¿éÖ¸Õë
+ 693           * @param {unsigned char} relay_page¼ÌµçÆ÷Ò³Ãæ
+ 694           * @param {unsigned char} time_relay_pageÊ±¿Ø¼ÌµçÆ÷Ò³Ãæ
+ 695           * @param {unsigned char} *p_var_page¼ÇÂ¼µ±Ç°Ò³Ãæ
+ 696           * @return {*}
+ 697           */
+ 698          void relay_interface_trigger(module_t *p, unsigned char relay_page, unsigned char time_relay_page, unsigne
+             -d char *p_var_page)
+ 699          {
+ 700   1        if ((DOUBLE_RELAY_MODULE == p->type) || (SINGLE_RELAY_MODULE == p->type))
+ 701   1        {
+ 702   2          pic_set(relay_page);
+ 703   2          *p_var_page = relay_page;
+ 704   2        }
+ 705   1        else
+ 706   1        {
+ 707   2          pic_set(time_relay_page);
+ 708   2          *p_var_page = time_relay_page;
+ 709   2        }
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 13  
+
+ 710   1      }
+ 711          // ÏÔÊ¾¼ÌµçÆ÷Ä£¿é½çÃæ
+ 712          void display_relay_interface(module_t *p)
+ 713          {
+ 714   1        write_dgus(0x4088, p->adr);
+ 715   1        //      write_dgusii_vp(0x4088,(unsigned char *)&p->adr,1);
+ 716   1        write_dgusii_vp(0x4000, (unsigned char *)&p->module_name, 8);
+ 717   1        write_dgusii_vp(0x4008, (unsigned char *)&p->channel_name, 8 * 16);
+ 718   1        switch (p->channel_nb)
+ 719   1        {
+ 720   2        case 4:
+ 721   2          relay_interface_trigger(p, 38, 31, &var_previous_page);
+ 722   2          break;
+ 723   2        case 6:
+ 724   2          relay_interface_trigger(p, 39, 32, &var_previous_page);
+ 725   2          break;
+ 726   2        case 8:
+ 727   2          relay_interface_trigger(p, 40, 33, &var_previous_page);
+ 728   2      
+ 729   2          break;
+ 730   2        case 10:
+ 731   2          relay_interface_trigger(p, 41, 34, &var_previous_page);
+ 732   2          break;
+ 733   2        case 12:
+ 734   2          relay_interface_trigger(p, 42, 35, &var_previous_page);
+ 735   2          break;
+ 736   2        case 14:
+ 737   2          relay_interface_trigger(p, 43, 36, &var_previous_page);
+ 738   2          break;
+ 739   2        case 16:
+ 740   2          relay_interface_trigger(p, 44, 37, &var_previous_page);
+ 741   2          break;
+ 742   2        default:
+ 743   2          break;
+ 744   2        }
+ 745   1      }
+ 746          // ÏÔÊ¾µ÷¹âÄ£¿é½çÃæ
+ 747          void display_dim_interface(module_t *p)
+ 748          {
+ 749   1        write_dgus(0x4088, p->adr);
+ 750   1        //  write_dgusii_vp(0x4088,(unsigned char *)&p->adr,1);
+ 751   1        write_dgusii_vp(0x4000, (unsigned char *)&p->module_name, 8);
+ 752   1        write_dgusii_vp(0x4008, (unsigned char *)&p->channel_name, 8 * 16);
+ 753   1        switch (p->type)
+ 754   1        {
+ 755   2        case VOL_DIM_MODULE: // ÆÕÍ¨µ÷¹â
+ 756   2          pic_set(DIM_CTRL_PAGE);
+ 757   2          break;
+ 758   2        case SCR_DIM_MODULE: // ¿É¿Ø¹èµ÷¹â
+ 759   2          pic_set(SCR_CTRL_PAGE);
+ 760   2          break;
+ 761   2        default:
+ 762   2          break;
+ 763   2        }
+ 764   1      }
+ 765          void return_to_previous_page(void)
+ 766          {
+ 767   1        pic_set(var_previous_page);
+ 768   1      }
+ 769          void read_timing_module_parameter(module_t *p)
+ 770          {
+ 771   1        pack_data_send(&user_modbus, p->adr, MD_RD_HR, 35, 146);
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 14  
+
+ 772   1      }
+ 773          void timing_module_parameter_settings(module_t *p)
+ 774          {
+ 775   1        unsigned short key_nb = 0;
+ 776   1        get_key_value(0x10dd, &key_nb);
+ 777   1        if (key_nb)
+ 778   1        {
+ 779   2          channel_number = key_nb;
+ 780   2          // USER_PRINTF("-->channel number is %bd\n", channel_number);
+ 781   2          if (0x12 != key_nb)
+ 782   2            pack_data_send(&user_modbus, p->adr, MD_RD_HR, 35, 200); // ´Ó35¿ªÊ¼¶Á200¸ö
+ 783   2          clear_key_value(0x10dd, &key_nb);
+ 784   2        }
+ 785   1      }
+ 786          // ÏÔÊ¾Ä£¿é¼ÙÈÕ²ÎÊý
+ 787          void display_week_parameter(unsigned short week_enable_adr, unsigned char week_enable)
+ 788          {
+ 789   1        unsigned char i = 0;
+ 790   1        static unsigned char week_enable_bak = 0;
+ 791   1        if (week_enable_bak != week_enable)
+ 792   1        {
+ 793   2          week_enable_bak = week_enable;
+ 794   2          USER_PRINTF("-->week enable is %bd\n", week_enable);
+ 795   2          for (i = 0; i < 7; i++)
+ 796   2          {
+ 797   3            write_dgus(week_enable_adr + i, (week_enable >> i) & 0x01);
+ 798   3          }
+ 799   2        }
+ 800   1      }
+ 801          // ÏÔÊ¾Ä£¿é¹âÕÕ¶È²ÎÊý
+ 802          void display_solar_parameter(unsigned short solar_adr, unsigned short solar_en_adr, unsigned char solar_en
+             -able, unsigned char solar_up, unsigned char solar_down)
+ 803          {
+ 804   1        static unsigned char solar_down_bak = 15, solar_up_bak = 25, solar_en_bak = 0;
+ 805   1        if (solar_en_bak != solar_enable)
+ 806   1        {
+ 807   2          solar_en_bak = solar_enable;
+ 808   2          write_dgus(solar_en_adr, solar_enable);
+ 809   2        }
+ 810   1        if (solar_up_bak != solar_up)
+ 811   1        {
+ 812   2          solar_up_bak = solar_up;
+ 813   2          write_dgus(solar_adr + 1, solar_up);
+ 814   2        }
+ 815   1        if (solar_down_bak != solar_down)
+ 816   1        {
+ 817   2          solar_down_bak = solar_down;
+ 818   2          write_dgus(solar_adr, solar_down);
+ 819   2        }
+ 820   1      }
+ 821          
+ 822          // ÏÔÊ¾Ä£¿éÊ±¶Î²ÎÊý
+ 823          void display_time_frame_parameter(unsigned short time_frame_adr, unsigned char *p_data)
+ 824          {
+ 825   1        static unsigned char time_frame_bak[16] = {18, 30, 6, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+ 826   1        unsigned char i = 0;
+ 827   1        for (i = 0; i < 16; i++)
+ 828   1        {
+ 829   2          if (time_frame_bak[i] != p_data[i])
+ 830   2          {
+ 831   3            time_frame_bak[i] = p_data[i];
+ 832   3            write_dgus(time_frame_adr + i, p_data[i]);
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 15  
+
+ 833   3          }
+ 834   2        }
+ 835   1      }
+ 836          // ÏÔÊ¾Ä£¿é²ÎÊý
+ 837          void display_timing_module_parameter(module_t *p, unsigned char channel)
+ 838          {
+ 839   1        unsigned short week_enable_adr = 0;
+ 840   1        unsigned char week_enable = 0;
+ 841   1        unsigned short solar_adr = 0;
+ 842   1        unsigned short solar_en_adr = 0;
+ 843   1        unsigned char solar_enable = 0;
+ 844   1        unsigned char solar_up = 0;
+ 845   1        unsigned char solar_down = 0;
+ 846   1        unsigned short time_frame_adr = 0;
+ 847   1        unsigned char p_data[16] = {0};
+ 848   1        if (SINGLE_TIME_PARA_SET_PAGE != read_pic())
+ 849   1          return;
+ 850   1        //  USER_PRINTF("-->display_timing_module_parameter_page\n");
+ 851   1        if ((DOUBLE_TIME_RELAY_MODULE == p->type) && (mbHost.errTimes < MBH_ERR_MAX_TIMES))
+ 852   1        {
+ 853   2          solar_enable = HR[200 + channel] >> 15 & 0x01;
+ 854   2          solar_up = HR[200 + channel] >> 8 & 0x7f;
+ 855   2          solar_down = HR[200 + channel] & 0xff;
+ 856   2          memcpy(p_data, (unsigned char *)(HR + 53 + (channel - 1) * 8), 16);
+ 857   2        }
+ 858   1        else if ((SINGLE_TIME_RELAY_MODULE == p->type) && (mbHost.errTimes < MBH_ERR_MAX_TIMES))
+ 859   1        {
+ 860   2      
+ 861   2          solar_enable = (HR[160 + channel] >> 15) & 0x01;
+ 862   2          solar_up = (HR[160 + channel] >> 8) & 0x7f;
+ 863   2          solar_down = HR[160 + channel] & 0xff;
+ 864   2          memcpy(p_data, (unsigned char *)(HR + 49 + (channel - 1) * 8), 16);
+ 865   2        }
+ 866   1        else
+ 867   1        {
+ 868   2        }
+ 869   1        week_enable = ~HR[34 + channel];
+ 870   1        week_enable_adr = 0x10de;
+ 871   1        solar_en_adr = 0x10ed;
+ 872   1        solar_adr = 0x201d;
+ 873   1        time_frame_adr = 0x201f;
+ 874   1        write_dgus(0x201c, channel);
+ 875   1        //  USER_PRINTF("-->solar_enable is %bd\n",solar_enable);
+ 876   1        //  USER_PRINTF("-->solar_up is %bd\n",solar_up);
+ 877   1        //  USER_PRINTF("-->solar_down is %bd\n",solar_down);
+ 878   1        //  printf_tab(16,p_data);
+ 879   1        //  USER_PRINTF("-->solar_enable is %bd\n",solar_enable);
+ 880   1        display_week_parameter(week_enable_adr, week_enable);
+ 881   1        display_solar_parameter(solar_adr, solar_en_adr, solar_enable, solar_up, solar_down);
+ 882   1        display_time_frame_parameter(time_frame_adr, p_data);
+ 883   1      }
+ 884          // Í¨µÀÉèÖÃ
+ 885          unsigned short get_channel_set(struct this_module *p, unsigned char channel, unsigned char state)
+ 886          {
+ 887   1        unsigned short channel_enable = 0;
+ 888   1        switch (state)
+ 889   1        {
+ 890   2        case SINGLE_CHANNEL_STATE:
+ 891   2        case BATCH_CHANNEL_STATE:
+ 892   2          if ((DOUBLE_TIME_RELAY_MODULE == p->type))
+ 893   2          {
+ 894   3            channel_enable = (1 << channel) & 0xffff;
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 16  
+
+ 895   3          }
+ 896   2          else
+ 897   2          {
+ 898   3            channel_enable = ((1 << (channel + 3)) | 0X08) & 0xffff;
+ 899   3          }
+ 900   2          break;
+ 901   2        case SINGLE_CHANNELS_STATE:
+ 902   2        case BATCH_CHANNELS_STATE:
+ 903   2          channel_enable = 0xffff;
+ 904   2          break;
+ 905   2        }
+ 906   1        return channel_enable;
+ 907   1      }
+ 908          // ¼ÙÈÕÉèÖÃ
+ 909          void timing_module_parameter_week_enable_channel_send(struct this_module *p, unsigned char channel, unsign
+             -ed char state)
+ 910          {
+ 911   1        unsigned char week_adr_start = 0;
+ 912   1        unsigned char week_adr_end = 0;
+ 913   1        unsigned char data_len = 0;
+ 914   1        unsigned char week_enable = 0, i = 0;
+ 915   1        switch (state)
+ 916   1        {
+ 917   2        case SINGLE_CHANNEL_STATE:
+ 918   2          week_enable = (~get_timing_week_enable(0x10DE)) & 0xffff;
+ 919   2          break;
+ 920   2        case SINGLE_CHANNELS_STATE:
+ 921   2          week_enable = (~get_timing_week_enable(0x10e6)) & 0xffff;
+ 922   2          break;
+ 923   2        case BATCH_CHANNEL_STATE:
+ 924   2        case BATCH_CHANNELS_STATE:
+ 925   2          week_enable = (~get_timing_week_enable(0x1b05)) & 0xffff;
+ 926   2          break;
+ 927   2        default:
+ 928   2          break;
+ 929   2        }
+ 930   1        if ((DOUBLE_TIME_RELAY_MODULE == p->type))
+ 931   1        {
+ 932   2          week_adr_start = 34;
+ 933   2          data_len = 18;
+ 934   2          week_adr_end = 51;
+ 935   2        }
+ 936   1        else
+ 937   1        {
+ 938   2          week_adr_start = 34;
+ 939   2          data_len = 14;
+ 940   2          week_adr_end = 47;
+ 941   2        }
+ 942   1      
+ 943   1        // USER_PRINTF("-->channel_enable is %x\n", get_channel_set(p, channel, state));
+ 944   1        // USER_PRINTF("-->week_enable is %bx\n", week_enable);
+ 945   1        set_master_send_hr(master_send_hr, week_adr_start, get_channel_set(p, channel, state));
+ 946   1        for (i = 0; i < p->channel_nb; i++)
+ 947   1        {
+ 948   2          set_master_send_hr(master_send_hr, week_adr_start + 1 + i, week_enable);
+ 949   2        }
+ 950   1        set_master_send_hr(master_send_hr, week_adr_end, ENTERPRISE);
+ 951   1        pack_data_send(&user_modbus, p->adr, MD_FR_MHR, week_adr_start, data_len);
+ 952   1      }
+ 953          // ¹âÕÕÉèÖÃ
+ 954          void timing_module_parameter_solar_channel_send(struct this_module *p, unsigned char channel, unsigned cha
+             -r state)
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 17  
+
+ 955          {
+ 956   1        unsigned char solar_adr_start = 0;
+ 957   1        unsigned char solar_adr_end = 0;
+ 958   1        unsigned char data_len = 0;
+ 959   1        //  unsigned short channel_enable = 0;
+ 960   1        unsigned char solar_enable = 0, i = 0;
+ 961   1        unsigned char solar_up = 0, solar_down = 0;
+ 962   1        unsigned short solar_parameter = 0;
+ 963   1        switch (state)
+ 964   1        {
+ 965   2        case SINGLE_CHANNEL_STATE:
+ 966   2          solar_enable = read_dgus(0x10ed);
+ 967   2          solar_down = read_dgus(0x201d);
+ 968   2          solar_up = read_dgus(0x201e);
+ 969   2      
+ 970   2          break;
+ 971   2        case SINGLE_CHANNELS_STATE:
+ 972   2          //    channel_enable = 0xffff;
+ 973   2          solar_enable = read_dgus(0x10ee);
+ 974   2          solar_down = read_dgus(0x202f);
+ 975   2          solar_up = read_dgus(0x2030);
+ 976   2          break;
+ 977   2        case BATCH_CHANNEL_STATE:
+ 978   2        case BATCH_CHANNELS_STATE:
+ 979   2          solar_enable = read_dgus(0x1B20);
+ 980   2          solar_down = read_dgus(0x1B0D);
+ 981   2          solar_up = read_dgus(0x1B0E);
+ 982   2          break;
+ 983   2        default:
+ 984   2          break;
+ 985   2        }
+ 986   1        if ((DOUBLE_TIME_RELAY_MODULE == p->type))
+ 987   1        {
+ 988   2          solar_adr_start = 200;
+ 989   2          data_len = 18;
+ 990   2          solar_adr_end = 217;
+ 991   2        }
+ 992   1        else
+ 993   1        {
+ 994   2          solar_adr_start = 160;
+ 995   2          data_len = 14;
+ 996   2          solar_adr_end = 173;
+ 997   2        }
+ 998   1      
+ 999   1        solar_parameter = solar_enable << 15 | solar_up << 8 | solar_down;
+1000   1        set_master_send_hr(master_send_hr, solar_adr_start, get_channel_set(p, channel, state));
+1001   1        for (i = 0; i < p->channel_nb; i++)
+1002   1        {
+1003   2          set_master_send_hr(master_send_hr, solar_adr_start + 1 + i, solar_parameter);
+1004   2        }
+1005   1        set_master_send_hr(master_send_hr, solar_adr_end, ENTERPRISE);
+1006   1        pack_data_send(&user_modbus, p->adr, MD_FR_MHR, solar_adr_start, data_len);
+1007   1      }
+1008          // Ê±¶ÎÉèÖÃ
+1009          void timing_module_parameter_time_frame_channel_send(struct this_module *p, unsigned char channel, unsigne
+             -d char state)
+1010          {
+1011   1        unsigned char time_frame_adr_start = 0;
+1012   1        unsigned char time_frame_adr_end = 0;
+1013   1        unsigned char data_len = 0;
+1014   1        unsigned short time_frame_set_adr = 0;
+1015   1        //  unsigned short channel_enable = 0;
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 18  
+
+1016   1        unsigned char i = 0;
+1017   1        unsigned short time_frame_parameter[8] = 0;
+1018   1        switch (state)
+1019   1        {
+1020   2        case SINGLE_CHANNEL_STATE:
+1021   2          time_frame_set_adr = 0x201f;
+1022   2          //    time_frame_parameter[0] = read_dgus(0x201f) << 8 | read_dgus(0x2020);
+1023   2          //    time_frame_parameter[1] = read_dgus(0x2021) << 8 | read_dgus(0x2022);
+1024   2          //    time_frame_parameter[2] = read_dgus(0x2023) << 8 | read_dgus(0x2024);
+1025   2          //    time_frame_parameter[3] = read_dgus(0x2025) << 8 | read_dgus(0x2026);
+1026   2          //    time_frame_parameter[4] = read_dgus(0x2027) << 8 | read_dgus(0x2028);
+1027   2          //    time_frame_parameter[5] = read_dgus(0x2029) << 8 | read_dgus(0x202a);
+1028   2          //    time_frame_parameter[6] = read_dgus(0x202b) << 8 | read_dgus(0x202c);
+1029   2          //    time_frame_parameter[7] = read_dgus(0x202d) << 8 | read_dgus(0x202e);
+1030   2      
+1031   2          break;
+1032   2        case SINGLE_CHANNELS_STATE:
+1033   2          time_frame_set_adr = 0x2031;
+1034   2          //    time_frame_parameter[0] = read_dgus(0x2031) << 8 | read_dgus(0x2032);
+1035   2          //    time_frame_parameter[1] = read_dgus(0x2033) << 8 | read_dgus(0x2034);
+1036   2          //    time_frame_parameter[2] = read_dgus(0x2035) << 8 | read_dgus(0x2036);
+1037   2          //    time_frame_parameter[3] = read_dgus(0x2037) << 8 | read_dgus(0x2038);
+1038   2          //    time_frame_parameter[4] = read_dgus(0x2039) << 8 | read_dgus(0x203a);
+1039   2          //    time_frame_parameter[5] = read_dgus(0x203b) << 8 | read_dgus(0x203c);
+1040   2          //    time_frame_parameter[6] = read_dgus(0x203d) << 8 | read_dgus(0x203e);
+1041   2          //    time_frame_parameter[7] = read_dgus(0x203f) << 8 | read_dgus(0x2040);
+1042   2          break;
+1043   2        case BATCH_CHANNEL_STATE:
+1044   2        case BATCH_CHANNELS_STATE:
+1045   2          time_frame_set_adr = 0X1B10;
+1046   2      
+1047   2          break;
+1048   2        default:
+1049   2          break;
+1050   2        }
+1051   1        time_frame_parameter[0] = read_dgus(time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
+1052   1        time_frame_parameter[1] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
+1053   1        time_frame_parameter[2] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
+1054   1        time_frame_parameter[3] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
+1055   1        time_frame_parameter[4] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
+1056   1        time_frame_parameter[5] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
+1057   1        time_frame_parameter[6] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
+1058   1        time_frame_parameter[7] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
+1059   1        if ((DOUBLE_TIME_RELAY_MODULE == p->type))
+1060   1        {
+1061   2          time_frame_adr_start = 52;
+1062   2          data_len = 130;
+1063   2          time_frame_adr_end = 181;
+1064   2        }
+1065   1        else
+1066   1        {
+1067   2          time_frame_adr_start = 48;
+1068   2          data_len = 98;
+1069   2          time_frame_adr_end = 145;
+1070   2        }
+1071   1        set_master_send_hr(master_send_hr, time_frame_adr_start, get_channel_set(p, channel, state));
+1072   1        // USER_PRINTF("-->p->channel_nb is %bd\n", p->channel_nb);
+1073   1        for (i = 0; i < p->channel_nb; i++)
+1074   1        {
+1075   2          set_master_send_hr(master_send_hr, time_frame_adr_start + 1 + i * 8, time_frame_parameter[0]);
+1076   2          set_master_send_hr(master_send_hr, time_frame_adr_start + 2 + i * 8, time_frame_parameter[1]);
+1077   2          set_master_send_hr(master_send_hr, time_frame_adr_start + 3 + i * 8, time_frame_parameter[2]);
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 19  
+
+1078   2          set_master_send_hr(master_send_hr, time_frame_adr_start + 4 + i * 8, time_frame_parameter[3]);
+1079   2          set_master_send_hr(master_send_hr, time_frame_adr_start + 5 + i * 8, time_frame_parameter[4]);
+1080   2          set_master_send_hr(master_send_hr, time_frame_adr_start + 6 + i * 8, time_frame_parameter[5]);
+1081   2          set_master_send_hr(master_send_hr, time_frame_adr_start + 7 + i * 8, time_frame_parameter[6]);
+1082   2          set_master_send_hr(master_send_hr, time_frame_adr_start + 8 + i * 8, time_frame_parameter[7]);
+1083   2        }
+1084   1        set_master_send_hr(master_send_hr, time_frame_adr_end, ENTERPRISE);
+1085   1        pack_data_send(&user_modbus, p->adr, MD_FR_MHR, time_frame_adr_start, data_len);
+1086   1      }
+1087          // ¶þÑ¡Ò»
+1088          unsigned char select_either_or_single(unsigned short key_adr, unsigned short adr1, unsigned short adr2)
+1089          {
+1090   1        unsigned short key_nb = 0;
+1091   1        get_key_value(key_adr, &key_nb);
+1092   1        if (key_nb)
+1093   1        {
+1094   2          switch (key_nb)
+1095   2          {
+1096   3          case 1:
+1097   3            if ((1 == read_dgus(adr1)))
+1098   3            {
+1099   4              write_dgus(adr1, 0);
+1100   4              write_dgus(adr2, 1);
+1101   4            }
+1102   3            else if (0 == read_dgus(adr1))
+1103   3            {
+1104   4              write_dgus(adr1, 1);
+1105   4              write_dgus(adr2, 0);
+1106   4            }
+1107   3            break;
+1108   3          case 2:
+1109   3            if ((1 == read_dgus(adr2)))
+1110   3            {
+1111   4              write_dgus(adr1, 1);
+1112   4              write_dgus(adr2, 0);
+1113   4            }
+1114   3            else if (0 == read_dgus(adr2))
+1115   3            {
+1116   4              write_dgus(adr1, 0);
+1117   4              write_dgus(adr2, 1);
+1118   4            }
+1119   3            break;
+1120   3          default:
+1121   3            break;
+1122   3          }
+1123   2          clear_key_value(key_adr, &key_nb);
+1124   2          return 1;
+1125   2        }
+1126   1        return 0;
+1127   1      }
+1128          // ¶þÑ¡Ò»Ñ¡Ôñ¿ò¿ØÖÆ
+1129          void select_either_or_all(void)
+1130          {
+1131   1        select_either_or_single(0x1117, 0x110d, 0x110e);
+1132   1        select_either_or_single(0x1118, 0x110f, 0x1110);
+1133   1        select_either_or_single(0x1119, 0x1111, 0x1112);
+1134   1        select_either_or_single(0x111a, 0x1113, 0x1114);
+1135   1        select_either_or_single(0x111b, 0x1115, 0x1116);
+1136   1      }
+1137          // ¾­Î³¶ÈÉèÖÃ
+1138          void timing_module_parameter_ongitude_latitude_send(struct this_module *p)
+1139          {
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 20  
+
+1140   1      
+1141   1        set_master_send_hr(master_send_hr, 23, 0X88 << 8 | read_dgus(0x1111) << 7 | read_dgus(0x1110) << 6 | read
+             -_dgus(0x110E) << 4 | read_dgus(0x2041));
+1142   1        set_master_send_hr(master_send_hr, 24, read_dgus(0x2042)); // ¾­¶ÈL
+1143   1        set_master_send_hr(master_send_hr, 25, read_dgus(0x2043)); // ¾­¶ÈH
+1144   1        set_master_send_hr(master_send_hr, 26, read_dgus(0x2044)); // Î³¶ÈL
+1145   1        set_master_send_hr(master_send_hr, 27, read_dgus(0x2045)); // Î³¶ÈH
+1146   1        set_master_send_hr(master_send_hr, 28, ENTERPRISE);
+1147   1        // ÈÕÂä¼Ó¼õ1 Æ«ÒÆÊ±¼ä7¸ß°Ë  ÈÕ³ö¼Ó¼õ1 Æ«ÒÆÊ±¼ä7µÍ°Ë
+1148   1        set_master_send_hr(master_send_hr, 29, read_dgus(0x1701) << 15 | read_dgus(0x2047) << 8 | read_dgus(0x170
+             -0) << 7 | read_dgus(0x2046));
+1149   1        // ÈÕ³öÈÕÂäÍ¨µÀÊ¹ÄÜÎ»
+1150   1        set_master_send_hr(master_send_hr, 30, read_dgus(0x10FF) << 15 | read_dgus(0x10FE) << 14 | read_dgus(0x10
+             -FD) << 13 | read_dgus(0x10FC) << 12 | read_dgus(0x10FB) << 11 | read_dgus(0x10FA) << 10 | read_dgus(0x10F9) << 9 | read_
+             -dgus(0x10F8) << 8 | read_dgus(0x10F7) << 7 | read_dgus(0x10F6) << 6 | read_dgus(0x10F5) << 5 | read_dgus(0x10F4) << 4 | 
+             -read_dgus(0x10F3) << 3 | read_dgus(0x10F2) << 2 | read_dgus(0x10F1) << 1 | read_dgus(0x10F0));
+1151   1      
+1152   1        pack_data_send(&user_modbus, p->adr, MD_FR_MHR, 23, 8);
+1153   1      }
+1154          // Ê±¼äÉèÖÃ
+1155          void timing_module_parameter_time_send(struct this_module *p)
+1156          {
+1157   1        set_master_send_hr(master_send_hr, 241, 0x88);
+1158   1        set_master_send_hr(master_send_hr, 242, read_dgus(0x2048));
+1159   1        set_master_send_hr(master_send_hr, 243, read_dgus(0x2049));
+1160   1        set_master_send_hr(master_send_hr, 244, read_dgus(0x204a));
+1161   1        set_master_send_hr(master_send_hr, 245, read_dgus(0x204b));
+1162   1        set_master_send_hr(master_send_hr, 246, read_dgus(0x204c));
+1163   1        set_master_send_hr(master_send_hr, 247, read_dgus(0x204d));
+1164   1        set_master_send_hr(master_send_hr, 248, read_dgus(0x204e));
+1165   1        set_master_send_hr(master_send_hr, 249, ENTERPRISE);
+1166   1        // USER_PRINTF("-->p->adr is %bd\n", p->adr);
+1167   1        pack_data_send(&user_modbus, p->adr, MD_FR_MHR, 241, 9);
+1168   1      }
+1169          // ²ÎÊý·¢ËÍ¿ØÖÆ
+1170          void timing_module_parameter_key_ctrl(struct this_module *p, unsigned char channel)
+1171          {
+1172   1        unsigned short key_nb = 0;
+1173   1        get_key_value(0x10E5, &key_nb);
+1174   1        if (key_nb)
+1175   1        {
+1176   2          switch (key_nb)
+1177   2          {
+1178   3          case 1:
+1179   3            timing_module_parameter_week_enable_channel_send(p, channel, SINGLE_CHANNEL_STATE);
+1180   3            break;
+1181   3          case 2:
+1182   3            timing_module_parameter_solar_channel_send(p, channel, SINGLE_CHANNEL_STATE);
+1183   3            break;
+1184   3          case 3:
+1185   3            timing_module_parameter_time_frame_channel_send(p, channel, SINGLE_CHANNEL_STATE);
+1186   3            break;
+1187   3          case 4:
+1188   3            return_to_previous_page();
+1189   3            break;
+1190   3          case 0xa:
+1191   3            timing_module_parameter_ongitude_latitude_send(p);
+1192   3            break;
+1193   3          case 0xb:
+1194   3            timing_module_parameter_time_send(p);
+1195   3            break;
+1196   3          case 0x11:
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 21  
+
+1197   3            timing_module_parameter_week_enable_channel_send(p, channel, SINGLE_CHANNELS_STATE);
+1198   3            break;
+1199   3          case 0x12:
+1200   3            timing_module_parameter_solar_channel_send(p, channel, SINGLE_CHANNELS_STATE);
+1201   3            break;
+1202   3          case 0x13:
+1203   3            timing_module_parameter_time_frame_channel_send(p, channel, SINGLE_CHANNELS_STATE);
+1204   3            break;
+1205   3          case 0x14:
+1206   3            return_to_previous_page();
+1207   3            break;
+1208   3          default:
+1209   3            break;
+1210   3          }
+1211   2          //    pack_data_send(&user_modbus,p->adr,MD_RD_HR,35,146);//´Ó35¿ªÊ¼¶Á146¸ö
+1212   2          clear_key_value(0x10E5, &key_nb);
+1213   2        }
+1214   1      }
+1215          unsigned short led_sta[16] = {0};
+1216          // Çå¿Õled×´Ì¬
+1217          void clear_led_sta(unsigned short *p)
+1218          {
+1219   1        unsigned char i = 0;
+1220   1        for (i = 0; i < 16; i++)
+1221   1        {
+1222   2          *(p + i) = 0;
+1223   2        }
+1224   1      }
+1225          // ¶Á¼ÌµçÆ÷×´Ì¬
+1226          void relay_read(module_t *p)
+1227          {
+1228   1        pack_data_send(&user_modbus, p->adr, MD_RD_HR, 32, 1);
+1229   1      }
+1230          // ¼ÌµçÆ÷¿ØÖÆ
+1231          void relay_single_ctrl(module_t *p)
+1232          {
+1233   1      
+1234   1        unsigned short key_nb = 0;
+1235   1        unsigned char i = 0;
+1236   1        unsigned char single_key_tab[5][12] =
+1237   1            {
+1238   1                {2, 4, 11, 9},                           // 4Â·
+1239   1                {2, 3, 4, 11, 10, 9},                    // 6Â·
+1240   1                {2, 3, 4, 6, 7, 11, 10, 9},              // 8Â·
+1241   1                {1, 2, 3, 4, 5, 12, 11, 10, 9, 8},       // 10Â·
+1242   1                {1, 2, 3, 4, 5, 6, 7, 12, 11, 10, 9, 8}, // 12Â·
+1243   1            };
+1244   1        unsigned char double_key_tab[16] = {0x01, 0x02, 0x04, 0x05, 12, 11, 9, 8, 0x81, 0x82, 0x84, 0x85, 0x8c, 0
+             -x8b, 0x89, 0x88};
+1245   1        get_key_value(0x1010, &key_nb);
+1246   1        if (HR[32] != g_var_module.led_sta_bak) // ×´Ì¬±ä»»
+1247   1      
+1248   1        {
+1249   2          USER_PRINTF("-->relay state has been changed!\n");
+1250   2          g_var_module.led_sta_bak = HR[32];
+1251   2          // USER_PRINTF("-->g_var_module.led_sta_bak is %d!\n", g_var_module.led_sta_bak);
+1252   2          for (i = 0; i < 16; i++)
+1253   2          {
+1254   3            led_sta[i] = (HR[32] >> i) & 0x01;
+1255   3            write_dgusii_vp(0x1030 + i, (unsigned char *)&led_sta[i], 1);
+1256   3            //      sys_delay_about_ms(1);
+1257   3          }
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 22  
+
+1258   2        }
+1259   1        if (key_nb)
+1260   1        {
+1261   2      
+1262   2          led_sta[key_nb - 1] ^= 1;
+1263   2          printf_tab(32, (unsigned char *)&led_sta[0]);
+1264   2          write_dgusii_vp(0x1030 + key_nb - 1, (unsigned char *)&led_sta[key_nb - 1], 1);
+1265   2          if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
+1266   2          {
+1267   3            if (4 == p->channel_nb)
+1268   3              set_master_send_hr(master_send_hr, 0, single_key_tab[0][key_nb - 1]);
+1269   3            else if (6 == p->channel_nb)
+1270   3              set_master_send_hr(master_send_hr, 0, single_key_tab[1][key_nb - 1]);
+1271   3            else if (8 == p->channel_nb)
+1272   3              set_master_send_hr(master_send_hr, 0, single_key_tab[2][key_nb - 1]);
+1273   3            else if (10 == p->channel_nb)
+1274   3              set_master_send_hr(master_send_hr, 0, single_key_tab[3][key_nb - 1]);
+1275   3            else if (12 == p->channel_nb)
+1276   3              set_master_send_hr(master_send_hr, 0, single_key_tab[4][key_nb - 1]);
+1277   3          }
+1278   2          else if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+1279   2          {
+1280   3            set_master_send_hr(master_send_hr, 0, double_key_tab[key_nb - 1]);
+1281   3          }
+1282   2          set_master_send_hr(master_send_hr, 1, ENTERPRISE);
+1283   2          pack_data_send(&user_modbus, p->adr, MD_FR_MHR, 0, 2);
+1284   2          HR[32] = g_var_module.led_sta_bak = master_send_hr[32];
+1285   2          clear_key_value(0x1010, &key_nb);
+1286   2        }
+1287   1      }
+1288          // ¼ÌµçÆ÷È«¿ªÈ«¹Ø
+1289          void relay_all_ctrl(module_t *p)
+1290          {
+1291   1        unsigned char i = 0;
+1292   1        unsigned short key_nb = 0;
+1293   1        get_key_value(0x100c, &key_nb);
+1294   1        if ((1 == key_nb) || (2 == key_nb))
+1295   1        {
+1296   2          for (i = 0; i < 16; i++)
+1297   2          {
+1298   3            led_sta[i] = key_nb > 1 ? 0 : 1;
+1299   3            write_dgusii_vp(0x1030 + i, (unsigned char *)&led_sta[i], 1);
+1300   3          }
+1301   2          set_master_send_hr(master_send_hr, 31, 0xffff);
+1302   2          set_master_send_hr(master_send_hr, 32, key_nb > 1 ? 0 : 0xffff);
+1303   2          set_master_send_hr(master_send_hr, 33, ENTERPRISE);
+1304   2          pack_data_send(&user_modbus, p->adr, MD_FR_MHR, 31, 3);
+1305   2          clear_key_value(0x100c, &key_nb);
+1306   2          HR[32] = g_var_module.led_sta_bak = master_send_hr[32];
+1307   2        }
+1308   1      }
+1309          // ·¢ËÍ¼ÌµçÆ÷¿ª¹Ø¹ã²¥ÃüÁî
+1310          void all_module_on_off(void)
+1311          {
+1312   1        unsigned short key_nb = 0;
+1313   1        get_key_value(RELAY_MODULE_KEY_ALL_ON_ADR, &key_nb);
+1314   1        if ((1 == key_nb))
+1315   1        {
+1316   2          set_master_send_hr(master_send_hr, 31, 0xffff);
+1317   2          set_master_send_hr(master_send_hr, 32, 0xffff);
+1318   2          set_master_send_hr(master_send_hr, 33, ENTERPRISE);
+1319   2          pack_data_send(&user_modbus, 0, MD_FR_MHR, 31, 3);
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 23  
+
+1320   2          clear_key_value(RELAY_MODULE_KEY_ALL_ON_ADR, &key_nb);
+1321   2          HR[32] = g_var_module.led_sta_bak = 0xffff;
+1322   2        }
+1323   1        get_key_value(RELAY_MODULE_KEY_ALL_OFF_ADR, &key_nb);
+1324   1        if ((1 == key_nb))
+1325   1        {
+1326   2          set_master_send_hr(master_send_hr, 31, 0xffff);
+1327   2          set_master_send_hr(master_send_hr, 32, 0);
+1328   2          set_master_send_hr(master_send_hr, 33, ENTERPRISE);
+1329   2          pack_data_send(&user_modbus, 0, MD_FR_MHR, 31, 3);
+1330   2          clear_key_value(RELAY_MODULE_KEY_ALL_OFF_ADR, &key_nb);
+1331   2          HR[32] = g_var_module.led_sta_bak = 0;
+1332   2        }
+1333   1      }
+1334          // ¼ÌµçÆ÷×´Ì¬Ë¢ÐÂ
+1335          void relay_refesh(module_t *p)
+1336          {
+1337   1        unsigned short key_nb = 0;
+1338   1        get_key_value(0x100c, &key_nb);
+1339   1        if (3 == key_nb)
+1340   1        {
+1341   2          pack_data_send(&user_modbus, p->adr, MD_RD_HR, 32, 1);
+1342   2      
+1343   2          clear_key_value(0x100c, &key_nb);
+1344   2        }
+1345   1      }
+1346          // ¼ÌµçÆ÷½çÃæ¿ØÖÆ
+1347          void relay_ctrl(module_t *p)
+1348          {
+1349   1        relay_single_ctrl(p);
+1350   1        relay_all_ctrl(p);
+1351   1        relay_refesh(p);
+1352   1      }
+1353          // ¶Áµ÷¹â
+1354          void dim_read(module_t *p)
+1355          {
+1356   1        delay_us(1000);
+1357   1        pack_data_send(&user_modbus, p->adr, MD_RD_HR, 23, 4);
+1358   1      }
+1359          // µ÷¹â¿ØÖÆ
+1360          void dim_single_ctrl(module_t *p)
+1361          {
+1362   1        unsigned char i = 0;
+1363   1        static unsigned char dim_send_flag = 0, key_down_flag = 0, key_up_flag = 0;
+1364   1        unsigned short key_nb = 0;
+1365   1        unsigned short y_coordinate = 0;
+1366   1        unsigned short x_coordinate = 0;
+1367   1        unsigned char dim_gear[8] = {0};
+1368   1        unsigned char touch_sta[8] = {0};
+1369   1        for (i = 0; i < 4; i++)
+1370   1        {
+1371   2          if (g_var_module.dim_light_bak[i] != HR[23 + i])
+1372   2          {
+1373   3            USER_PRINTF("-->dim state has been changed!\n");
+1374   3            g_var_module.dim_light_bak[i] = HR[23 + i];
+1375   3            if (VOL_DIM_MODULE == p->type)
+1376   3            {
+1377   4      
+1378   4              write_dgus(0x1100 + i, g_var_module.dim_light_bak[i]);
+1379   4            }
+1380   3            else
+1381   3            {
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 24  
+
+1382   4              write_dgus(0x1013 + i, g_var_module.dim_light_bak[i]);
+1383   4            }
+1384   3          }
+1385   2          //    sys_delay_about_ms(1);
+1386   2        }
+1387   1        if ((DIM_CTRL_PAGE == read_pic()) || (SCR_CTRL_PAGE == read_pic()))
+1388   1        {
+1389   2      
+1390   2          //    USER_PRINTF("display_pic_dim_edit \n");
+1391   2          read_dgusii_vp(0x16, touch_sta, 4);
+1392   2          if (touch_sta[0])
+1393   2          {
+1394   3            printf_tab(8, touch_sta);
+1395   3      
+1396   3            y_coordinate = touch_sta[4] * 256 + touch_sta[5];
+1397   3            x_coordinate = touch_sta[2] * 256 + touch_sta[3];
+1398   3            if ((3 == touch_sta[1]) && (0 == key_down_flag))
+1399   3            {
+1400   4              key_down_flag = 1;
+1401   4              key_up_flag = 0;
+1402   4              USER_PRINTF("-->key_down_flag = 1 \n");
+1403   4            }
+1404   3            else if ((2 == touch_sta[1]) && (1 == key_down_flag))
+1405   3            {
+1406   4              key_down_flag = 3;
+1407   4              key_up_flag = 0;
+1408   4              USER_PRINTF("-->key_down_flag = 3 \n");
+1409   4            }
+1410   3            else if ((2 == touch_sta[1]) && (0 == key_down_flag) && (0 == key_up_flag))
+1411   3            {
+1412   4              key_up_flag = 1;
+1413   4              USER_PRINTF("-->key_up_flag = 1 \n");
+1414   4            }
+1415   3            touch_sta[0] = 0;
+1416   3            touch_sta[1] = 0;
+1417   3            touch_sta[2] = 0;
+1418   3            touch_sta[3] = 0;
+1419   3            touch_sta[4] = 0;
+1420   3            touch_sta[5] = 0;
+1421   3            write_dgusii_vp(0x16, touch_sta, 4);
+1422   3            USER_PRINTF("-->x_coordinate = %d,y_coordinate = %d \n", x_coordinate, y_coordinate);
+1423   3          }
+1424   2      
+1425   2          set_master_send_hr(master_send_hr, 27, ENTERPRISE);
+1426   2          if (VOL_DIM_MODULE == p->type)
+1427   2          {
+1428   3            read_dgusii_vp(0x1100, dim_gear, 4);
+1429   3            //      set_master_send_hr(master_send_hr,22,0xffff);
+1430   3            //      set_master_send_hr(master_send_hr,23,dim_gear[1]);
+1431   3            //      set_master_send_hr(master_send_hr,24,dim_gear[3]);
+1432   3            //      set_master_send_hr(master_send_hr,25,dim_gear[5]);
+1433   3            //      set_master_send_hr(master_send_hr,26,dim_gear[7]);
+1434   3          }
+1435   2          else
+1436   2          {
+1437   3            read_dgusii_vp(0x1013, dim_gear, 4);
+1438   3          }
+1439   2          set_master_send_hr(master_send_hr, 22, 0xffff);
+1440   2          set_master_send_hr(master_send_hr, 23, dim_gear[1]);
+1441   2          set_master_send_hr(master_send_hr, 24, dim_gear[3]);
+1442   2          set_master_send_hr(master_send_hr, 25, dim_gear[5]);
+1443   2          set_master_send_hr(master_send_hr, 26, dim_gear[7]);
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 25  
+
+1444   2          HR[23] = g_var_module.dim_light_bak[0] = master_send_hr[23];
+1445   2          HR[24] = g_var_module.dim_light_bak[1] = master_send_hr[24];
+1446   2          HR[25] = g_var_module.dim_light_bak[2] = master_send_hr[25];
+1447   2          HR[26] = g_var_module.dim_light_bak[3] = master_send_hr[26];
+1448   2          if (((y_coordinate > 262) && (y_coordinate < 550) && ((3 == key_down_flag) || (1 == key_up_flag))))
+1449   2      
+1450   2          {
+1451   3            USER_PRINTF("-->send--OK \n");
+1452   3            dim_send_flag = 1;
+1453   3            key_down_flag = 0;
+1454   3            key_up_flag = 0;
+1455   3          }
+1456   2      
+1457   2          //    USER_PRINTF("g_var_module.dim_light_bak-->");
+1458   2          //    printf_tab(8,g_var_module.dim_light_bak);
+1459   2          if (1 == dim_send_flag)
+1460   2          {
+1461   3            //      USER_PRINTF("dim_send_flag --> 1 \n");
+1462   3            dim_send_flag = 0;
+1463   3            pack_data_send(&user_modbus, p->adr, MD_FR_MHR, 22, 6);
+1464   3      
+1465   3            USER_PRINTF("-->DIM_MODULE dim_send_ok  \n");
+1466   3          }
+1467   2        }
+1468   1        else
+1469   1        {
+1470   2          key_down_flag = 0;
+1471   2          key_up_flag = 0;
+1472   2        }
+1473   1      }
+1474          // µ÷¹âÈ«¿ªÈ«¹Ø
+1475          void dim_all_ctrl(module_t *p)
+1476          {
+1477   1        //  unsigned char i = 0;
+1478   1        unsigned short key_nb = 0;
+1479   1        //  unsigned char dim_gear[8] = {0};
+1480   1        get_key_value(0x100c, &key_nb);
+1481   1        if ((0x11 == key_nb) || (0x12 == key_nb))
+1482   1        {
+1483   2      
+1484   2          set_master_send_hr(master_send_hr, 22, 0xffff);
+1485   2          set_master_send_hr(master_send_hr, 23, p->type == VOL_DIM_MODULE ? (key_nb > 0x11 ? 0 : 10) : (key_nb > 
+             -0x11 ? 0 : 100));
+1486   2          set_master_send_hr(master_send_hr, 24, p->type == VOL_DIM_MODULE ? (key_nb > 0x11 ? 0 : 10) : (key_nb > 
+             -0x11 ? 0 : 100));
+1487   2          set_master_send_hr(master_send_hr, 25, p->type == VOL_DIM_MODULE ? (key_nb > 0x11 ? 0 : 10) : (key_nb > 
+             -0x11 ? 0 : 100));
+1488   2          set_master_send_hr(master_send_hr, 26, p->type == VOL_DIM_MODULE ? (key_nb > 0x11 ? 0 : 10) : (key_nb > 
+             -0x11 ? 0 : 100));
+1489   2          set_master_send_hr(master_send_hr, 27, ENTERPRISE);
+1490   2          pack_data_send(&user_modbus, p->adr, MD_FR_MHR, 22, 6);
+1491   2          clear_key_value(0x100c, &key_nb);
+1492   2          write_dgusii_vp(VOL_DIM_MODULE == p->type ? 0x1100 : 0x1013, (unsigned char *)(master_send_hr + 23), 4);
+1493   2          HR[23] = g_var_module.dim_light_bak[0] = master_send_hr[23];
+1494   2          HR[24] = g_var_module.dim_light_bak[1] = master_send_hr[24];
+1495   2          HR[25] = g_var_module.dim_light_bak[2] = master_send_hr[25];
+1496   2          HR[26] = g_var_module.dim_light_bak[3] = master_send_hr[26];
+1497   2        }
+1498   1      }
+1499          // ·¢ËÍ¿ª¹Ø¹ã²¥ÃüÁî
+1500          void all_dim_on_off(void)
+1501          {
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 26  
+
+1502   1        //  unsigned char i = 0;
+1503   1        unsigned short key_nb = 0;
+1504   1        //  unsigned char dim_gear[8] = {0};
+1505   1        get_key_value(DIM_MODULE_KEY_ALL_ON_ADR, &key_nb);
+1506   1        if (1 == key_nb)
+1507   1        {
+1508   2      
+1509   2          set_master_send_hr(master_send_hr, 22, 0xffff);
+1510   2          set_master_send_hr(master_send_hr, 23, 100);
+1511   2          set_master_send_hr(master_send_hr, 24, 100);
+1512   2          set_master_send_hr(master_send_hr, 25, 100);
+1513   2          set_master_send_hr(master_send_hr, 26, 100);
+1514   2          set_master_send_hr(master_send_hr, 27, ENTERPRISE);
+1515   2          pack_data_send(&user_modbus, 0, MD_FR_MHR, 22, 6);
+1516   2          clear_key_value(DIM_MODULE_KEY_ALL_ON_ADR, &key_nb);
+1517   2          HR[23] = g_var_module.dim_light_bak[0] = master_send_hr[23];
+1518   2          HR[24] = g_var_module.dim_light_bak[1] = master_send_hr[24];
+1519   2          HR[25] = g_var_module.dim_light_bak[2] = master_send_hr[25];
+1520   2          HR[26] = g_var_module.dim_light_bak[3] = master_send_hr[26];
+1521   2        }
+1522   1        get_key_value(DIM_MODULE_KEY_ALL_OFF_ADR, &key_nb);
+1523   1        if (1 == key_nb)
+1524   1        {
+1525   2      
+1526   2          set_master_send_hr(master_send_hr, 22, 0xffff);
+1527   2          set_master_send_hr(master_send_hr, 23, 0);
+1528   2          set_master_send_hr(master_send_hr, 24, 0);
+1529   2          set_master_send_hr(master_send_hr, 25, 0);
+1530   2          set_master_send_hr(master_send_hr, 26, 0);
+1531   2          set_master_send_hr(master_send_hr, 27, ENTERPRISE);
+1532   2          pack_data_send(&user_modbus, 0, MD_FR_MHR, 22, 6);
+1533   2          clear_key_value(DIM_MODULE_KEY_ALL_OFF_ADR, &key_nb);
+1534   2          HR[23] = g_var_module.dim_light_bak[0] = master_send_hr[23];
+1535   2          HR[24] = g_var_module.dim_light_bak[1] = master_send_hr[24];
+1536   2          HR[25] = g_var_module.dim_light_bak[2] = master_send_hr[25];
+1537   2          HR[26] = g_var_module.dim_light_bak[3] = master_send_hr[26];
+1538   2        }
+1539   1      }
+1540          // µ÷¹â×´Ì¬Ë¢ÐÂ
+1541          void dim_refesh(module_t *p)
+1542          {
+1543   1        unsigned short key_nb = 0;
+1544   1        get_key_value(0x100c, &key_nb);
+1545   1        if (0x13 == key_nb)
+1546   1        {
+1547   2          pack_data_send(&user_modbus, p->adr, MD_RD_HR, 23, 4);
+1548   2      
+1549   2          clear_key_value(0x100c, &key_nb);
+1550   2        }
+1551   1      }
+1552          // µ÷¹â½çÃæ¿ØÖÆ
+1553          void dim_ctrl(module_t *p)
+1554          {
+1555   1        dim_single_ctrl(p);
+1556   1        dim_all_ctrl(p);
+1557   1        dim_refesh(p);
+1558   1      }
+1559          // ÏÔÊ¾ÉèÖÃ½çÃæ
+1560          void display_interface(module_t *p)
+1561          {
+1562   1        if (0 == p->data_sta)
+1563   1        {
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 27  
+
+1564   2          return;
+1565   2        }
+1566   1        switch (p->type)
+1567   1        {
+1568   2        case SINGLE_RELAY_MODULE:
+1569   2        case SINGLE_TIME_RELAY_MODULE:
+1570   2        case DOUBLE_RELAY_MODULE:
+1571   2        case DOUBLE_TIME_RELAY_MODULE:
+1572   2      
+1573   2          display_relay_interface(p);
+1574   2          USER_PRINTF("-->display_relay_interface\n");
+1575   2          relay_read(p);
+1576   2          break;
+1577   2        case VOL_DIM_MODULE:
+1578   2        case SCR_DIM_MODULE:
+1579   2          clear_touch_sta();
+1580   2          display_dim_interface(p);
+1581   2          USER_PRINTF("-->display_dim_interface\n");
+1582   2          dim_read(p);
+1583   2          break;
+1584   2        default:
+1585   2      
+1586   2          break;
+1587   2        }
+1588   1      }
+1589          // ´ò¿ªÄ£¿é
+1590          
+1591          void module_touch(module_t *p, unsigned char key)
+1592          {
+1593   1        norflash_read((key - 1) * MODULE_FLASH_SIZE, (unsigned char *)p, MODULE_FLASH_SIZE);
+1594   1        display_interface(p);
+1595   1      }
+1596          void module_touch_ctrl(void)
+1597          {
+1598   1        unsigned short key_nb = 0;
+1599   1        get_key_value(0x100a, &key_nb);
+1600   1        if (key_nb)
+1601   1        {
+1602   2          //    clear_led_sta(led_sta);
+1603   2          module_touch(&module, key_nb);
+1604   2          clear_key_value(0x100a, &key_nb);
+1605   2          key_nb = 0;
+1606   2        }
+1607   1      }
+1608          // »Ö¸´³ö³§ÉèÖÃ
+1609          void factory_data_reset(void)
+1610          {
+1611   1      
+1612   1        unsigned char ret_tab[4] = {0x55, 0xaa, 0x5a, 0xa5};
+1613   1        unsigned short key_nb = 0;
+1614   1        unsigned char i = 0;
+1615   1        get_key_value(0x100b, &key_nb);
+1616   1        if (1 == key_nb)
+1617   1        {
+1618   2          // ¶ÁÐ´T5LÆ¬ÄÚ256KW Flash£¬mod=0x5A Îª¶ÁÈ¡£¬mod=0xA5ÎªÐ´Èë
+1619   2          // addr=DGUS±äÁ¿µØÖ·£¬±ØÐëÊÇÅ¼Êý£»addr_flash=flash¶ÁÈ¡µØÖ·£¬±ØÐëÊÇÅ¼Êý£»len=¶ÁÈ¡×Ö³¤¶È£¬±ØÐëÊÇÅ¼Êý¡£
+1620   2          // ´ÓÆÁÄ»µÄ±äÁ¿µØÖ·ÇøÓòÕÒÒ»¿éÁ¬ÐøµÄÈ«ÊÇ0µÄ£¬È»ºó½«Êý¾ÝÐ´Èëµ½Êý¾Ý¿â½øÐÐ¸²¸Ç
+1621   2          for (i = 0; i < 60; i++)//Çåµ½F000 Ò»Ð©²ÎÊýÉèÖÃ²»Çå¿Õ
+1622   2          {
+1623   3            T5L_Flash(0xA5, 0Xe000, 1024 * i, 1024); // Ð´0FLASHÇå³ý
+1624   3          }
+1625   2          //    T5L_Flash(0x5A,0X3110, 0,1024); //¶ÁÎª0
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 28  
+
+1626   2          clear_key_value(0x100a, &key_nb);
+1627   2          key_nb = 0;
+1628   2          write_dgusii_vp(0x04, (unsigned char *)&ret_tab, 2); // MCU¸´Î»
+1629   2        }
+1630   1      }
+1631          
+1632          /**
+1633           * @brief ÐÞ¸ÄÄ£¿é-ÏÔÊ¾±à¼­Ò³Ãæ
+1634           * @param {module_t} *p Ä£¿éÖ¸Õë
+1635           * @return {*}
+1636           */
+1637          void display_edit_interface(module_t *p)
+1638          {
+1639   1      
+1640   1        USER_PRINTF("display_edit_interface\n");
+1641   1        // USER_PRINTF("current module type is %bd\n", p->type);
+1642   1        write_dgus(0x2000, p->adr);
+1643   1        module_type_bak = p->type;
+1644   1        write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[p->type], 6);
+1645   1        write_dgus(0x1000, p->channel_nb);
+1646   1        write_dgusii_vp(0x3000, (unsigned char *)&p->module_name, 8);
+1647   1        //  sprintf(p->channel_name,"%.256s",p->channel_name);
+1648   1        // USER_PRINTF("-->module name is %s\n", p->module_name);
+1649   1        // USER_PRINTF("-->module channel name is %s\n", p->channel_name);
+1650   1        write_dgusii_vp(0x3008, (unsigned char *)&p->channel_name, 8 * 16);
+1651   1        switch (p->channel_nb)
+1652   1        {
+1653   2        case 4:
+1654   2          if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+1655   2            pic_set(10);
+1656   2          else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
+1657   2            pic_set(5);
+1658   2          else if ((VOL_DIM_MODULE == p->type))
+1659   2            pic_set(63);
+1660   2          else if ((SCR_DIM_MODULE == p->type))
+1661   2            pic_set(64);
+1662   2          break;
+1663   2        case 6:
+1664   2          if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+1665   2            pic_set(11);
+1666   2          else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
+1667   2            pic_set(6);
+1668   2      
+1669   2          break;
+1670   2        case 8:
+1671   2          if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+1672   2            pic_set(12);
+1673   2          else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
+1674   2            pic_set(7);
+1675   2      
+1676   2          break;
+1677   2        case 10:
+1678   2          if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+1679   2            pic_set(13);
+1680   2          else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type));
+1681   2            pic_set(8);
+1682   2      
+1683   2          break;
+1684   2        case 12:
+1685   2          if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+1686   2            pic_set(14);
+1687   2          else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 29  
+
+1688   2            pic_set(9);
+1689   2      
+1690   2          break;
+1691   2        case 14:
+1692   2          if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+1693   2            pic_set(15);
+1694   2      
+1695   2          break;
+1696   2        case 16:
+1697   2          if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+1698   2            pic_set(16);
+1699   2          break;
+1700   2        default:
+1701   2          break;
+1702   2        }
+1703   1      
+1704   1      }
+1705          
+1706          // ÐÞ¸ÄÄ£¿éÐÅÏ¢
+1707          void modifying_module_information(module_t *p)
+1708          
+1709          {
+1710   1        unsigned short key_nb = 0;
+1711   1        unsigned char select_index = 0;
+1712   1        get_key_value(0x1009, &key_nb);
+1713   1        if ((3 == key_nb))
+1714   1        {
+1715   2          clear_key_value(0x1009, &key_nb);
+1716   2          // select_index = get_selected_sequence_number(0x1104, 8);
+1717   2          select_index = get_box_select_number(0x1400, 64);
+1718   2          // USER_PRINTF("select_index-->%bd\n", select_index);
+1719   2          if ((select_index > 0) && (FULL == check_whether_data_exists(0, select_index - 1, MODULE_FLASH_SIZE)))
+1720   2          {
+1721   3            modfity_index = select_index - 1;
+1722   3            norflash_read((select_index - 1) * MODULE_FLASH_SIZE, (unsigned char *)p, MODULE_FLASH_SIZE);
+1723   3            //      display_interface(p);
+1724   3            display_edit_interface(p);
+1725   3            USER_PRINTF("-->modify module successfully!\n");
+1726   3            delete_arr_data(&g_var_module.module_adr[0],modfity_index);
+1727   3            // g_var_module.module_edit_sta = MODIFY;
+1728   3          }
+1729   2        }
+1730   1      }
+1731          
+1732          // É¾³ýÑ¡ÖÐÄ£¿éÐÅÏ¢
+1733          void clear_select_module_information(void)
+1734          
+1735          {
+1736   1        unsigned short key_nb = 0;
+1737   1        unsigned char select_index = 0;
+1738   1        //  unsigned char i = 0;
+1739   1        get_key_value(0x1012, &key_nb);
+1740   1        if ((1 == key_nb))
+1741   1        {
+1742   2          //    select_index = get_selected_sequence_number(0x1104, 8);
+1743   2          select_index = get_box_select_number(0x1400, 64);
+1744   2          // USER_PRINTF("select_index-->%bd\n", select_index);
+1745   2          if (select_index)
+1746   2          {
+1747   3            //      if(FULL == p->data_sta)
+1748   3            //      {
+1749   3            T5L_Flash(0xA5, 0Xe000, (select_index - 1) * MODULE_FLASH_SIZE, MODULE_FLASH_SIZE);            // Ð´0FLASHÇå
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 30  
+
+             -³ý
+1750   3            T5L_Flash(0x5A, 0X3520 + (select_index - 1) * 32, (select_index - 1) * MODULE_FLASH_SIZE, 32); // ¶ÁÎª0
+             -¿ØÖÆÆ÷ÐÅÏ¢
+1751   3            //        T5L_Flash(0x5A,0X3120+(select_index-1)*32, TIMING_SCENE_INFOR_FLASH_ADR_END,32); //¶ÁÎª0¿ØÖÆÆ÷ÐÅÏ
+             -¢
+1752   3            T5L_Flash(0x5A, 0x3120 + (select_index - 1) * 8, (select_index - 1) * MODULE_FLASH_SIZE, 8); // ¶ÁÎª0
+1753   3            write_dgusii_vp(0x3120 + 8 * (select_index - 1), (unsigned char *)module_default_name, 8);
+1754   3            delete_arr_data(&g_var_module.module_adr[0],select_index - 1);
+1755   3            printf_tab(20,&g_var_module.module_adr[0]);
+1756   3            //      }
+1757   3          }
+1758   2          clear_all_module_var_en(0x1400, 64);
+1759   2          clear_key_value(0x1012, &key_nb);
+1760   2        }
+1761   1      }
+1762          // Çå¿ÕËùÓÐÄ£¿éÐÅÏ¢
+1763          void clear_all_module_information(void)
+1764          
+1765          {
+1766   1        unsigned short key_nb = 0;
+1767   1        unsigned char i = 0;
+1768   1        //  unsigned char select_index = 0;
+1769   1        get_key_value(0x1011, &key_nb);
+1770   1        if ((1 == key_nb))
+1771   1        {
+1772   2          USER_PRINTF("clear_all_module_information\n");
+1773   2          //    T5L_Flash(0xA5,0Xe000, 0,1024);     //Ð´0FLASHÇå³ý
+1774   2          //    T5L_Flash(0xA5,0Xe000, 1024,1024);  //Ð´0FLASHÇå³ý
+1775   2          //    T5L_Flash(0xA5,0Xe000, 2048,1024);  //Ð´0FLASHÇå³ý
+1776   2          //    T5L_Flash(0xA5,0Xe000, 3072,1024);  //Ð´0FLASHÇå³ý
+1777   2          //    T5L_Flash(0xA5,0Xe000, 4096,1024);  //Ð´0FLASHÇå³ý
+1778   2          //    T5L_Flash(0xA5,0Xe000, 8192,768);   //Ð´0FLASHÇå³ý
+1779   2          for (i = 0; i < 8; i++)
+1780   2          {
+1781   3            T5L_Flash(0xA5, 0Xe000, 1024 * i, 1024); // Ð´0FLASHÇå³ý
+1782   3          }
+1783   2          T5L_Flash(0xA5, 0Xe000, 8192, 768);  // Ð´0FLASHÇå³ý
+1784   2          T5L_Flash(0x5A, 0X3520, 0, 32 * 64); // ¶ÁÎª0
+1785   2          T5L_Flash(0x5A, 0x3120, 0, 8 * 64);  // ¶ÁÎª0
+1786   2          for (i = 0; i < 64; i++)
+1787   2          {
+1788   3            write_dgusii_vp(0x3120 + 8 * i, (unsigned char *)module_default_name, 8);
+1789   3          }
+1790   2          //    T5L_Flash(0x5A,0X3120, 0,1024); //¶ÁÎª0
+1791   2          clear_key_value(0x1011, &key_nb);
+1792   2        }
+1793   1      }
+1794          // ³õÊ¼»¯ÃÜÂë
+1795          void init_pwd_f(void)
+1796          {
+1797   1        unsigned char mask[4] = {0};
+1798   1        unsigned char pwd_enable = 0;
+1799   1        norflash_read(0x020002, (unsigned char *)&mask, 2);
+1800   1      
+1801   1        pwd_enable = read_dgus(PWD_SELECT_FRAME_ADR);
+1802   1        if (0xff != mask[0])
+1803   1        {
+1804   2          init_pwd = read_dgus(0x2050);
+1805   2        }
+1806   1        else
+1807   1        {
+1808   2          T5L_Flash(0x5a, PWD_SELECT_FRAME_ADR, PWD_FLASH_ADR, 2); // ¶ÁÃÜÂëÊ¹ÄÜ
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 31  
+
+1809   2          T5L_Flash(0x5A, 0x2050, 0x020000, 2);                    // ´ÓFLASH¶ÁÃÜÂë
+1810   2          init_pwd = read_dgus(0x2050);
+1811   2        }
+1812   1        // printf_tab(2, mask);
+1813   1        // USER_PRINTF("-->read pwd enable is %bd\n", pwd_enable);
+1814   1        // USER_PRINTF("-->read_pwd var is %d\n", init_pwd);
+1815   1      }
+1816          // ÐÞ¸ÄÃÜÂë
+1817          void change_pwd(unsigned short *pwd_init)
+1818          {
+1819   1        unsigned short key_nb = 0;
+1820   1        unsigned char mask[4] = {0xff, 0xff, 0xff, 0xff};
+1821   1        get_key_value(0x111e, &key_nb);
+1822   1        if (1 == key_nb)
+1823   1        {
+1824   2          clear_key_value(0x111e, &key_nb);
+1825   2          if (*pwd_init != read_dgus(0x2050))
+1826   2          {
+1827   3            *pwd_init = read_dgus(0x2050);
+1828   3            T5L_Flash(0xA5, 0x2050, 0x020000, 2); // Ð´ÃÜÂëµ½FLASH
+1829   3            norflash_write(0x020002, (unsigned char *)&mask, 2);
+1830   3            USER_PRINTF("-->change password success!\n");
+1831   3            printf_tab(2, mask);
+1832   3          }
+1833   2        }
+1834   1      }
+1835          // Ñ¡ÔñÃÜÂëÊ¹ÄÜ
+1836          void select_password_enable(void)
+1837          {
+1838   1        //  static unsigned char var_enable = 0;
+1839   1        unsigned short key_nb = 0;
+1840   1        unsigned char pwd_enable = 0xff;
+1841   1        get_key_value(0x1242, &key_nb);
+1842   1        if (1 == key_nb)
+1843   1        {
+1844   2      
+1845   2          pwd_enable = check_or_not_frame(PWD_SELECT_FRAME_ADR);
+1846   2          if (1 == check_constant(pwd_enable,&g_var_module.pwd_enable_bak))
+1847   2          {
+1848   3            T5L_Flash(0xA5, PWD_SELECT_FRAME_ADR, PWD_FLASH_ADR, 2); // Ð´ÃÜÂëÊ¹ÄÜµ½FLASH
+1849   3            // USER_PRINTF("-->set password enable is %bd\n", pwd_enable);
+1850   3          }
+1851   2      
+1852   2          clear_key_value(0x1242, &key_nb);
+1853   2        }
+1854   1      }
+1855          // ³õÊ¼»¯·äÃùÆ÷²ÎÊý
+1856          void init_beep_enable(void)
+1857          {
+1858   1        unsigned char mask[4] = {0};
+1859   1        unsigned char beep_enable = 0;
+1860   1        norflash_read(0x020008, (unsigned char *)&mask, 2);
+1861   1      
+1862   1        if (0xff != mask[0])
+1863   1        {
+1864   2      
+1865   2          USER_PRINTF("-->init_beep_error\n");
+1866   2        }
+1867   1        else
+1868   1        {
+1869   2      
+1870   2          T5L_Flash(0x5A, BEEP_ENABLE_DGUS_ADR, 0x020006, 2); // ´ÓFLASH¶ÁÊ¹ÄÜ
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 32  
+
+1871   2        }
+1872   1        beep_enable = read_dgus(BEEP_ENABLE_DGUS_ADR);
+1873   1        sys_delay_about_ms(5);
+1874   1        beep_ctrl(beep_enable); // control·äÃùÆ÷ÉùÒô
+1875   1        USER_PRINTF("-->read beep enable is %bd\n", beep_enable);
+1876   1      }
+1877          // Ñ¡Ôñ·äÃùÆ÷¿ª¹Ø
+1878          void select_beep_enable(void)
+1879          {
+1880   1        unsigned char mask[4] = {0xff, 0xff, 0xff, 0xff};
+1881   1        unsigned short key_nb = 0;
+1882   1        unsigned char beep_enable = 0xff;
+1883   1        get_key_value(0x1241, &key_nb);
+1884   1        if ((1 == key_nb))
+1885   1        {
+1886   2          beep_enable = check_or_not_frame(0x1800);
+1887   2      
+1888   2          if (1 == check_constant(beep_enable,&g_var_module.beep_enable_bak))
+1889   2          {
+1890   3            T5L_Flash(0xA5, BEEP_ENABLE_DGUS_ADR, 0x020006, 2); // Ð´·äÃùÆ÷Ê¹ÄÜµ½FLASH
+1891   3            norflash_write(0x020008, (unsigned char *)&mask, 2);
+1892   3            beep_ctrl(beep_enable); // control·äÃùÆ÷ÉùÒô
+1893   3            // USER_PRINTF("-->set beep enable is %bd,\n!", beep_enable);
+1894   3          }
+1895   2          clear_key_value(0x1241, &key_nb);
+1896   2        }
+1897   1      }
+1898          // Çå³ýÃÜÂë
+1899          void clear_pwd(unsigned short adr)
+1900          {
+1901   1        write_dgus(adr, 0xffff);
+1902   1      }
+1903          // ÃÜÂëÊÇ·ñÒ»ÖÂ
+1904          void check_whether_the_passwords_are_consistent(unsigned char password_enable, unsigned short pwd_input, u
+             -nsigned short pwd_init)
+1905          {
+1906   1        if ((password_enable))
+1907   1        {
+1908   2          if ((pwd_init == pwd_input) || (SUPER_PASSWORD == pwd_input))
+1909   2          {
+1910   3            pic_set(1);
+1911   3            clear_pwd(0x204f);
+1912   3          }
+1913   2          else
+1914   2          {
+1915   3          }
+1916   2        }
+1917   1      }
+1918          // Ö÷Ò³ÅÐ¶ÏÃÜÂë
+1919          void starup_page_pwd(unsigned char password_enable)
+1920          {
+1921   1        unsigned short key_nb = 0;
+1922   1        get_key_value(0x111c, &key_nb);
+1923   1        if ((1 == key_nb))
+1924   1        {
+1925   2          if (1 == password_enable)
+1926   2          {
+1927   3            pop_menu_key_ctrl(0x20);
+1928   3          }
+1929   2          else
+1930   2          {
+1931   3            pic_set(1);
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 33  
+
+1932   3            pic_page = 1;
+1933   3          }
+1934   2          clear_key_value(0x111c, &key_nb);
+1935   2        }
+1936   1        check_whether_the_passwords_are_consistent(password_enable, read_dgus(0x204f), init_pwd);
+1937   1      }
+1938          // ³õÊ¼»¯±³¹â²ÎÊý ¶Áflash
+1939          void init_back_light_parameters(void)
+1940          {
+1941   1        unsigned char mask[4] = {0};
+1942   1        unsigned char backlight_enable = 0;
+1943   1        unsigned char work_light = 0;
+1944   1        unsigned short sleep_time = 0;
+1945   1        norflash_read(0x02000e, (unsigned char *)&mask, 2);
+1946   1      
+1947   1        if (0xff != mask[0])
+1948   1        {
+1949   2        }
+1950   1        else
+1951   1        {
+1952   2          USER_PRINTF("-->read_back_light_parameters_successfully!\n");
+1953   2          T5L_Flash(0x5A, 0x1704, 0x02000a, 2); // ´ÓFLASH¶ÁÊý¾Ý
+1954   2          T5L_Flash(0x5A, 0x2052, 0x02000c, 2); // ´ÓFLASH¶ÁÊý¾Ý
+1955   2        }
+1956   1      
+1957   1        backlight_enable = read_dgus(0x1704);
+1958   1        // USER_PRINTF("-->read backlight enable is %bd\n", backlight_enable);
+1959   1        sys_delay_about_ms(5);
+1960   1        work_light = read_dgus(0x2052);
+1961   1        // USER_PRINTF("-->read work_light is %bd\n", work_light);
+1962   1        sys_delay_about_ms(5);
+1963   1        sleep_time = read_dgus(0x2053) * 100;
+1964   1        // USER_PRINTF("-->read sleep_time is %ds\n", sleep_time / 100);
+1965   1        sys_delay_about_ms(5);
+1966   1        back_light_ctrl(backlight_enable);
+1967   1        sys_delay_about_ms(2);
+1968   1        sys_led_config(work_light, 0, sleep_time);
+1969   1      }
+1970          // ±£´æ±³¹â²ÎÊýµ½flash
+1971          void save_back_light_parameters(void)
+1972          {
+1973   1        unsigned char mask[4] = {0xff, 0xff, 0xff, 0xff};
+1974   1        T5L_Flash(0xA5, 0x1704, 0x02000a, 2); // Ð´×Ô¶¯ËøÆÁ²ÎÊýµ½FLASH
+1975   1        T5L_Flash(0xA5, 0x2052, 0x02000c, 2); // Ð´±³¹â²ÎÊýµ½FLASH
+1976   1        norflash_write(0x02000e, (unsigned char *)&mask, 2);
+1977   1        USER_PRINTF("-->save_back_light_parameters_successfully!\n");
+1978   1      }
+1979          /**
+1980           * @brief ¿òÑ¡ÉèÖÃ
+1981           * @param {unsigned short} adr ¿òÑ¡µØÖ·
+1982           * @return {*}¿òÑ¡ÊÇ·ñÑ¡ÖÐ 1Ñ¡ÖÐ  0Î´Ñ¡ÖÐ
+1983           */
+1984          unsigned char check_or_not_frame(unsigned short adr)
+1985          {
+1986   1        unsigned char check_var = 0;
+1987   1        check_var = read_dgus(adr);
+1988   1      
+1989   1        check_var ^= 1;
+1990   1        sys_delay_about_ms(3);
+1991   1        write_dgus(adr, check_var);
+1992   1        // USER_PRINTF("--> 0x%x check_var is %bd\n", adr, check_var);
+1993   1        return check_var;
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 34  
+
+1994   1      }
+1995          /**
+1996           * @brief ËøÆÁ¿ØÖÆ
+1997           * @return {*}
+1998           */
+1999          void lock_screen_enable_ctrl(void)
+2000          {
+2001   1        unsigned char backlight_enable = 0;
+2002   1        unsigned short key_nb = 0;
+2003   1        get_key_value(0x1240, &key_nb);
+2004   1        if ((1 == key_nb))
+2005   1        {
+2006   2          backlight_enable = check_or_not_frame(0x1704);
+2007   2      
+2008   2          if (1 == check_constant(backlight_enable,&g_var_module.backlight_enable_bak))
+2009   2          {
+2010   3            back_light_ctrl(backlight_enable);
+2011   3            USER_PRINTF("-->backlight_enable is %bd\n", backlight_enable);
+2012   3            save_back_light_parameters();
+2013   3          }
+2014   2      
+2015   2          clear_key_value(0x1240, &key_nb);
+2016   2        }
+2017   1      }
+2018          // ±³¹âÉèÖÃ
+2019          void back_light_set(void)
+2020          {
+2021   1        unsigned short key_nb = 0;
+2022   1        unsigned char back_enable = 0;
+2023   1        unsigned char work_light = 0;
+2024   1        unsigned short sleep_time = 0;
+2025   1        get_key_value(0x1126, &key_nb);
+2026   1        if ((1 == key_nb))
+2027   1        {
+2028   2          // back_enable = read_dgus(0x1128);
+2029   2          // sys_delay_about_ms(5);
+2030   2          work_light = read_dgus(0x2052);
+2031   2          sys_delay_about_ms(5);
+2032   2          sleep_time = read_dgus(0x2053) * 100;
+2033   2          // USER_PRINTF("-->sleep_time is %d\n", sleep_time);
+2034   2          sys_delay_about_ms(5);
+2035   2          sys_led_config(work_light, 0, sleep_time);
+2036   2          // back_light_ctrl(back_enable);
+2037   2          // sys_delay_about_ms(5);
+2038   2          // sys_led_config(work_light, 0, sleep_time);
+2039   2          clear_key_value(0x1126, &key_nb);
+2040   2          USER_PRINTF("-->back_light_set_ok!\n");
+2041   2          save_back_light_parameters();
+2042   2          pop_menu_key_ctrl(0xdd);
+2043   2        }
+2044   1      }
+2045          // ºÚÆÁÇÐ»»µ½Ö÷Ò³
+2046          void black_screen_switches_to_home_page(void)
+2047          {
+2048   1        static unsigned char s_sta = 0;
+2049   1        unsigned char read_data[2] = {0};
+2050   1        read_dgusii_vp(0x31, read_data, 1);
+2051   1        if (0 == s_sta)
+2052   1        {
+2053   2          //    s_sta = 1;
+2054   2          if (0 == read_data[1]) // ÆÁÄ»ÁÁ¶ÈÎª0
+2055   2          {
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 35  
+
+2056   3            s_sta = 1;
+2057   3            pic_set(0);
+2058   3          }
+2059   2        }
+2060   1        if (0 != read_data[1])
+2061   1        {
+2062   2          s_sta = 0;
+2063   2        }
+2064   1        //  printf_tab(2,read_data);
+2065   1      }
+2066          // Çå³ýÊ±¿Ø²ÎÊýÉèÖÃ±äÁ¿
+2067          void clear_batch_set_var(void)
+2068          {
+2069   1        if (g_var_module.batch_send_count > MODULE_NUB)
+2070   1        {
+2071   2          g_var_module.batch_send_count = 0;
+2072   2          g_var_module.batch_set_parameters_flag = 0;
+2073   2          g_var_module.batch_send_cyc_time = 0;
+2074   2          pop_menu_key_ctrl(0xf0); // Çå³ýµ¯´°
+2075   2          // pic_set(57);
+2076   2          USER_PRINTF("-->time module batch set parameter successfully!\n");
+2077   2        }
+2078   1      }
+2079          // Ö´ÐÐ¶ÔÓ¦µÄ¶¯×÷º¯Êý
+2080          void run_timing_module_parameter_set(module_t *p, unsigned char fun_execute_nb, unsigned char channel, uns
+             -igned char parameter_set_sta)
+2081          {
+2082   1        switch (fun_execute_nb)
+2083   1        {
+2084   2        case 0:
+2085   2          timing_module_parameter_ongitude_latitude_send(p);
+2086   2          break;
+2087   2        case 1:
+2088   2          timing_module_parameter_time_send(p);
+2089   2          break;
+2090   2        case 2:
+2091   2          timing_module_parameter_week_enable_channel_send(p, channel, parameter_set_sta);
+2092   2          break;
+2093   2        case 3:
+2094   2          timing_module_parameter_solar_channel_send(p, channel, parameter_set_sta);
+2095   2          break;
+2096   2        case 4:
+2097   2          timing_module_parameter_time_frame_channel_send(p, channel, parameter_set_sta);
+2098   2          break;
+2099   2        default:
+2100   2          break;
+2101   2        }
+2102   1      }
+2103          // Ê±¿Ø²ÎÊýÅúÁ¿ÉèÖÃ
+2104          void timing_module_parameter_batch_send(void)
+2105          {
+2106   1        //  static unsigned char state = 0;
+2107   1        //  unsigned char channel = 0;
+2108   1        if (((1 <= g_var_module.batch_set_parameters_flag) && (g_var_module.batch_set_parameters_flag <= 5)) || (
+             -0x13 == g_var_module.batch_set_parameters_flag) || (0x14 == g_var_module.batch_set_parameters_flag) || (0x15 == g_var_mo
+             -dule.batch_set_parameters_flag)) // ²»ÖªÎªºÎ»áÓÐÒì³£Öµ³öÏÖ£¬ÅÅ³ýÒì³£µÄÖµ
+2109   1        {
+2110   2          //    USER_PRINTF("-->batch_set_parameters_flag is %bd\n",g_var_module.batch_set_parameters_flag);
+2111   2          if ((0 == g_var_module.batch_send_cyc_time) && (mbh_getState() == MBH_STATE_IDLE))
+2112   2          {
+2113   3            g_var_module.batch_send_cyc_time = 300;
+2114   3            norflash_read(g_var_module.batch_send_count * 140, (unsigned char *)&temp_module, 140);
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 36  
+
+2115   3            if (FULL == temp_module.data_sta)
+2116   3            {
+2117   4              if ((temp_module.type == SINGLE_TIME_RELAY_MODULE) || (temp_module.type == DOUBLE_TIME_RELAY_MODULE))
+2118   4              {
+2119   5                //          USER_PRINTF("-->temp_module.adr is %bd\n",temp_module.adr);
+2120   5                run_timing_module_parameter_set(&temp_module, g_var_module.parameter_set_fun_execute_nb, g_var_module
+             -.parameter_set_channel_number, g_var_module.parameter_set_sta);
+2121   5                g_var_module.batch_send_count++;
+2122   5              }
+2123   4              else
+2124   4              {
+2125   5                g_var_module.batch_send_count++;
+2126   5              }
+2127   4            }
+2128   3            else
+2129   3            {
+2130   4              g_var_module.batch_send_count++;
+2131   4            }
+2132   3          }
+2133   2        }
+2134   1        clear_batch_set_var();
+2135   1      }
+2136          /**
+2137           * @brief ÅúÁ¿ÉèÖÃÊ±¿Ø²ÎÊý
+2138           * @return {*}
+2139           */
+2140          void batch_set_time_parameters(void)
+2141          {
+2142   1        unsigned short key_nb = 0;
+2143   1        get_key_value(0x112a, &key_nb);
+2144   1        if ((key_nb))
+2145   1        {
+2146   2          switch (key_nb)
+2147   2          {
+2148   3          case 1: // ¾­Î³¶ÈÉèÖÃ
+2149   3            g_var_module.parameter_set_fun_execute_nb = 0;
+2150   3            g_var_module.parameter_set_channel_number = 0;
+2151   3            g_var_module.parameter_set_sta = SINGLE_CHANNEL_STATE;
+2152   3            break;
+2153   3          case 2: // Ê±¼äÉèÖÃ
+2154   3            g_var_module.parameter_set_fun_execute_nb = 1;
+2155   3            g_var_module.parameter_set_channel_number = 0;
+2156   3            g_var_module.parameter_set_sta = SINGLE_CHANNEL_STATE;
+2157   3            break;
+2158   3          case 3: // ¼ÙÈÕÉèÖÃ
+2159   3            g_var_module.parameter_set_fun_execute_nb = 2;
+2160   3            g_var_module.parameter_set_channel_number = read_dgus(0x1B04);
+2161   3            g_var_module.parameter_set_sta = BATCH_CHANNEL_STATE;
+2162   3            break;
+2163   3          case 4: // ¹âÕÕ¶ÈÉèÖÃ
+2164   3            g_var_module.parameter_set_fun_execute_nb = 3;
+2165   3            g_var_module.parameter_set_channel_number = read_dgus(0x1B0C);
+2166   3            g_var_module.parameter_set_sta = BATCH_CHANNEL_STATE;
+2167   3            break;
+2168   3          case 5: // Ê±¶ÎÉèÖÃ
+2169   3            g_var_module.parameter_set_fun_execute_nb = 4;
+2170   3            g_var_module.parameter_set_channel_number = read_dgus(0x1B0F);
+2171   3            g_var_module.parameter_set_sta = BATCH_CHANNEL_STATE;
+2172   3            break;
+2173   3          case 0x13: // ÅúÁ¿¼ÙÈÕÉèÖÃ
+2174   3            g_var_module.parameter_set_fun_execute_nb = 2;
+2175   3            g_var_module.parameter_set_channel_number = 0;
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 37  
+
+2176   3            g_var_module.parameter_set_sta = BATCH_CHANNELS_STATE;
+2177   3            break;
+2178   3          case 0x14: // ÅúÁ¿¹âÕÕ¶ÈÉèÖÃ
+2179   3            g_var_module.parameter_set_fun_execute_nb = 3;
+2180   3            g_var_module.parameter_set_channel_number = 0;
+2181   3            g_var_module.parameter_set_sta = BATCH_CHANNELS_STATE;
+2182   3            break;
+2183   3          case 0x15: // ÅúÁ¿Ê±¶ÎÉèÖÃ
+2184   3            g_var_module.parameter_set_fun_execute_nb = 4;
+2185   3            g_var_module.parameter_set_channel_number = 0;
+2186   3            g_var_module.parameter_set_sta = BATCH_CHANNELS_STATE;
+2187   3            break;
+2188   3          default:
+2189   3            break;
+2190   3          }
+2191   2          pop_menu_key_ctrl(0x31); // µ¯´°
+2192   2          g_var_module.batch_set_parameters_flag = key_nb;
+2193   2          // USER_PRINTF("-->batch_set_parameters_flag is %bd\n", g_var_module.batch_set_parameters_flag);
+2194   2          clear_key_value(0x112a, &key_nb);
+2195   2        }
+2196   1      }
+2197          // ×Ô¶¯¼ìË÷Éè±¸ÃüÁî
+2198          void automatically_retrieve_cmd(void)
+2199          {
+2200   1      
+2201   1        unsigned short key_nb = 0;
+2202   1        get_key_value(0x112c, &key_nb);
+2203   1        if ((1 == key_nb))
+2204   1        {
+2205   2          g_var_module.auto_retrieve_flag = 1;
+2206   2          pop_menu_key_ctrl(0x0d); // µ¯´°²Ù×÷ÖÐ
+2207   2          clear_key_value(0x112c, &key_nb);
+2208   2        }
+2209   1      }
+2210          // ¶ÁÉè±¸ÐÅÏ¢
+2211          void read_device_information(unsigned char adr)
+2212          {
+2213   1        pack_data_send(&user_modbus, adr, MD_RD_HR, 14, 1);
+2214   1      }
+2215          // ×Ô¶¯¼ìË÷Éè±¸
+2216          void automatically_retrieve(void)
+2217          {
+2218   1        static unsigned char send_flag = 0;
+2219   1        if (g_var_module.auto_retrieve_flag == 1)
+2220   1        {
+2221   2          //    g_var_module.retrieve_device_adr
+2222   2          //    if( 0 == send_flag)
+2223   2          //    {
+2224   2          //      send_flag = 1;
+2225   2          //      g_var_module.retrieve_device_adr = 1;
+2226   2          //    }
+2227   2          if ((0 == g_var_module.auto_retrieve_cyc_time) && (mbh_getState() == MBH_STATE_IDLE))
+2228   2          {
+2229   3            g_var_module.auto_retrieve_cyc_time = 500;
+2230   3            read_device_information(g_var_module.retrieve_device_adr);
+2231   3            g_var_module.retrieve_device_adr++;
+2232   3            // USER_PRINTF("-->retrieve_device_adr is %bd\n", g_var_module.retrieve_device_adr);
+2233   3          }
+2234   2          //    if(mbh_getState() == MBH_STATE_REC_ERR)
+2235   2          //    {
+2236   2          //      g_var_module.auto_retrieve_cyc_time = 500;
+2237   2          //    }
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 38  
+
+2238   2        }
+2239   1      
+2240   1        if ((g_var_module.retrieve_device_adr > DEVICE_NB)) //&&(0 == g_var_module.batch_send_cyc_time)
+2241   1        {
+2242   2          g_var_module.auto_retrieve_flag = 0;
+2243   2          //    g_var_module.retrieve_device_adr = 1;
+2244   2      
+2245   2          send_flag = 1;
+2246   2        }
+2247   1        if ((1 == send_flag) && (0 == g_var_module.auto_retrieve_cyc_time))
+2248   1        {
+2249   2          send_flag = 0;
+2250   2          g_var_module.retrieve_device_adr = 1;
+2251   2          pop_menu_key_ctrl(0xf0); // Çå³ýµ¯´°
+2252   2          USER_PRINTF("-->auto add module over!\n");
+2253   2        }
+2254   1      }
+2255          // ×Ô¶¯Ìí¼ÓÉè±¸ÐÅÏ¢
+2256          void auto_add_module(void)
+2257          {
+2258   1      
+2259   1        unsigned char device_channel = 0;
+2260   1        if (HR[DEVICE_INFOR_INDEX])
+2261   1        {
+2262   2          auto_module.index = find_index(0, MODULE_FLASH_SIZE, MODULE_NUB);
+2263   2          device_channel = HR[DEVICE_INFOR_INDEX] & 0x0f;
+2264   2          device_channel = device_channel > 14 ? 16 : device_channel;
+2265   2          auto_module.adr = g_var_module.slave_adr;
+2266   2          auto_module.channel_nb = device_channel;
+2267   2          auto_module.data_sta = FULL;
+2268   2          auto_module.type = (HR[DEVICE_INFOR_INDEX] >> 4) & 0x0f;
+2269   2          sprintf(auto_module.module_name, "·¿¼ä%bd", auto_module.adr);
+2270   2          //    sprintf(auto_module.channel_name,"%s",default_module_channel_name);
+2271   2          //    auto_module.module_name[strlen(auto_module.module_name)] = '\0';
+2272   2      
+2273   2          read_dgusii_vp(0xa008, (unsigned char *)&auto_module.channel_name, 8 * 16);
+2274   2          // USER_PRINTF("-->auto_module.adr is %bd\n", auto_module.adr);
+2275   2          // USER_PRINTF("-->auto_module.channel_nb is %bd\n", auto_module.channel_nb);
+2276   2      
+2277   2          //    snprintf(auto_module.channel_name, 256, auto_module.channel_name);
+2278   2          //    USER_PRINTF("-->auto_module.adr is %s\n",auto_module.adr );
+2279   2          //    USER_PRINTF("-->auto_module.adr is %bd\n",auto_module.adr );
+2280   2          //    USER_PRINTF("-->auto_module.adr is %bd\n",auto_module.adr );
+2281   2      
+2282   2          norflash_write(auto_module.index * MODULE_FLASH_SIZE, (unsigned char *)&auto_module, MODULE_FLASH_SIZE);
+             - // ´æ´¢flash
+2283   2          write_dgusii_vp(0x3120 + 8 * auto_module.index, (unsigned char *)&auto_module.module_name, 8);           //
+2284   2          display_module_information(&auto_module, auto_module.index);                                             // ÏÔÊ¾Ä£¿éÐÅÏ¢
+2285   2          USER_PRINTF("-->auto adding module successfully!\n");
+2286   2          HR[DEVICE_INFOR_INDEX] = 0;
+2287   2        }
+2288   1      }
+2289          #define BOARDCAST_ALL_ON_ADR 0X1B21
+2290          #define BOARDCAST_ALL_OFF_ADR 0X1B22
+2291          /**
+2292           * @brief Ä£¿é¿ØÖÆ¹ã²¥È«¿ªÈ«¹Ø
+2293           * @return {*}
+2294           */
+2295          void module_all_ctrl(void)
+2296          {
+2297   1        unsigned short key_nb = 0;
+2298   1        get_key_value(BOARDCAST_ALL_ON_ADR, &key_nb);
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 39  
+
+2299   1        if ((1 == key_nb))
+2300   1        {
+2301   2          set_master_send_hr(master_send_hr, 22, 0xffff);
+2302   2          set_master_send_hr(master_send_hr, 23, (100));
+2303   2          set_master_send_hr(master_send_hr, 24, (100));
+2304   2          set_master_send_hr(master_send_hr, 25, (100));
+2305   2          set_master_send_hr(master_send_hr, 26, (100));
+2306   2          set_master_send_hr(master_send_hr, 27, ENTERPRISE);
+2307   2          set_master_send_hr(master_send_hr, 28, 0);
+2308   2          set_master_send_hr(master_send_hr, 29, 0);
+2309   2          set_master_send_hr(master_send_hr, 30, 0);
+2310   2          set_master_send_hr(master_send_hr, 31, 0xffff);
+2311   2          set_master_send_hr(master_send_hr, 32, 0xffff);
+2312   2          set_master_send_hr(master_send_hr, 33, ENTERPRISE);
+2313   2          pack_data_send(&user_modbus, 0, MD_FR_MHR, 22, 13);
+2314   2          clear_key_value(BOARDCAST_ALL_ON_ADR, &key_nb);
+2315   2        }
+2316   1        get_key_value(BOARDCAST_ALL_OFF_ADR, &key_nb);
+2317   1        if ((1 == key_nb))
+2318   1        {
+2319   2          set_master_send_hr(master_send_hr, 22, 0xffff);
+2320   2          set_master_send_hr(master_send_hr, 23, (0));
+2321   2          set_master_send_hr(master_send_hr, 24, (0));
+2322   2          set_master_send_hr(master_send_hr, 25, (0));
+2323   2          set_master_send_hr(master_send_hr, 26, (0));
+2324   2          set_master_send_hr(master_send_hr, 27, ENTERPRISE);
+2325   2          set_master_send_hr(master_send_hr, 28, 0);
+2326   2          set_master_send_hr(master_send_hr, 29, 0);
+2327   2          set_master_send_hr(master_send_hr, 30, 0);
+2328   2          set_master_send_hr(master_send_hr, 31, 0xffff);
+2329   2          set_master_send_hr(master_send_hr, 32, 0);
+2330   2          set_master_send_hr(master_send_hr, 33, ENTERPRISE);
+2331   2          pack_data_send(&user_modbus, 0, MD_FR_MHR, 22, 13);
+2332   2          clear_key_value(BOARDCAST_ALL_OFF_ADR, &key_nb);
+2333   2      
+2334   2        } 
+2335   1      } 
+2336          /**
+2337           * @brief ·µ»ØÒ³Ãæ
+2338           * @return {*}
+2339           */
+2340          void return_page(void)
+2341          {
+2342   1        unsigned short key_nb = 0;
+2343   1        get_key_value(0x1b23, &key_nb);
+2344   1        if (key_nb)
+2345   1        {
+2346   2          pic_page = key_nb;
+2347   2          clear_key_value(0x1b23, &key_nb);
+2348   2        }
+2349   1        get_key_value(0x1b24, &key_nb);
+2350   1        if (1 == key_nb)
+2351   1        {
+2352   2          pic_set(pic_page);
+2353   2          clear_key_value(0x1b24, &key_nb);
+2354   2        } 
+2355   1      
+2356   1      
+2357   1      }
+2358          // Ä£¿éÅäÖÃ
+2359          void module_modify(void)
+2360          {
+C51 COMPILER V9.60.0.0   MODULE                                                            09/27/2023 17:05:14 PAGE 40  
+
+2361   1        unsigned short page = 0;
+2362   1        unsigned short size_struct = 0;
+2363   1        page = read_pic();
+2364   1        size_struct = sizeof(module_t);
+2365   1        /*module edit page*/
+2366   1        if (((page <= 16) && (page >= 5)) || (page == 63) || (page == 64))
+2367   1        {
+2368   2          //    USER_PRINTF("-->page is %d\n", page);
+2369   2          set_module_type();
+2370   2          save_module_information(&module);
+2371   2        }
+2372   1        // set_selected_sequence_number(0x110c, 0x1104, 8);
+2373   1        set_box_select(0x110c, 0x1400, 64, &module_key_nb_bak, &module_select_sta_bak);
+2374   1        modifying_module_information(&module);
+2375   1        clear_select_module_information();
+2376   1        clear_all_module_information();
+2377   1        timing_module_parameter_key_ctrl(&module, channel_number);
+2378   1        display_timing_module_parameter(&module, channel_number);
+2379   1        select_either_or_all();
+2380   1        starup_page_pwd(read_dgus(PWD_SELECT_FRAME_ADR));
+2381   1        change_pwd(&init_pwd);
+2382   1        select_beep_enable();
+2383   1        back_light_set();
+2384   1      
+2385   1        black_screen_switches_to_home_page();
+2386   1        batch_set_time_parameters();
+2387   1        automatically_retrieve_cmd();
+2388   1        module_all_ctrl();
+2389   1        return_page();
+2390   1      }
+2391          
+2392          
+2393          void init_flash_parameters(void)
+2394          {
+2395   1        init_pwd_f();
+2396   1        init_beep_enable();
+2397   1        init_back_light_parameters();
+2398   1        USER_PRINTF("-->read_flash_successfully\n");
+2399   1        g_var_module.batch_set_parameters_flag = 0;
+2400   1        g_var_module.retrieve_device_adr = 1;
+2401   1        g_var_module.beep_enable_bak = 0xff;
+2402   1        g_var_module.backlight_enable_bak = 0xff;
+2403   1        g_var_module.pwd_enable_bak = 0xff;
+2404   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =  13770    ----
+   CONSTANT SIZE    =   1190    ----
+   XDATA SIZE       =   2117     575
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,173 @@
+C51 COMPILER V9.60.0.0   MB_USER                                                           09/27/2023 17:05:15 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MB_USER
+OBJECT MODULE PLACED IN .\OBJ\mb_user.obj
+COMPILER INVOKED BY: C:\Keil_C51\C51\BIN\C51.EXE mb_user.c LARGE OMF2 OPTIMIZE(9,SIZE) BROWSE INCDIR(..\USER;..\FUNC_HAN
+                    -DLER;..\GUI_APP) DEBUG PRINT(.\OBJ\mb_user.lst) TABS(2) OBJECT(.\OBJ\mb_user.obj)
+
+line level    source
+
+   1          /*
+   2           * @Author: xw.qu
+   3           * @Date: 2023-08-31 09:22:42
+   4           * @LastEditors: xw.qu
+   5           * @LastEditTime: 2023-09-26 10:16:04
+   6           * @FilePath: \USER\mb_user.c
+   7           * @Description: modbus data send
+   8           * 
+   9           * Copyright (c) 2023 by xw.qu, All Rights Reserved. 
+  10           */
+  11          #include "mb_user.h"
+  12          #include "mb_include.h"
+  13          FUNC_MODBUS_MASTER_FUNC_T mb_master_func;
+  14          unsigned short master_send_hr[HR_NB];
+  15          unsigned char send_table[HR_NB * 2];
+  16          MODBUS_T user_modbus;
+  17          // 从源缓冲区拷贝n个short到目的缓冲区，b_xch=1,交换高低字节
+  18          void short_copy_xch(void *t, void *s, int n, unsigned char b_xch)
+  19          {
+  20   1        int i;
+  21   1        unsigned char *pt, *ps0;
+  22   1        unsigned char ch;
+  23   1      
+  24   1        pt = (unsigned char *)t;
+  25   1        ps0 = (unsigned char *)s;
+  26   1      
+  27   1        if (b_xch)
+  28   1        {
+  29   2          for (i = 0; i < n; i++)
+  30   2          {
+  31   3            ch = *ps0++;
+  32   3            *pt++ = *ps0++;
+  33   3            *pt++ = ch;
+  34   3          }
+  35   2        }
+  36   1        else
+  37   1        {
+  38   2          n *= 2;
+  39   2          for (i = 0; i < n; i++)
+  40   2          {
+  41   3            *pt++ = *ps0++;
+  42   3          }
+  43   2        }
+  44   1      }
+  45          int modbus_master_send(MODBUS_T *p)
+  46          {
+  47   1        unsigned short send_n = 0;
+  48   1        unsigned short *phr, da_n = 0, da_adr = 0, adr_end1 = 0;
+  49   1        unsigned char b_ext = 0;
+  50   1        unsigned char b_hr_ok = 0;
+  51   1      
+  52   1        b_ext = p->b_ext;
+  53   1      
+  54   1        phr = p->phr;
+C51 COMPILER V9.60.0.0   MB_USER                                                           09/27/2023 17:05:15 PAGE 2   
+
+  55   1        da_adr = p->da_adr;
+  56   1        da_n = p->da_n;
+  57   1      
+  58   1        p->send_dat[0] = da_adr >> 8;
+  59   1        p->send_dat[1] = da_adr & 0xff;
+  60   1        p->send_dat[2] = da_n >> 8;
+  61   1        p->send_dat[3] = da_n & 0xff;
+  62   1      
+  63   1        adr_end1 = (da_adr + da_n);
+  64   1        b_hr_ok = (adr_end1 <= p->hr_n);
+  65   1      
+  66   1        send_n = 0;
+  67   1        switch (p->func)
+  68   1        {
+  69   2          //==========================================================================
+  70   2      
+  71   2      #ifdef MODBUS_HR_EN
+  72   2        case MD_RD_HR: // 读取HR
+  73   2          if (b_hr_ok)
+  74   2          {
+  75   3            send_n = 6;
+  76   3          }
+  77   2          break;
+  78   2      #endif
+  79   2        //==========================================================================
+  80   2        case MD_FR_SHR: // 强制单个HR
+  81   2          if (da_adr < p->hr_n)
+  82   2          {
+  83   3            da_n = *(phr + da_adr);
+  84   3            p->send_dat[4] = da_n >> 8;
+  85   3            p->send_dat[5] = da_n & 0xff;
+  86   3            p->da_n = da_n;
+  87   3            send_n = 6;
+  88   3          }
+  89   2          break;
+  90   2        case MD_FR_MHR: // 强制多个HR
+  91   2          if (b_hr_ok)
+  92   2          {
+  93   3            p->send_dat[4] = da_n * 2;
+  94   3            send_n = da_n * 2 + 7;
+  95   3            if (!b_ext)
+  96   3            {
+  97   4              short_copy_xch(&p->send_dat[5], (phr + da_adr), da_n, 0);
+  98   4            }
+  99   3          }
+ 100   2          break;
+ 101   2        default:
+ 102   2          // 命令格式错
+ 103   2          break;
+ 104   2        }
+ 105   1        send_n -= 2;
+ 106   1        return (send_n);
+ 107   1      }
+ 108          void mb_data_init(MODBUS_T *p)
+ 109          {
+ 110   1        p->phr = master_send_hr;
+ 111   1        p->hr_n = HR_NB;
+ 112   1        p->send_dat = send_table;
+ 113   1      }
+ 114          void modtify_mb_infom(MODBUS_T *p, unsigned char slv, unsigned char fun, unsigned short adr, unsigned char
+             - da_n)
+ 115          {
+C51 COMPILER V9.60.0.0   MB_USER                                                           09/27/2023 17:05:15 PAGE 3   
+
+ 116   1        p->slv = slv;
+ 117   1        p->func = fun;
+ 118   1        p->da_adr = adr;
+ 119   1        p->da_n = da_n;
+ 120   1        //  USER_PRINTF("-->p->da_n is %d\n",p->da_n);
+ 121   1        p->send_dat_nb = modbus_master_send(p);
+ 122   1        // USER_PRINTF("-->p->send_dat_nb is %d\n", p->send_dat_nb);
+ 123   1        USER_PRINTF("-->modtify_mb_infom_ok\n");
+ 124   1      }
+ 125          void set_master_send_hr(unsigned short *p, unsigned short index, unsigned short dat)
+ 126          {
+ 127   1        *(p + index) = dat;
+ 128   1      }
+ 129          void modbus_send_data(MODBUS_T *p)
+ 130          {
+ 131   1        mbh_send(p->slv, p->func, (unsigned char *)p->send_dat, p->send_dat_nb);
+ 132   1        USER_PRINTF("-->mb_send_data_ok\n");
+ 133   1      }
+ 134          // 数据打包串口发送
+ 135          void pack_data_send(MODBUS_T *p, unsigned char slv, unsigned char fun, unsigned short dat_adr, unsigned ch
+             -ar dat_nb)
+ 136          {
+ 137   1        modtify_mb_infom(p, slv, fun, dat_adr, dat_nb); // 设置信息
+ 138   1        modbus_send_data(p);                            // 发送
+ 139   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    948    ----
+   CONSTANT SIZE    =     44    ----
+   XDATA SIZE       =   2076      58
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

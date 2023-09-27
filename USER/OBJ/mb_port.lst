@@ -1,0 +1,125 @@
+C51 COMPILER V9.60.0.0   MB_PORT                                                           09/27/2023 17:05:15 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MB_PORT
+OBJECT MODULE PLACED IN .\OBJ\mb_port.obj
+COMPILER INVOKED BY: C:\Keil_C51\C51\BIN\C51.EXE mb_port.c LARGE OMF2 OPTIMIZE(9,SIZE) BROWSE INCDIR(..\USER;..\FUNC_HAN
+                    -DLER;..\GUI_APP) DEBUG PRINT(.\OBJ\mb_port.lst) TABS(2) OBJECT(.\OBJ\mb_port.obj)
+
+line level    source
+
+   1          /*
+   2           * @Author: xw.qu
+   3           * @Date: 2023-08-31 09:22:42
+   4           * @LastEditors: xw.qu
+   5           * @LastEditTime: 2023-08-31 10:48:32
+   6           * @FilePath: \USER\mb_port.c
+   7           * @Description: 
+   8           * 
+   9           * Copyright (c) 2023 by xw.qu, All Rights Reserved. 
+  10           */
+  11          
+  12          
+  13          
+  14          #include "mb_include.h"
+  15          #include "t5los8051.h"
+  16          
+  17          void mb_port_uartInit(unsigned long baud,unsigned char parity)
+  18          {
+  19   1      
+  20   1      }
+*** WARNING C280 IN LINE 17 OF mb_port.c: 'baud': unreferenced local variable
+*** WARNING C280 IN LINE 17 OF mb_port.c: 'parity': unreferenced local variable
+  21          
+  22          void mb_port_uartEnable(unsigned char txen,unsigned char rxen)
+  23          {
+  24   1        if(txen)
+  25   1        {
+  26   2      
+  27   2        }
+  28   1        else
+  29   1        {
+  30   2      
+  31   2        }
+  32   1        
+  33   1        if(rxen)
+  34   1        {
+  35   2      
+  36   2        }
+  37   1        else
+  38   1        {
+  39   2      
+  40   2        }   
+  41   1      }
+  42          void mb_set_receive_state(void)
+  43          {
+  44   1        TR4=0;
+  45   1      }
+  46          
+  47          void mb_set_send_state(void)
+  48          {
+  49   1        TR4=1;  
+  50   1      }
+  51          void mb_port_putchar(unsigned char ch)
+  52          {
+C51 COMPILER V9.60.0.0   MB_PORT                                                           09/27/2023 17:05:15 PAGE 2   
+
+  53   1        
+  54   1        mb_set_send_state();
+  55   1        while(Busy4);
+  56   1        Busy4 = 1;
+  57   1        SBUF4_TX = ch;    
+  58   1      
+  59   1      
+  60   1      }
+  61          
+  62          void mb_port_getchar(unsigned char *ch)
+  63          {
+  64   1         *ch=SBUF4_RX;
+  65   1      }
+  66          
+  67          void mb_port_timerInit(unsigned long baud)
+  68          {
+  69   1        unsigned long j,k;
+  70   1        k=2;
+  71   1        j=(unsigned long)1000*3*11; //(1/1mS)*3T*11B/BaudRate
+  72   1      
+  73   1      
+  74   1        j/=baud;    
+  75   1      
+  76   1        if(j==0)
+  77   1        {
+  78   2          j++;
+  79   2        }
+  80   1        j+=k;   
+  81   1        mbhRecTimeout = j;  
+  82   1      }
+  83          
+  84          void mb_port_timerEnable()
+  85          {
+  86   1                                     //使能定时器
+  87   1      }
+  88          
+  89          void mb_port_timerDisable()
+  90          {
+  91   1      
+  92   1      }
+  93          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    152    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----      19
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,1484 @@
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE TIME_SCENE
+OBJECT MODULE PLACED IN .\OBJ\time_scene.obj
+COMPILER INVOKED BY: C:\Keil_C51\C51\BIN\C51.EXE time_scene.c LARGE OMF2 OPTIMIZE(9,SIZE) BROWSE INCDIR(..\USER;..\FUNC_
+                    -HANDLER;..\GUI_APP) DEBUG PRINT(.\OBJ\time_scene.lst) TABS(2) OBJECT(.\OBJ\time_scene.obj)
+
+line level    source
+
+   1          /*
+   2           * @Author: xw.qu
+   3           * @Date: 2023-08-31 09:22:43
+   4           * @LastEditors: xw.qu
+   5           * @LastEditTime: 2023-09-26 15:30:39
+   6           * @FilePath: \USER\time_scene.c
+   7           * @Description: module time scene modify
+   8           *
+   9           * Copyright (c) 2023 by xw.qu, All Rights Reserved.
+  10           */
+  11          #include "time_scene.h"
+  12          #include "sys.h"
+  13          #include "T5LLIB.h"
+  14          timing_content_t timing_content[TIMING_SCENE_NUB_SIGNLE] = {0};
+  15          timing_content_t temp_timing_content = {0};
+  16          // timing_content_t save_timing_content = {0};
+  17          time_scene_var_t time_scene_var;
+  18          // time_module_scene_set_t temp_time_module_scene_set;
+  19          // time_scene_set_t  temp_time_scene_set;
+  20          unsigned short time_scene_key_nb_bak = 0;
+  21          unsigned char time_scene_select_sta_bak = 0;
+  22          // 打印定时内容数组
+  23          void time_scene_init(void)
+  24          {
+  25   1        //  memset((unsigned char *)&save_timing_content,1,sizeof(timing_content_t));
+  26   1        //  time_scene_var.adr = TIMING_SCENE_INFOR_FLASH_ADR_SATRT;
+  27   1        //  USER_PRINTF("%ld\n",time_scene_var.adr);
+  28   1      }
+  29          void printf_temp_timing_content(timing_content_t *p_timing_content)
+  30          {
+  31   1        //  unsigned char i = 0;
+  32   1        //  for( i = 0;i<index;i++)
+  33   1        //  {
+  34   1        USER_PRINTF("timing_content[%bd].time_scene_set.data_sta is %bd\n", p_timing_content->time_scene_set.inde
+             -x, p_timing_content->time_scene_set.data_sta);
+  35   1      
+  36   1        //  }
+  37   1      }
+  38          void printf_timing_content(unsigned char index)
+  39          {
+  40   1        unsigned char i = 0;
+  41   1        for (i = 0; i < index; i++)
+  42   1        {
+  43   2          USER_PRINTF("timing_content[%bd].time_scene_set.index is%bd, data_sta is %bd,week_enable is %bx,led_enab
+             -le is %d,led_sta is %d\n",
+  44   2                      i, timing_content[i].time_scene_set.index, timing_content[i].time_scene_set.data_sta, timing_conte
+             -nt[i].time_scene_set.week_enable,
+  45   2                      timing_content[i].time_scene_set.time_module_scene_set.led_enable, timing_content[i].time_scene_se
+             -t.time_module_scene_set.led_sta);
+  46   2        }
+  47   1      }
+  48          // 清除变量
+  49          void clear_timing_scene_var(void)
+  50          {
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 2   
+
+  51   1        unsigned char i = 0;
+  52   1        for (i = 8; i < 11; i++)
+  53   1        {
+  54   2          write_dgus(0x108a + i, 0);
+  55   2        }
+  56   1        write_dgus(0x1098, 0);
+  57   1        write_dgus(0x1099, 0);
+  58   1        time_scene_var.module_select_sta = 0;
+  59   1        time_scene_var.all_light_select_sta = 0;
+  60   1        time_scene_var.scene_select_sta = 0;
+  61   1        time_scene_var.all_light_on_sta = 0;
+  62   1        time_scene_var.all_light_off_sta = 0;
+  63   1        //  time_scene_var.page_bak = 0;
+  64   1        //  memset(&timing_module,0,sizeof(timing_module));
+  65   1      }
+  66          // 清除单个定时内容变量
+  67          void clear_single_timing_scene_content(timing_content_t *p_timing_content)
+  68          {
+  69   1        memset(p_timing_content, 0, sizeof(timing_content_t));
+  70   1      }
+  71          // 清除所有定时内容变量
+  72          void clear_all_timing_scene_content(timing_content_t *p_timing_content)
+  73          {
+  74   1        unsigned char i = 0;
+  75   1        for (i = 0; i < TIMING_SCENE_NUB_SIGNLE; i++)
+  76   1        {
+  77   2          clear_single_timing_scene_content(p_timing_content + i);
+  78   2        }
+  79   1      }
+  80          unsigned char get_blank_timing_scene_infor_index(void)
+  81          {
+  82   1        // return find_index(SCENE_INFOR_FLASH_ADR_SATRT,SCENC_INFOR_T_SIZE,SCENE_NUB);
+  83   1        unsigned char i = 0;
+  84   1        //  unsigned short temp_data = 0;
+  85   1        for (i = 0; i < TIMING_SCENE_NUB_SIGNLE; i++)
+  86   1        {
+  87   2          if ((0 == timing_content[i].time_scene_set.data_sta))
+  88   2          {
+  89   3            USER_PRINTF("-->blank_timing_content_index is %bd\n", i);
+  90   3            return i;
+  91   3          }
+  92   2        }
+  93   1        return 0xff;
+  94   1      }
+  95          // 获取定时场景名称选中序号
+  96          unsigned char get_timing_scene_name_select_sequence_number(void)
+  97          {
+  98   1        // return get_selected_sequence_number(0x10bb,16);
+  99   1        return get_box_select_number(0x1500, 128);
+ 100   1      }
+ 101          // 设定定时场景名称选中序号
+ 102          void set_timing_scene_name_select_sequence_number(void)
+ 103          {
+ 104   1        // set_selected_sequence_number(0x10ba,0x10bb,16);
+ 105   1        set_box_select(0x10ba, 0x1500, 128, &time_scene_key_nb_bak, &time_scene_select_sta_bak);
+ 106   1      }
+ 107          // 获取日期使能
+ 108          unsigned char get_timing_data_enable(void)
+ 109          {
+ 110   1        return read_dgus(0x1091);
+ 111   1      }
+ 112          // 设置日期使能
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 3   
+
+ 113          void set_timing_data_enable(time_scene_set_t *p_time_scene_set)
+ 114          {
+ 115   1        USER_PRINTF("-->data enable is %bd\n", p_time_scene_set->date_enable);
+ 116   1        write_dgus(0x1091, p_time_scene_set->date_enable);
+ 117   1      }
+ 118          // 获取星期使能 108a
+ 119          unsigned char get_timing_week_enable(unsigned short week_enable_adr)
+ 120          {
+ 121   1      
+ 122   1        return (read_dgus(week_enable_adr) | (read_dgus(week_enable_adr + 1) << 1) | (read_dgus(week_enable_adr +
+             - 2) << 2) |
+ 123   1                (read_dgus(week_enable_adr + 3) << 3) | (read_dgus(week_enable_adr + 4) << 4) | (read_dgus(week_enabl
+             -e_adr + 5) << 5) | (read_dgus(week_enable_adr + 6) << 6));
+ 124   1      }
+ 125          // 设置星期使能
+ 126          void set_timing_week_enable(time_scene_set_t *p_time_scene_set)
+ 127          {
+ 128   1        display_week_parameter(0x108a, p_time_scene_set->week_enable);
+ 129   1        //  unsigned char i = 0;
+ 130   1        //  USER_PRINTF("-->week enable is %bd\n",p_time_scene_set->week_enable);
+ 131   1        //  for( i = 0;i<7;i++)
+ 132   1        //  {
+ 133   1        //    write_dgus(0x108a+i,(p_time_scene_set->week_enable>>i)&0x01);
+ 134   1        //  }
+ 135   1      
+ 136   1        //  return (read_dgus(0x108a)|(read_dgus(0x108b)<<1)|(read_dgus(0x108c)<<2)|(read_dgus(0x108d)<<3)|(read_d
+             -gus(0x108e)<<4)|(read_dgus(0x108f)<<5)|(read_dgus(0x1090)<<6));;
+ 137   1      }
+ 138          // 得到定时的信息
+ 139          void get_timing_set_infor(date_t *p_s_date, date_t *p_e_data, time_t *p_time, time_scene_set_t *p_time_sce
+             -ne_set)
+ 140          {
+ 141   1      
+ 142   1        p_time_scene_set->date_enable = get_timing_data_enable();
+ 143   1        p_time_scene_set->week_enable = get_timing_week_enable(0x108a);
+ 144   1        p_time->hour = read_dgus(0x2007);
+ 145   1        p_time->min = read_dgus(0x2008);
+ 146   1        p_time->sec = 0;
+ 147   1        if (1 == p_time_scene_set->date_enable)
+ 148   1        {
+ 149   2          p_s_date->year = read_dgus(TIMING_SCENE_START_YEAR);
+ 150   2          p_s_date->month = read_dgus(TIMING_SCENE_START_MONTH);
+ 151   2          p_s_date->day = read_dgus(TIMING_SCENE_START_DAY);
+ 152   2      
+ 153   2          p_e_data->year = read_dgus(TIMING_SCENE_END_YEAR);
+ 154   2          p_e_data->month = read_dgus(TIMING_SCENE_END_MONTH);
+ 155   2          p_e_data->day = read_dgus(TIMING_SCENE_END_DAY);
+ 156   2        }
+ 157   1        // USER_PRINTF("-->data enable is %bd\n", p_time_scene_set->date_enable);
+ 158   1        // USER_PRINTF("-->week enable is %bd\n", p_time_scene_set->week_enable);
+ 159   1        // USER_PRINTF("-->execute time is %bd:%bd:%bd\n", p_time->hour, p_time->min, p_time->sec);
+ 160   1        // USER_PRINTF("-->execute start date is %d-%bd-%bd\n", p_s_date->year, p_s_date->month, p_s_date->day);
+ 161   1        // USER_PRINTF("-->execute end date is %d-%bd-%bd\n", p_e_data->year, p_e_data->month, p_e_data->day);
+ 162   1      }
+ 163          // unsigned char *get_scene_name(unsigned int adr,unsigned char index)
+ 164          //{
+ 165          //  unsigned char  scene_name[17] = {0};
+ 166          //  read_dgusii_vp(adr+(index-1)*8,(unsigned char *)scene_name,8);
+ 167          //  return scene_name;
+ 168          // }
+ 169          // 模块场景信息显示
+ 170          void dis_module_scene_infor(time_module_scene_set_t *p_time_module_scene_set)
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 4   
+
+ 171          {
+ 172   1        unsigned char i = 0;
+ 173   1        unsigned char temp_tab[32] = {0};
+ 174   1        switch (p_time_module_scene_set->type)
+ 175   1        {
+ 176   2        case SINGLE_RELAY_MODULE:
+ 177   2        case SINGLE_TIME_RELAY_MODULE:
+ 178   2        case DOUBLE_RELAY_MODULE:
+ 179   2        case DOUBLE_TIME_RELAY_MODULE:
+ 180   2          for (i = 0; i < 16; i++)
+ 181   2          {
+ 182   3            temp_tab[2 * i + 1] = (p_time_module_scene_set->led_enable >> i) & 0x1;
+ 183   3            ;
+ 184   3          }
+ 185   2          write_dgusii_vp(0x109a, (unsigned char *)&temp_tab, 16);
+ 186   2          for (i = 0; i < 16; i++)
+ 187   2          {
+ 188   3            temp_tab[2 * i + 1] = (p_time_module_scene_set->led_sta >> i) & 0x1;
+ 189   3            ;
+ 190   3          }
+ 191   2          write_dgusii_vp(0x10aa, (unsigned char *)&temp_tab, 16);
+ 192   2      
+ 193   2          break;
+ 194   2        case VOL_DIM_MODULE:
+ 195   2          for (i = 0; i < 4; i++)
+ 196   2          {
+ 197   3            temp_tab[2 * i + 1] = p_time_module_scene_set->diming_enable >> i & 0x1;
+ 198   3          }
+ 199   2          write_dgusii_vp(0x10cd, (unsigned char *)&temp_tab, 4);
+ 200   2          write_dgusii_vp(0x10d1, (unsigned char *)&(p_time_module_scene_set->dimming_duty[0]), 4);
+ 201   2      
+ 202   2          break;
+ 203   2        case SCR_DIM_MODULE:
+ 204   2          for (i = 0; i < 4; i++)
+ 205   2          {
+ 206   3            temp_tab[2 * i + 1] = p_time_module_scene_set->diming_enable >> i & 0x1;
+ 207   3          }
+ 208   2          write_dgusii_vp(0x10d5, (unsigned char *)&temp_tab, 4);
+ 209   2      
+ 210   2          write_dgusii_vp(0x10d9, (unsigned char *)&(p_time_module_scene_set->dimming_duty[0]), 4);
+ 211   2      
+ 212   2          break;
+ 213   2        }
+ 214   1      }
+ 215          // 设置定时信息
+ 216          void set_timing_set_infor(date_t *p_s_date, date_t *p_e_data, time_t *p_time, time_scene_set_t *p_time_sce
+             -ne_set)
+ 217          {
+ 218   1        set_timing_data_enable(p_time_scene_set);
+ 219   1        set_timing_week_enable(p_time_scene_set);
+ 220   1        //  set_timing_set_infor(p_s_date,p_e_data,p_time,p_time_scene_set);
+ 221   1        write_dgus(0x2007, p_time->hour);
+ 222   1        write_dgus(0x2008, p_time->min);
+ 223   1      
+ 224   1        if (1 == p_time_scene_set->date_enable)
+ 225   1        {
+ 226   2          write_dgus(TIMING_SCENE_START_YEAR, p_s_date->year);
+ 227   2          write_dgus(TIMING_SCENE_START_MONTH, p_s_date->month);
+ 228   2          write_dgus(TIMING_SCENE_START_DAY, p_s_date->day);
+ 229   2      
+ 230   2          write_dgus(TIMING_SCENE_END_YEAR, p_e_data->year);
+ 231   2          write_dgus(TIMING_SCENE_END_MONTH, p_e_data->month);
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 5   
+
+ 232   2          write_dgus(TIMING_SCENE_END_DAY, p_e_data->day);
+ 233   2        }
+ 234   1      }
+ 235          
+ 236          void timing_scene_infor_save_flash(timing_content_t *p_timing_content)
+ 237          {
+ 238   1        // USER_PRINTF("--> save_flash_index is %bd\n", p_timing_content->time_scene_set.index);
+ 239   1        norflash_write(TIMING_SCENE_INFOR_FLASH_ADR_SATRT + (p_timing_content->time_scene_set.index) * SINGLE_TIM
+             -ING_SCENC_INFOR_T_SIZE, (unsigned char *)p_timing_content, SINGLE_TIMING_SCENC_INFOR_T_SIZE);
+ 240   1        //  printf_temp_timing_content(&save_timing_content);
+ 241   1        //  norflash_write(abs(TIMING_SCENE_INFOR_FLASH_ADR_SATRT),(unsigned char *)(&save_timing_content),SINGLE_
+             -TIMING_SCENC_INFOR_T_SIZE);
+ 242   1        USER_PRINTF("--> timing scene flash store ok\n");
+ 243   1      }
+ 244          // 清空定时场景信息内容
+ 245          void timing_scene_infor_clear(timing_content_t *p_timing_content)
+ 246          {
+ 247   1        T5L_Flash(0xA5, 0Xe000, TIMING_SCENE_INFOR_FLASH_ADR_SATRT, ALL_TIMING_SCENC_INFOR_T_SIZE); // 写0FLASH清
+             -除
+ 248   1        T5L_Flash(0x5A, 0X6180, TIMING_SCENE_INFOR_FLASH_ADR_SATRT, 0x2300);                          // 读为0场景信息
+ 249   1      
+ 250   1        clear_all_timing_scene_content(p_timing_content);
+ 251   1      }
+ 252          // 删除定时单个信息内容
+ 253          void timing_scene_infor_delete(timing_content_t *p_timing_content, time_scene_set_t *p_time_scene)
+ 254          {
+ 255   1        // USER_PRINTF("flash delet index is %bd\n", p_time_scene->index);
+ 256   1        T5L_Flash(0xA5, 0Xe000, TIMING_SCENE_INFOR_FLASH_ADR_SATRT + (p_time_scene->index) * SINGLE_TIMING_SCENC_
+             -INFOR_T_SIZE, SINGLE_TIMING_SCENC_INFOR_T_SIZE); // 写0FLASH清除
+ 257   1        T5L_Flash(0x5A, 0X6180 + (p_time_scene->index) * 80, TIMING_SCENE_INFOR_FLASH_ADR_SATRT, 0x50);                   
+             -                                          // 读为0场景信息
+ 258   1        clear_single_timing_scene_content(p_timing_content);
+ 259   1      }
+ 260          // 继电器模块设置定时场景
+ 261          void timing_module_relay_scene_set(module_t *p, time_module_scene_set_t *p_time_module_scene)
+ 262          {
+ 263   1        //  unsigned short scene_led_enable = 0,scene_led_sta = 0;
+ 264   1        //  unsigned short led_hr_index_start = 0;
+ 265   1        unsigned char temp_tab[32] = {0};
+ 266   1        if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
+ 267   1        {
+ 268   2          p_time_module_scene->led_hr_index_start = 337;
+ 269   2        }
+ 270   1        else if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+ 271   1        {
+ 272   2          p_time_module_scene->led_hr_index_start = 400;
+ 273   2        }
+ 274   1        else
+ 275   1        {
+ 276   2          return;
+ 277   2        }
+ 278   1      
+ 279   1        p_time_module_scene->type = p->type;
+ 280   1        p_time_module_scene->adr = p->adr;
+ 281   1        p_time_module_scene->channel_nb = p->channel_nb;
+ 282   1        p_time_module_scene->module_index = p->index;
+ 283   1      
+ 284   1        switch (p_time_module_scene->channel_nb)
+ 285   1        {
+ 286   2        case 4:
+ 287   2          read_dgusii_vp(0x109a, (unsigned char *)temp_tab, 16);
+ 288   2          p_time_module_scene->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3;
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 6   
+
+ 289   2          // USER_PRINTF("-->led_enable is -->0x%x\n", p_time_module_scene->led_enable);
+ 290   2          read_dgusii_vp(0x10aa, (unsigned char *)temp_tab, 16);
+ 291   2          p_time_module_scene->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3;
+ 292   2          break;
+ 293   2        case 6:
+ 294   2          read_dgusii_vp(0x109a, (unsigned char *)temp_tab, 16);
+ 295   2          p_time_module_scene->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 |
+             - temp_tab[9] << 4 | temp_tab[11] << 5;
+ 296   2          // USER_PRINTF("-->led_enable is -->0x%x\n", p_time_module_scene->led_enable);
+ 297   2          read_dgusii_vp(0x10aa, (unsigned char *)temp_tab, 16);
+ 298   2          p_time_module_scene->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | te
+             -mp_tab[9] << 4 | temp_tab[11] << 5;
+ 299   2          break;
+ 300   2        case 8:
+ 301   2          read_dgusii_vp(0x109a, (unsigned char *)temp_tab, 16);
+ 302   2          p_time_module_scene->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 |
+             - temp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7;
+ 303   2          // USER_PRINTF("-->led_enable is -->0x%x\n", p_time_module_scene->led_enable);
+ 304   2          read_dgusii_vp(0x10aa, (unsigned char *)temp_tab, 16);
+ 305   2          p_time_module_scene->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | te
+             -mp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7;
+ 306   2          break;
+ 307   2        case 10:
+ 308   2          read_dgusii_vp(0x109a, (unsigned char *)temp_tab, 16);
+ 309   2          p_time_module_scene->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 |
+             - temp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
+ 310   2                                            temp_tab[17] << 8 | temp_tab[19] << 9;
+ 311   2          // USER_PRINTF("-->led_enable is -->0x%x\n", p_time_module_scene->led_enable);
+ 312   2          read_dgusii_vp(0x10aa, (unsigned char *)temp_tab, 16);
+ 313   2          p_time_module_scene->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | te
+             -mp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
+ 314   2                                         temp_tab[17] << 8 | temp_tab[19] << 9;
+ 315   2        case 12:
+ 316   2          read_dgusii_vp(0x109a, (unsigned char *)temp_tab, 16);
+ 317   2          p_time_module_scene->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 |
+             - temp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
+ 318   2                                            temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11;
+ 319   2          // USER_PRINTF("-->led_enable is -->0x%x\n", p_time_module_scene->led_enable);
+ 320   2          read_dgusii_vp(0x10aa, (unsigned char *)temp_tab, 16);
+ 321   2          p_time_module_scene->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | te
+             -mp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
+ 322   2                                         temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11;
+ 323   2          break;
+ 324   2        case 14:
+ 325   2          read_dgusii_vp(0x109a, (unsigned char *)temp_tab, 16);
+ 326   2          p_time_module_scene->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 |
+             - temp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
+ 327   2                                            temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_
+             -tab[25] << 12 | temp_tab[27] << 13;
+ 328   2          // USER_PRINTF("-->led_enable is -->0x%x\n", p_time_module_scene->led_enable);
+ 329   2          read_dgusii_vp(0x10aa, (unsigned char *)temp_tab, 16);
+ 330   2          p_time_module_scene->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | te
+             -mp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
+ 331   2                                         temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_t
+             -ab[25] << 12 | temp_tab[27] << 13;
+ 332   2        case 16:
+ 333   2          read_dgusii_vp(0x109a, (unsigned char *)temp_tab, 16);
+ 334   2          p_time_module_scene->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 |
+             - temp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
+ 335   2                                            temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_
+             -tab[25] << 12 | temp_tab[27] << 13 | temp_tab[29] << 14 | temp_tab[31] << 15;
+ 336   2          // USER_PRINTF("-->led_enable is -->0x%x\n", p_time_module_scene->led_enable);
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 7   
+
+ 337   2          read_dgusii_vp(0x10aa, (unsigned char *)temp_tab, 16);
+ 338   2          p_time_module_scene->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | te
+             -mp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
+ 339   2                                         temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_t
+             -ab[25] << 12 | temp_tab[27] << 13 | temp_tab[29] << 14 | temp_tab[31] << 15;
+ 340   2          break;
+ 341   2        }
+ 342   1      
+ 343   1        // USER_PRINTF("-->led_sta is -->0x%x\n", p_time_module_scene->led_sta);
+ 344   1        USER_PRINTF("-->module_relay_scene_set\n");
+ 345   1      }
+ 346          
+ 347          // 设置场景调光模块信息
+ 348          void timing_module_dim_scene_set(module_t *p, time_module_scene_set_t *p_time_module_scene)
+ 349          {
+ 350   1        unsigned short scene_dim_enable = 0;
+ 351   1        unsigned short scene_dim_enable_adr = 0, scene_dim_gear_adr = 0;
+ 352   1        unsigned char temp_tab[8] = {0}, dim_tab[4] = {0};
+ 353   1        if ((VOL_DIM_MODULE == p->type))
+ 354   1        {
+ 355   2          scene_dim_enable_adr = 0x10cd;
+ 356   2          scene_dim_gear_adr = 0x10d1;
+ 357   2        }
+ 358   1        else if ((SCR_DIM_MODULE == p->type))
+ 359   1        {
+ 360   2          scene_dim_enable_adr = 0x10d5;
+ 361   2          scene_dim_gear_adr = 0x10d9;
+ 362   2        }
+ 363   1        else
+ 364   1        {
+ 365   2          return;
+ 366   2        }
+ 367   1        p_time_module_scene->type = p->type;
+ 368   1        p_time_module_scene->adr = p->adr;
+ 369   1        p_time_module_scene->channel_nb = p->channel_nb;
+ 370   1        p_time_module_scene->module_index = p->index;
+ 371   1      
+ 372   1        read_dgusii_vp(scene_dim_enable_adr, (unsigned char *)temp_tab, 4);
+ 373   1        p_time_module_scene->diming_enable = scene_dim_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2
+             - | temp_tab[7] << 3;
+ 374   1        // USER_PRINTF("-->diming_enable is--->%x\n", scene_dim_enable);
+ 375   1        read_dgusii_vp(scene_dim_gear_adr, (unsigned char *)temp_tab, 4);
+ 376   1        p_time_module_scene->dimming_duty[0] = dim_tab[0] = temp_tab[1];
+ 377   1        p_time_module_scene->dimming_duty[1] = dim_tab[1] = temp_tab[3];
+ 378   1        p_time_module_scene->dimming_duty[2] = dim_tab[2] = temp_tab[5];
+ 379   1        p_time_module_scene->dimming_duty[3] = dim_tab[3] = temp_tab[7];
+ 380   1        // USER_PRINTF("-->dimming_duty is");
+ 381   1        // printf_tab(4, dim_tab);
+ 382   1      }
+ 383          // 继电器模块定时发送场景
+ 384          void timing_module_relay_scene_send(time_module_scene_set_t *p_time_module_scene)
+ 385          {
+ 386   1        if ((SINGLE_RELAY_MODULE == p_time_module_scene->type) || (SINGLE_TIME_RELAY_MODULE == p_time_module_scen
+             -e->type) || (DOUBLE_RELAY_MODULE == p_time_module_scene->type) || (DOUBLE_TIME_RELAY_MODULE == p_time_module_scene->type
+             -))
+ 387   1        {
+ 388   2          set_master_send_hr(master_send_hr, 31, p_time_module_scene->led_enable);
+ 389   2          set_master_send_hr(master_send_hr, 32, p_time_module_scene->led_sta);
+ 390   2          set_master_send_hr(master_send_hr, 33, ENTERPRISE);
+ 391   2          pack_data_send(&user_modbus, p_time_module_scene->adr, MD_FR_MHR, 31, 3);
+ 392   2        }
+ 393   1        else
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 8   
+
+ 394   1        {
+ 395   2          return;
+ 396   2        }
+ 397   1      }
+ 398          // 调光模块定时发送场景
+ 399          void timing_module_dim_scene_send(time_module_scene_set_t *p_time_module_scene)
+ 400          {
+ 401   1        if ((VOL_DIM_MODULE == p_time_module_scene->type) || (SCR_DIM_MODULE == p_time_module_scene->type))
+ 402   1        {
+ 403   2          set_master_send_hr(master_send_hr, 22, p_time_module_scene->diming_enable);
+ 404   2          set_master_send_hr(master_send_hr, 23, p_time_module_scene->dimming_duty[0]);
+ 405   2          set_master_send_hr(master_send_hr, 24, p_time_module_scene->dimming_duty[1]);
+ 406   2          set_master_send_hr(master_send_hr, 25, p_time_module_scene->dimming_duty[2]);
+ 407   2          set_master_send_hr(master_send_hr, 26, p_time_module_scene->dimming_duty[3]);
+ 408   2          pack_data_send(&user_modbus, p_time_module_scene->adr, MD_FR_MHR, 22, 6);
+ 409   2        }
+ 410   1        else
+ 411   1        {
+ 412   2          return;
+ 413   2        }
+ 414   1      }
+ 415          // 显示继电器模块界面
+ 416          void display_relay_timing_scene_interface(module_t *p)
+ 417          {
+ 418   1        write_dgus(0x2011, p->adr);
+ 419   1        write_dgus(0x2012, p->channel_nb);
+ 420   1        write_dgusii_vp(0x2013, (unsigned char *)&p->module_name, 8);
+ 421   1        write_dgusii_vp(0x3f0a, (unsigned char *)&p->channel_name, 8 * 16);
+ 422   1        // USER_PRINTF("display module index is %bd\n", p->index);
+ 423   1        switch (p->channel_nb)
+ 424   1        {
+ 425   2        case 4:
+ 426   2          time_scene_var.page_bak = 47;
+ 427   2      
+ 428   2          break;
+ 429   2        case 6:
+ 430   2          time_scene_var.page_bak = 74;
+ 431   2      
+ 432   2          break;
+ 433   2        case 8:
+ 434   2          time_scene_var.page_bak = 48;
+ 435   2      
+ 436   2          break;
+ 437   2        case 10:
+ 438   2          time_scene_var.page_bak = 72;
+ 439   2      
+ 440   2          break;
+ 441   2        case 12:
+ 442   2          time_scene_var.page_bak = 49;
+ 443   2      
+ 444   2          break;
+ 445   2        case 14:
+ 446   2          time_scene_var.page_bak = 73;
+ 447   2      
+ 448   2        case 16:
+ 449   2          time_scene_var.page_bak = 50;
+ 450   2      
+ 451   2          break;
+ 452   2        default:
+ 453   2          break;
+ 454   2        }
+ 455   1        pic_set(time_scene_var.page_bak);
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 9   
+
+ 456   1      }
+ 457          // 显示调光模块界面
+ 458          void display_dim_timing_scene_interface(module_t *p)
+ 459          {
+ 460   1        write_dgus(0x2011, p->adr);
+ 461   1        write_dgus(0x2012, p->channel_nb);
+ 462   1        write_dgusii_vp(0x2013, (unsigned char *)&p->module_name, 8);
+ 463   1        write_dgusii_vp(0x3f0a, (unsigned char *)&p->channel_name, 8 * 16);
+ 464   1        // USER_PRINTF("display module index is %bd\n", p->index);
+ 465   1        switch (p->type)
+ 466   1        {
+ 467   2        case VOL_DIM_MODULE:
+ 468   2          pic_set(TIMING_SCENE_DIM_PAGE);
+ 469   2          time_scene_var.page_bak = TIMING_SCENE_DIM_PAGE;
+ 470   2          break;
+ 471   2        case SCR_DIM_MODULE:
+ 472   2          pic_set(TIMING_SCENE_SCE_PAGE);
+ 473   2          time_scene_var.page_bak = TIMING_SCENE_SCE_PAGE;
+ 474   2          break;
+ 475   2        default:
+ 476   2          break;
+ 477   2        }
+ 478   1      }
+ 479          // 显示具体定时场景执行信息
+ 480          void display_timing_scene_infor(timing_content_t *p_timing_content)
+ 481          {
+ 482   1        char mod_infom_tab[181] = {0};
+ 483   1        unsigned char module_name_1[17] = {0};
+ 484   1        unsigned char led_on_tb[49] = {0};
+ 485   1        unsigned char led_off_tb[49] = {0};
+ 486   1        unsigned short on_sta = 0, off_sta = 0;
+ 487   1        unsigned char i = 0, j = 0, k = 0, l = 0, m = 0;
+ 488   1        unsigned char dim_duty_tb[40] = {0};
+ 489   1        unsigned char dim_duty_str[10] = {0};
+ 490   1        unsigned char str_len_cal = 0;
+ 491   1        unsigned char str_adr = 0;
+ 492   1        unsigned short str_count = 0;
+ 493   1        char channel[48] = "01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,";
+ 494   1        char week_tb[35] = "周一,周二,周三\xFD,周四,周五,周六,周日,"; // 具体方法：遇到无法显示字符时在其后加\xFD
+ 495   1        char temp_week_tb[36] = {0};
+ 496   1        module_t module_read = {0};
+ 497   1        unsigned char sce_name[16] = "";
+ 498   1        char scene_name1[20] = {""};
+ 499   1      
+ 500   1        //  p_timing_content->time_scene_set.index = index;
+ 501   1        //  printf("%s\n",week_tb);
+ 502   1        if (MODULE_TIME == p_timing_content->time_scene_set.time_scene_exectue_type)
+ 503   1        {
+ 504   2          if ((p_timing_content->time_scene_set.time_module_scene_set.type < 2) || (4 == p_timing_content->time_sc
+             -ene_set.time_module_scene_set.type) || (5 == p_timing_content->time_scene_set.time_module_scene_set.type))
+ 505   2          {
+ 506   3            on_sta = p_timing_content->time_scene_set.time_module_scene_set.led_enable & (p_timing_content->time_sc
+             -ene_set.time_module_scene_set.led_sta);
+ 507   3            // USER_PRINTF("-->on_sta is 0x%x\n", on_sta);
+ 508   3            off_sta = p_timing_content->time_scene_set.time_module_scene_set.led_enable & (~p_timing_content->time_
+             -scene_set.time_module_scene_set.led_sta);
+ 509   3            // USER_PRINTF("-->off_sta is 0x%x\n", off_sta);
+ 510   3            for (i = 0; i < 16; i++)
+ 511   3            {
+ 512   4              if (GET_BIT(on_sta, i))
+ 513   4              {
+ 514   5                strncpy(led_on_tb + j * 3, &channel[i * 3], 3);
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 10  
+
+ 515   5                j++;
+ 516   5              }
+ 517   4            }
+ 518   3            for (i = 0; i < 16; i++)
+ 519   3            {
+ 520   4              if (GET_BIT(off_sta, i))
+ 521   4              {
+ 522   5                strncpy(led_off_tb + k * 3, &channel[i * 3], 3);
+ 523   5                k++;
+ 524   5              }
+ 525   4            }
+ 526   3            // USER_PRINTF("-->led_on_tb is %s\n", led_on_tb);
+ 527   3            // USER_PRINTF("-->led_off_tb is %s\n", led_off_tb);
+ 528   3            //    strncpy(module_name_1,&module_name_tab[p_scenc_infor->type],8);
+ 529   3          }
+ 530   2          else
+ 531   2          {
+ 532   3            for (i = 0; i < 4; i++)
+ 533   3            {
+ 534   4              if (GET_BIT(p_timing_content->time_scene_set.time_module_scene_set.diming_enable, i))
+ 535   4              {
+ 536   5      
+ 537   5                sprintf(dim_duty_str, "%d%%;", p_timing_content->time_scene_set.time_module_scene_set.type == 2 ? p_t
+             -iming_content->time_scene_set.time_module_scene_set.dimming_duty[i] * 10 : p_timing_content->time_scene_set.time_module_
+             -scene_set.dimming_duty[i]);
+ 538   5      
+ 539   5                str_len_cal = strlen(dim_duty_str);
+ 540   5                // USER_PRINTF("-->dim_duty_str str_len_cal is %bd\n", str_len_cal);
+ 541   5                strncpy(dim_duty_tb + str_adr, &channel[i * 3], 3);
+ 542   5                str_adr += 3;
+ 543   5                // USER_PRINTF("-->dim_duty_str is %s\n", dim_duty_str);
+ 544   5                strncpy(dim_duty_tb + str_adr, &dim_duty_str, str_len_cal);
+ 545   5                str_adr += str_len_cal;
+ 546   5                l++;
+ 547   5              }
+ 548   4            }
+ 549   3            // USER_PRINTF("-->dim_duty_infor is %s\n", dim_duty_tb);
+ 550   3            //    strncpy(module_name_1,&module_name_tab[p_scenc_infor->type],10);
+ 551   3          }
+ 552   2        }
+ 553   1        else if (ALL_ON_OFF_TIME == p_timing_content->time_scene_set.time_scene_exectue_type)
+ 554   1        {
+ 555   2        }
+ 556   1        else if (SCENE_TIME == p_timing_content->time_scene_set.time_scene_exectue_type)
+ 557   1        {
+ 558   2        }
+ 559   1        else
+ 560   1        {
+ 561   2        }
+ 562   1        for (i = 0; i < 7; i++)
+ 563   1        {
+ 564   2          if ((p_timing_content->time_scene_set.week_enable >> i) & 0x01)
+ 565   2          {
+ 566   3            //      USER_PRINTF("week%bd enable\n",i+1);
+ 567   3            strncpy(temp_week_tb + m * 5, &week_tb[5 * i], 5);
+ 568   3            //      USER_PRINTF("week_tb is %s\n",week_tb[i]);
+ 569   3            m++;
+ 570   3          }
+ 571   2        }
+ 572   1        // USER_PRINTF("-->temp_week_tb is %s\n", temp_week_tb);
+ 573   1        // USER_PRINTF("-->display_scene_infor p_scenc_infor->module_index is %bd\n", p_timing_content->time_scen
+             -e_set.time_module_scene_set.module_index);
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 11  
+
+ 574   1        norflash_read((p_timing_content->time_scene_set.time_module_scene_set.module_index) * 140, (unsigned char
+             - *)&module_read, 140);
+ 575   1      
+ 576   1        strncpy(module_name_1, &module_read.module_name[0], 16);
+ 577   1        strrpl(module_name_1, " ", "");
+ 578   1      
+ 579   1        if (0 == p_timing_content->time_scene_set.date_enable)
+ 580   1        {
+ 581   2          if ((on_sta) && (off_sta))
+ 582   2          {
+ 583   3            sprintf(mod_infom_tab, "地址:%bd;%bd路;%s开;%s关,执行时间:%s%bd:%02bd;模块:%s", p_timing_content->time_
+             -scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, led_on_tb, led_o
+             -ff_tb, temp_week_tb, p_timing_content->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
+ 584   3          }
+ 585   2          else if ((on_sta) && (0 == off_sta))
+ 586   2          {
+ 587   3            sprintf(mod_infom_tab, "地址:%bd;%bd路;%s开,执行时间:%s%bd:%02bd;模块:%s", p_timing_content->time_scene
+             -_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, led_on_tb, temp_week_
+             -tb, p_timing_content->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
+ 588   3          }
+ 589   2          else if ((0 == on_sta) && (off_sta))
+ 590   2          {
+ 591   3            sprintf(mod_infom_tab, "地址:%bd;%bd路;%s关,执行时间:%s%bd:%02bd;模块:%s", p_timing_content->time_scene
+             -_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, led_off_tb, temp_week
+             -_tb, p_timing_content->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
+ 592   3          }
+ 593   2          else if (p_timing_content->time_scene_set.time_module_scene_set.diming_enable)
+ 594   2          {
+ 595   3            sprintf(mod_infom_tab, "地址:%bd;%bd路;%s,执行时间:%s%bd:%02bd;模块:%s", p_timing_content->time_scene_s
+             -et.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, dim_duty_tb, temp_week_
+             -tb, p_timing_content->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
+ 596   3          }
+ 597   2          else if (ALL_ON_OFF_TIME == p_timing_content->time_scene_set.time_scene_exectue_type)
+ 598   2          {
+ 599   3            if (ALL_ON == p_timing_content->time_scene_set.all_on_off_sta)
+ 600   3            {
+ 601   4              sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;动作:全开", temp_week_tb, p_timing_content->exectue_time.
+             -hour, p_timing_content->exectue_time.min);
+ 602   4            }
+ 603   3            else if (ALL_OFF == p_timing_content->time_scene_set.all_on_off_sta)
+ 604   3            {
+ 605   4              sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;动作:全关", temp_week_tb, p_timing_content->exectue_time.
+             -hour, p_timing_content->exectue_time.min);
+ 606   4            }
+ 607   3            else
+ 608   3            {
+ 609   4              sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;无动作", temp_week_tb, p_timing_content->exectue_time.hou
+             -r, p_timing_content->exectue_time.min);
+ 610   4            }
+ 611   3          }
+ 612   2          else if (SCENE_TIME == p_timing_content->time_scene_set.time_scene_exectue_type)
+ 613   2          {
+ 614   3            if (0 == p_timing_content->time_scene_set.scene_name_index)
+ 615   3            {
+ 616   4              sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;无执行场景", temp_week_tb, p_timing_content->exectue_time
+             -.hour, p_timing_content->exectue_time.min);
+ 617   4            }
+ 618   3            else
+ 619   3            {
+ 620   4              read_dgusii_vp(0x3320 + (p_timing_content->time_scene_set.scene_name_index - 1) * 8, (unsigned char *)
+             -sce_name, 8);
+ 621   4              // USER_PRINTF("-->scene_name is %s\n", sce_name);
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 12  
+
+ 622   4              str_count = sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;执行场景:%s", temp_week_tb, p_timing_content-
+             ->exectue_time.hour, p_timing_content->exectue_time.min, sce_name);
+ 623   4              //        USER_PRINTF("-->mod_infom_tab is %s\n",sce_name);
+ 624   4              //        USER_PRINTF("-->str_count is %d\n",str_count);
+ 625   4              //        sprintf(mod_infom_tab+str_count,"%s;执行场景:",sce_name);
+ 626   4            }
+ 627   3          }
+ 628   2      
+ 629   2          else
+ 630   2          {
+ 631   3            sprintf(mod_infom_tab, "地址:%bd;%bd路;未配置场景,执行时间:%s,%bd:%02bd;模块:%s", p_timing_content->tim
+             -e_scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, temp_week_tb, 
+             -p_timing_content->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
+ 632   3          }
+ 633   2        }
+ 634   1        else
+ 635   1        {
+ 636   2          if ((on_sta) && (off_sta))
+ 637   2          {
+ 638   3            sprintf(mod_infom_tab, "地址:%bd;%bd路;%s开;%s关;时间:%d-%bd-%bd~%d-%bd-%bd,%s%bd:%02bd;模块:%s", p_tim
+             -ing_content->time_scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb
+             -, led_on_tb, led_off_tb, p_timing_content->start_date.year, p_timing_content->start_date.month, p_timing_content->start_
+             -date.day, p_timing_content->end_date.year, p_timing_content->end_date.month, p_timing_content->end_date.day, temp_week_t
+             -b, p_timing_content->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
+ 639   3          }
+ 640   2          else if ((on_sta) && (0 == off_sta))
+ 641   2          {
+ 642   3            sprintf(mod_infom_tab, "地址:%bd;%bd路;%s开;时间:%d-%bd-%bd~%d-%bd-%bd,%s%bd:%02bd;模块:%s", p_timing_c
+             -ontent->time_scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, led
+             -_on_tb, p_timing_content->start_date.year, p_timing_content->start_date.month, p_timing_content->start_date.day, p_timin
+             -g_content->end_date.year, p_timing_content->end_date.month, p_timing_content->end_date.day, temp_week_tb, p_timing_conte
+             -nt->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
+ 643   3          }
+ 644   2          else if ((0 == on_sta) && (off_sta))
+ 645   2          {
+ 646   3            sprintf(mod_infom_tab, "地址:%bd;%bd路;%s关;时间:%d-%bd-%bd~%d-%bd-%bd,%s%bd:%02bd;模块:%s", p_timing_c
+             -ontent->time_scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, led
+             -_off_tb, p_timing_content->start_date.year, p_timing_content->start_date.month, p_timing_content->start_date.day, p_timi
+             -ng_content->end_date.year, p_timing_content->end_date.month, p_timing_content->end_date.day, temp_week_tb, p_timing_cont
+             -ent->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
+ 647   3          }
+ 648   2          else if (p_timing_content->time_scene_set.time_module_scene_set.diming_enable)
+ 649   2          {
+ 650   3            sprintf(mod_infom_tab, "地址:%bd;%bd路;%s;时间:%d-%bd-%bd~%d-%bd-%bd,%s%bd:%02bd;模块:%s", p_timing_con
+             -tent->time_scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, dim_d
+             -uty_tb, p_timing_content->start_date.year, p_timing_content->start_date.month, p_timing_content->start_date.day, p_timin
+             -g_content->end_date.year, p_timing_content->end_date.month, p_timing_content->end_date.day, temp_week_tb, p_timing_conte
+             -nt->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
+ 651   3          }
+ 652   2          else if (ALL_ON_OFF_TIME == p_timing_content->time_scene_set.time_scene_exectue_type)
+ 653   2          {
+ 654   3            if (ALL_ON == p_timing_content->time_scene_set.all_on_off_sta)
+ 655   3            {
+ 656   4              sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;动作:全开", temp_week_tb, p_timing_content->exectue_time.
+             -hour, p_timing_content->exectue_time.min);
+ 657   4            }
+ 658   3            else if (ALL_OFF == p_timing_content->time_scene_set.all_on_off_sta)
+ 659   3            {
+ 660   4              sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;动作:全关", temp_week_tb, p_timing_content->exectue_time.
+             -hour, p_timing_content->exectue_time.min);
+ 661   4            }
+ 662   3            else
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 13  
+
+ 663   3            {
+ 664   4              sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;无动作", temp_week_tb, p_timing_content->exectue_time.hou
+             -r, p_timing_content->exectue_time.min);
+ 665   4            }
+ 666   3          }
+ 667   2          else if (SCENE_TIME == p_timing_content->time_scene_set.time_scene_exectue_type)
+ 668   2          {
+ 669   3            if (0 == p_timing_content->time_scene_set.scene_name_index)
+ 670   3            {
+ 671   4              sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;无执行场景", temp_week_tb, p_timing_content->exectue_time
+             -.hour, p_timing_content->exectue_time.min);
+ 672   4            }
+ 673   3            else
+ 674   3            {
+ 675   4              sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;执行场景:%bd\n", temp_week_tb, p_timing_content->exectue_
+             -time.hour, p_timing_content->exectue_time.min, p_timing_content->time_scene_set.scene_name_index);
+ 676   4            }
+ 677   3          }
+ 678   2          else
+ 679   2          {
+ 680   3            sprintf(mod_infom_tab, "%s;地址:%bd;%bd路;未配置场景;时间:%d-%bd-%bd~%d-%bd-%bd,%s,%bd:%02bd", module_n
+             -ame_1, p_timing_content->time_scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_se
+             -t.channel_nb, p_timing_content->start_date.year, p_timing_content->start_date.month, p_timing_content->start_date.day, p
+             -_timing_content->end_date.year, p_timing_content->end_date.month, p_timing_content->end_date.day, temp_week_tb, p_timing
+             -_content->exectue_time.hour, p_timing_content->exectue_time.min);
+ 681   3          }
+ 682   2        }
+ 683   1        // USER_PRINTF("-->timing_message is %s\n", mod_infom_tab);
+ 684   1        //  USER_PRINTF("-->module->index %bd\n",p_scenc_infor->index);
+ 685   1        write_dgusii_vp(0x6180 + (p_timing_content->time_scene_set.index) * 80, (unsigned char *)mod_infom_tab, 8
+             -0);
+ 686   1        // USER_PRINTF("-->current_time_scene_index is %bd\n", p_timing_content->time_scene_set.index);
+ 687   1      }
+ 688          // 选择模块进行场景设置
+ 689          void module_timing_scene_select(module_t *p, unsigned char key)
+ 690          {
+ 691   1      
+ 692   1        norflash_read((key - 1) * 140, (unsigned char *)p, 140);
+ 693   1        //  USER_PRINTF("-->batch_set_parameters_flag after read module flash is %bd\n",g_var_module.batch_set_par
+             -ameters_flag);
+ 694   1        if (0 == p->data_sta)
+ 695   1        {
+ 696   2          return;
+ 697   2        }
+ 698   1        switch (p->type)
+ 699   1        {
+ 700   2        case SINGLE_RELAY_MODULE:
+ 701   2        case SINGLE_TIME_RELAY_MODULE:
+ 702   2        case DOUBLE_RELAY_MODULE:
+ 703   2        case DOUBLE_TIME_RELAY_MODULE:
+ 704   2      
+ 705   2          display_relay_timing_scene_interface(p);
+ 706   2          USER_PRINTF("display_relay_timing_scene_interface\n");
+ 707   2          //        relay_read(p);
+ 708   2          break;
+ 709   2        case VOL_DIM_MODULE:
+ 710   2        case SCR_DIM_MODULE:
+ 711   2          //        clear_touch_sta();
+ 712   2          display_dim_timing_scene_interface(p);
+ 713   2          USER_PRINTF("display_dim_timing_scene_interface\n");
+ 714   2          //        dim_read(p);
+ 715   2          break;
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 14  
+
+ 716   2          break;
+ 717   2        default:
+ 718   2      
+ 719   2          break;
+ 720   2        }
+ 721   1      }
+ 722          // 选择需要设置定时的模块
+ 723          void module_timing_scene_select_ctrl(module_t *p)
+ 724          {
+ 725   1        unsigned short key_nb = 0;
+ 726   1        get_key_value(0x10cb, &key_nb);
+ 727   1        if (key_nb)
+ 728   1        {
+ 729   2          module_timing_scene_select(p, key_nb);
+ 730   2          clear_key_value(0x10cb, &key_nb);
+ 731   2        }
+ 732   1      }
+ 733          // 定时场景添加
+ 734          void timing_scene_add(time_scene_set_t *p_time_scene)
+ 735          {
+ 736   1        p_time_scene->index = get_blank_timing_scene_infor_index();
+ 737   1        // USER_PRINTF("-->temp_get_blank_scene_index is %bd\n", p_time_scene->index);
+ 738   1      }
+ 739          // 定时场景删除
+ 740          void timing_scene_delete(timing_content_t *p_timing_content, time_scene_set_t *p_time_scene)
+ 741          {
+ 742   1        unsigned short key_nb = 0;
+ 743   1        get_key_value(0x1089, &key_nb);
+ 744   1        if ((1 == key_nb))
+ 745   1        {
+ 746   2          clear_key_value(0x1089, &key_nb);
+ 747   2          p_time_scene->index = get_timing_scene_name_select_sequence_number() - 1;
+ 748   2          // USER_PRINTF("-->temp_get_select_sequence_number_scene_index is %bd\n", p_time_scene->index);
+ 749   2          timing_scene_infor_delete(p_timing_content + p_time_scene->index, p_time_scene);
+ 750   2          USER_PRINTF("-->timing scene delect success!\n");
+ 751   2        }
+ 752   1      }
+ 753          // 定时场景清空
+ 754          void timing_scene_clear(timing_content_t *p_timing_content)
+ 755          {
+ 756   1        unsigned short key_nb = 0;
+ 757   1        get_key_value(0x1088, &key_nb);
+ 758   1        if ((1 == key_nb))
+ 759   1        {
+ 760   2          timing_scene_infor_clear(p_timing_content);
+ 761   2          clear_key_value(0x1088, &key_nb);
+ 762   2          USER_PRINTF("-->timing scene clear success!\n");
+ 763   2        }
+ 764   1      }
+ 765          void copy_to_temp_timing_content(timing_content_t *p_timing_content)
+ 766          {
+ 767   1        memcpy(&temp_timing_content, p_timing_content, sizeof(timing_content_t));
+ 768   1      }
+ 769          void display_all_on_off_interface(timing_content_t *p_timing_content)
+ 770          {
+ 771   1        pic_set(46);
+ 772   1        if (1 == p_timing_content->time_scene_set.all_on_off_sta)
+ 773   1        {
+ 774   2          write_dgus(0x1098, 1);
+ 775   2          write_dgus(0x1099, 0);
+ 776   2        }
+ 777   1        else if (2 == p_timing_content->time_scene_set.all_on_off_sta)
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 15  
+
+ 778   1        {
+ 779   2          write_dgus(0x1098, 0);
+ 780   2          write_dgus(0x1099, 1);
+ 781   2        }
+ 782   1        else
+ 783   1        {
+ 784   2          write_dgus(0x1098, 0);
+ 785   2          write_dgus(0x1099, 0);
+ 786   2        }
+ 787   1      }
+ 788          
+ 789          void display_scene_time_interface(timing_content_t *p_timing_content)
+ 790          {
+ 791   1        unsigned char scene_name[16] = {0};
+ 792   1        pic_set(45);
+ 793   1        read_dgusii_vp(0x3320 + (p_timing_content->time_scene_set.scene_name_index - 1) * 8, (unsigned char *)sce
+             -ne_name, 8);
+ 794   1        write_dgusii_vp(0x2009, scene_name, 8);
+ 795   1      }
+ 796          // 定时信息修改
+ 797          void timing_scene_modtify(timing_content_t *p_timing_content, time_scene_set_t *p_time_scene)
+ 798          {
+ 799   1        if (0 == get_timing_scene_name_select_sequence_number())
+ 800   1          return;
+ 801   1        p_time_scene->index = get_timing_scene_name_select_sequence_number() - 1;
+ 802   1        if (BLANK == (p_timing_content + p_time_scene->index)->time_scene_set.data_sta)
+ 803   1          return;
+ 804   1        USER_PRINTF("-->temp_get_select_sequence_number_scene_index is %bd\n", p_time_scene->index);
+ 805   1      
+ 806   1        USER_PRINTF("-->time_scene_exectue_type is %bd\n", (p_timing_content + p_time_scene->index)->time_scene_s
+             -et.time_scene_exectue_type);
+ 807   1        copy_to_temp_timing_content(p_timing_content + p_time_scene->index);
+ 808   1        set_timing_set_infor(&(p_timing_content + p_time_scene->index)->start_date, &(p_timing_content + p_time_s
+             -cene->index)->end_date, &(p_timing_content + p_time_scene->index)->exectue_time, &(p_timing_content + p_time_scene->inde
+             -x)->time_scene_set);
+ 809   1      
+ 810   1        switch ((p_timing_content + p_time_scene->index)->time_scene_set.time_scene_exectue_type)
+ 811   1        {
+ 812   2        case MODULE_TIME:
+ 813   2          USER_PRINTF("-->time_module_scene_set.module_index is %bd\n", (p_timing_content + p_time_scene->index)->
+             -time_scene_set.time_module_scene_set.module_index);
+ 814   2          module_timing_scene_select(&timing_module, (p_timing_content + p_time_scene->index)->time_scene_set.time
+             -_module_scene_set.module_index + 1);
+ 815   2          //      set_timing_set_infor(&(p_timing_content+p_time_scene->index)->start_date,&(p_timing_content+p_time
+             -_scene->index)->end_date,&(p_timing_content+p_time_scene->index)->exectue_time,&(p_timing_content+p_time_scene->index)->
+             -time_scene_set);
+ 816   2          dis_module_scene_infor(&(p_timing_content + p_time_scene->index)->time_scene_set.time_module_scene_set);
+ 817   2          time_scene_var.module_select_sta = 1;
+ 818   2          time_scene_var.all_light_select_sta = 0;
+ 819   2          time_scene_var.scene_select_sta = 0;
+ 820   2          break;
+ 821   2        case ALL_ON_OFF_TIME:
+ 822   2          USER_PRINTF("-->all on off\n");
+ 823   2          display_all_on_off_interface(p_timing_content + p_time_scene->index);
+ 824   2          time_scene_var.module_select_sta = 0;
+ 825   2          time_scene_var.all_light_select_sta = 1;
+ 826   2          time_scene_var.scene_select_sta = 0;
+ 827   2          break;
+ 828   2        case SCENE_TIME:
+ 829   2          USER_PRINTF("-->scene time\n");
+ 830   2          display_scene_time_interface(p_timing_content + p_time_scene->index);
+ 831   2          time_scene_var.module_select_sta = 0;
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 16  
+
+ 832   2          time_scene_var.all_light_select_sta = 0;
+ 833   2          time_scene_var.scene_select_sta = 1;
+ 834   2          break;
+ 835   2        default:
+ 836   2          break;
+ 837   2        }
+ 838   1        write_dgus(0x1092, time_scene_var.module_select_sta);
+ 839   1        write_dgus(0x1093, time_scene_var.all_light_select_sta);
+ 840   1        write_dgus(0x1094, time_scene_var.scene_select_sta);
+ 841   1      }
+ 842          // 定时场景编辑
+ 843          void timing_scene_edit(timing_content_t *p_timing_content, time_scene_set_t *p_time_scene)
+ 844          {
+ 845   1        unsigned short key_nb = 0;
+ 846   1        get_key_value(0x1087, &key_nb);
+ 847   1        if ((key_nb))
+ 848   1        {
+ 849   2          switch (key_nb)
+ 850   2          {
+ 851   3          case ADD:
+ 852   3            timing_scene_add(p_time_scene);
+ 853   3      
+ 854   3            break;
+ 855   3          case MODIFY:
+ 856   3            timing_scene_modtify(p_timing_content, p_time_scene);
+ 857   3            break;
+ 858   3          default:
+ 859   3      
+ 860   3            break;
+ 861   3          }
+ 862   2          clear_key_value(0x1087, &key_nb);
+ 863   2        }
+ 864   1        timing_scene_clear(p_timing_content);
+ 865   1        timing_scene_delete(p_timing_content, p_time_scene);
+ 866   1      }
+ 867          // 定时模块场景设定
+ 868          void timing_module_scene_set(module_t *p_module, timing_content_t *p_timing_content)
+ 869          {
+ 870   1        //  unsigned char temp_tab[32] = {0};
+ 871   1        //  read_dgusii_vp(0x2013,(unsigned char *)temp_tab,16);
+ 872   1        //  if(0 == strcmp(temp_tab, "未选择模块"))
+ 873   1        //  {
+ 874   1        //    USER_PRINTF("-->don't select module ,please select one module\n");
+ 875   1        //    return;
+ 876   1        //  }
+ 877   1      
+ 878   1        timing_module_relay_scene_set(p_module, &p_timing_content->time_scene_set.time_module_scene_set);
+ 879   1        timing_module_dim_scene_set(p_module, &p_timing_content->time_scene_set.time_module_scene_set);
+ 880   1        p_timing_content->time_scene_set.data_sta = 1;
+ 881   1        USER_PRINTF("--> select a module ok\n");
+ 882   1      }
+ 883          void scene_infor_module_confim_key(module_t *p_module, timing_content_t *p_timing_content, time_scene_set_
+             -t *p_time_scene_set)
+ 884          {
+ 885   1        p_timing_content->time_scene_set.index = p_time_scene_set->index;
+ 886   1        p_timing_content->time_scene_set.time_scene_exectue_type = p_time_scene_set->time_scene_exectue_type;
+ 887   1        get_timing_set_infor(&p_timing_content->start_date, &p_timing_content->end_date, &p_timing_content->exect
+             -ue_time, &p_timing_content->time_scene_set);
+ 888   1      
+ 889   1        timing_module_scene_set(p_module, p_timing_content);
+ 890   1        display_timing_scene_infor(p_timing_content);
+ 891   1        timing_scene_infor_save_flash(p_timing_content);
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 17  
+
+ 892   1        printf_temp_timing_content(p_timing_content);
+ 893   1        //  printf_timing_content(10);
+ 894   1        clear_timing_scene_var();
+ 895   1        // p_time_scene_set->index
+ 896   1        if (p_time_scene_set->index >= 5)
+ 897   1        {
+ 898   2          pic_page = TIMING_SCENE_MANGE_SECOND_PAGE + p_time_scene_set->index / 5 - 1;
+ 899   2          pic_set(pic_page);
+ 900   2          
+ 901   2        }
+ 902   1        else
+ 903   1        {
+ 904   2          pic_page = TIMING_SCENE_MANGE_FIRST_PAGE;
+ 905   2          pic_set(pic_page);
+ 906   2        } 
+ 907   1      }
+ 908          void scene_infor_cancle_key(void)
+ 909          {
+ 910   1        clear_timing_scene_var();
+ 911   1        pic_set(pic_page);
+ 912   1      }
+ 913          void timing_specified_scene_set(time_scene_set_t *p_time_scene)
+ 914          {
+ 915   1        //  norflash_read(SCENE_NAME_FLASH_ADR_SATRT+p_time_scene->index*NAME_SCENE_T_SIZE+2,(unsigned char *)p_ti
+             -me_scene->scene_name_index,1);//读flash
+ 916   1        if (0 == temp_timing_content.time_scene_set.scene_name_index)
+ 917   1        {
+ 918   2          USER_PRINTF("-->don't select scene ,please select one scene\n");
+ 919   2          return;
+ 920   2        }
+ 921   1        p_time_scene->data_sta = 1;
+ 922   1        p_time_scene->scene_name_index = temp_timing_content.time_scene_set.scene_name_index;
+ 923   1        USER_PRINTF("-->select scene index is %bd\n", p_time_scene->scene_name_index);
+ 924   1      }
+ 925          void specified_scene_confim_key(time_scene_set_t *p_time_scene, timing_content_t *p_timing_content, time_s
+             -cene_set_t *p_time_scene_set)
+ 926          {
+ 927   1        p_timing_content->time_scene_set.index = p_time_scene_set->index;
+ 928   1        p_timing_content->time_scene_set.time_scene_exectue_type = p_time_scene_set->time_scene_exectue_type;
+ 929   1        get_timing_set_infor(&p_timing_content->start_date, &p_timing_content->end_date, &p_timing_content->exect
+             -ue_time, &p_timing_content->time_scene_set);
+ 930   1      
+ 931   1        timing_specified_scene_set(p_time_scene);
+ 932   1        display_timing_scene_infor(p_timing_content);
+ 933   1        clear_timing_scene_var();
+ 934   1        timing_scene_infor_save_flash(p_timing_content);
+ 935   1      }
+ 936          
+ 937          // 0x1098-0x1099
+ 938          void timing_all_on_off_scene_set(time_scene_set_t *p_time_scene)
+ 939          {
+ 940   1        unsigned char on_sta = 0, off_sta = 0;
+ 941   1        on_sta = read_dgus(0x1098);
+ 942   1        off_sta = read_dgus(0x1099);
+ 943   1        if ((0 == on_sta) && (0 == off_sta))
+ 944   1        {
+ 945   2          p_time_scene->all_on_off_sta = 0;
+ 946   2          p_time_scene->data_sta = 0;
+ 947   2        }
+ 948   1        else if ((1 == on_sta))
+ 949   1        {
+ 950   2          p_time_scene->all_on_off_sta = 1;
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 18  
+
+ 951   2          p_time_scene->data_sta = 1;
+ 952   2        }
+ 953   1        else if ((1 == off_sta))
+ 954   1        {
+ 955   2          p_time_scene->all_on_off_sta = 2;
+ 956   2          p_time_scene->data_sta = 1;
+ 957   2        }
+ 958   1      }
+ 959          void all_on_off_scene_confim_key(time_scene_set_t *p_time_scene, timing_content_t *p_timing_content, time_
+             -scene_set_t *p_time_scene_set)
+ 960          {
+ 961   1        p_timing_content->time_scene_set.index = p_time_scene_set->index;
+ 962   1        p_timing_content->time_scene_set.time_scene_exectue_type = p_time_scene_set->time_scene_exectue_type;
+ 963   1        get_timing_set_infor(&p_timing_content->start_date, &p_timing_content->end_date, &p_timing_content->exect
+             -ue_time, &p_timing_content->time_scene_set);
+ 964   1      
+ 965   1        timing_all_on_off_scene_set(p_time_scene);
+ 966   1        display_timing_scene_infor(p_timing_content);
+ 967   1        timing_scene_infor_save_flash(p_timing_content);
+ 968   1        clear_timing_scene_var();
+ 969   1      }
+ 970          void timing_scene_infor_ctrl(module_t *p_module, timing_content_t *p_timing_content, time_scene_set_t *p_t
+             -ime_scene_set)
+ 971          {
+ 972   1        unsigned short key_nb = 0;
+ 973   1        get_key_value(0x10CC, &key_nb);
+ 974   1        if ((key_nb))
+ 975   1        {
+ 976   2          switch (key_nb)
+ 977   2          {
+ 978   3          case 1: // 模块确定
+ 979   3            scene_infor_module_confim_key(p_module, p_timing_content, p_time_scene_set);
+ 980   3      
+ 981   3            break;
+ 982   3          case 2:
+ 983   3            scene_infor_cancle_key();
+ 984   3            break;
+ 985   3          case 3: // 所有灯光确定
+ 986   3            all_on_off_scene_confim_key(&p_timing_content->time_scene_set, p_timing_content, p_time_scene_set);
+ 987   3      
+ 988   3            //        scene_infor_confim_key();
+ 989   3            break;
+ 990   3          case 4: // 指定场景确定
+ 991   3            specified_scene_confim_key(&p_timing_content->time_scene_set, p_timing_content, p_time_scene_set);
+ 992   3      
+ 993   3            break;
+ 994   3          case 5:
+ 995   3            scene_infor_cancle_key();
+ 996   3            break;
+ 997   3          default:
+ 998   3            break;
+ 999   3          }
+1000   2          clear_key_value(0x10CC, &key_nb);
+1001   2        }
+1002   1      }
+1003          // 定时模块选择控制
+1004          void operand_ctrl(module_t *p_module, timing_content_t *p_timing_content)
+1005          {
+1006   1        unsigned short key_nb = 0;
+1007   1      
+1008   1        get_key_value(0x1095, &key_nb);
+1009   1        if ((key_nb))
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 19  
+
+1010   1        {
+1011   2          switch (key_nb)
+1012   2          {
+1013   3          case 1:
+1014   3            write_dgus(0x1092, time_scene_var.module_select_sta ^= 1);
+1015   3            write_dgus(0x1093, 0);
+1016   3            write_dgus(0x1094, 0);
+1017   3            time_scene_var.all_light_select_sta = 0;
+1018   3            time_scene_var.scene_select_sta = 0;
+1019   3      
+1020   3            if (0 == p_module->data_sta)
+1021   3            {
+1022   4              pic_set(71);
+1023   4            }
+1024   3            else
+1025   3            {
+1026   4              pic_set(time_scene_var.page_bak);
+1027   4            }
+1028   3            if (0 == time_scene_var.module_select_sta)
+1029   3            {
+1030   4              pic_set(70);
+1031   4              p_timing_content->time_scene_set.time_scene_exectue_type = EMPTY_TIME;
+1032   4            }
+1033   3            else
+1034   3            {
+1035   4              p_timing_content->time_scene_set.time_scene_exectue_type = MODULE_TIME;
+1036   4            }
+1037   3            break;
+1038   3          case 2:
+1039   3            write_dgus(0x1092, 0);
+1040   3            write_dgus(0x1093, time_scene_var.all_light_select_sta ^= 1);
+1041   3            write_dgus(0x1094, 0);
+1042   3            time_scene_var.module_select_sta = 0;
+1043   3            time_scene_var.scene_select_sta = 0;
+1044   3      
+1045   3            if (0 == time_scene_var.all_light_select_sta)
+1046   3            {
+1047   4              pic_set(70);
+1048   4              p_timing_content->time_scene_set.time_scene_exectue_type = EMPTY_TIME;
+1049   4            }
+1050   3            else
+1051   3            {
+1052   4              pic_set(46);
+1053   4              p_timing_content->time_scene_set.time_scene_exectue_type = ALL_ON_OFF_TIME;
+1054   4            }
+1055   3      
+1056   3            break;
+1057   3          case 3:
+1058   3            write_dgus(0x1092, 0);
+1059   3            write_dgus(0x1093, 0);
+1060   3            write_dgus(0x1094, time_scene_var.scene_select_sta ^= 1);
+1061   3      
+1062   3            time_scene_var.module_select_sta = 0;
+1063   3            time_scene_var.all_light_select_sta = 0;
+1064   3            if (0 == time_scene_var.scene_select_sta)
+1065   3            {
+1066   4              pic_set(70);
+1067   4              p_timing_content->time_scene_set.time_scene_exectue_type = EMPTY_TIME;
+1068   4            }
+1069   3            else
+1070   3            {
+1071   4              pic_set(45);
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 20  
+
+1072   4              p_timing_content->time_scene_set.time_scene_exectue_type = SCENE_TIME;
+1073   4            }
+1074   3            break;
+1075   3          }
+1076   2          clear_key_value(0x1095, &key_nb);
+1077   2        }
+1078   1      }
+1079          // 定时场景选择控制
+1080          void timing_scene_select_ctrl(time_scene_set_t *p_time_scene_set)
+1081          {
+1082   1        unsigned short key_nb = 0;
+1083   1        unsigned char scene_name[16] = {0};
+1084   1        get_key_value(0x1096, &key_nb);
+1085   1        if ((key_nb))
+1086   1        {
+1087   2          read_dgusii_vp(0x3320 + (key_nb - 1) * 8, (unsigned char *)scene_name, 8);
+1088   2          write_dgusii_vp(0x2009, (unsigned char *)scene_name, 8);
+1089   2          clear_key_value(0x1096, &key_nb);
+1090   2          if ((0 != strcmp(scene_name, "未启用")) && (0 != strcmp(scene_name, "未选择场景")))
+1091   2          {
+1092   3            p_time_scene_set->scene_name_index = key_nb;
+1093   3            USER_PRINTF("-->timing select scene index is %bd\n", p_time_scene_set->scene_name_index);
+1094   3          }
+1095   2          else
+1096   2          {
+1097   3            p_time_scene_set->scene_name_index = 0;
+1098   3            USER_PRINTF("-->don't select scene ,please select one scene\n");
+1099   3          }
+1100   2          pic_set(45);
+1101   2        }
+1102   1      }
+1103          // 定时全开全关选择控制
+1104          void timing_all_on_off_ctrl(void)
+1105          {
+1106   1        unsigned short key_nb = 0;
+1107   1      
+1108   1        get_key_value(0x1097, &key_nb);
+1109   1        if ((key_nb))
+1110   1        {
+1111   2          switch (key_nb)
+1112   2          {
+1113   3          case 1:
+1114   3            write_dgus(0x1098, time_scene_var.all_light_on_sta ^= 1);
+1115   3            write_dgus(0x1099, 0);
+1116   3            time_scene_var.all_light_off_sta = 0;
+1117   3            break;
+1118   3          case 2:
+1119   3            write_dgus(0x1099, time_scene_var.all_light_off_sta ^= 1);
+1120   3            write_dgus(0x1098, 0);
+1121   3            time_scene_var.all_light_on_sta = 0;
+1122   3            break;
+1123   3          }
+1124   2          clear_key_value(0x1097, &key_nb);
+1125   2        }
+1126   1      }
+1127          // 模块定时发送场景
+1128          void module_timing_send(time_module_scene_set_t *p)
+1129          {
+1130   1        if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+1131   1        {
+1132   2          set_master_send_hr(master_send_hr, 31, p->led_enable);
+1133   2        }
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 21  
+
+1134   1        else
+1135   1        {
+1136   2          set_master_send_hr(master_send_hr, 31, p->led_enable << 4 | 0x08);
+1137   2        }
+1138   1        USER_PRINTF("module_timing_send led enable is %d\n", p->led_enable);
+1139   1        set_master_send_hr(master_send_hr, 32, p->led_sta);
+1140   1        USER_PRINTF("module_timing_send led sta is %d\n", p->led_sta);
+1141   1        set_master_send_hr(master_send_hr, 33, ENTERPRISE);
+1142   1        pack_data_send(&user_modbus, p->adr, MD_FR_MHR, 31, 3);
+1143   1      }
+1144          // 场景设定定时发送
+1145          void scene_timing_send(time_scene_set_t *p)
+1146          {
+1147   1        set_master_send_hr(master_send_hr, 7, p->scene_name_index);
+1148   1        set_master_send_hr(master_send_hr, 8, 1);
+1149   1        pack_data_send(&user_modbus, 0, MD_FR_MHR, 7, 2);
+1150   1      }
+1151          // 定时发送全开全关
+1152          void all_on_off_timing_send(time_scene_set_t *p)
+1153          {
+1154   1        if (1 == p->all_on_off_sta)
+1155   1        {
+1156   2          set_master_send_hr(master_send_hr, 31, 0xffff);
+1157   2          set_master_send_hr(master_send_hr, 32, 0xffff);
+1158   2          set_master_send_hr(master_send_hr, 33, (2 << 14) | ENTERPRISE);
+1159   2        }
+1160   1        else if (2 == p->all_on_off_sta)
+1161   1        {
+1162   2          set_master_send_hr(master_send_hr, 31, 0xffff);
+1163   2          set_master_send_hr(master_send_hr, 32, 0x0000);
+1164   2          set_master_send_hr(master_send_hr, 33, (2 << 14) | ENTERPRISE);
+1165   2        }
+1166   1        pack_data_send(&user_modbus, 0, MD_FR_MHR, 31, 3);
+1167   1      }
+1168          
+1169          void timing_auto_detect(void)
+1170          {
+1171   1        unsigned char i = 0;
+1172   1        unsigned char sys_time[8] = 0;
+1173   1        static unsigned char sec_bak = 0;
+1174   1        date_t temp_date = {0};
+1175   1        time_t temp_time = {0};
+1176   1        unsigned char week = 0;
+1177   1        read_sys_time(sys_time);
+1178   1        temp_date.year = sys_time[0];
+1179   1        temp_date.month = sys_time[1];
+1180   1        temp_date.day = sys_time[2];
+1181   1        week = sys_time[3] > 0 ? (sys_time[3] - 1) : 6;
+1182   1        temp_time.hour = sys_time[4];
+1183   1        temp_time.min = sys_time[5];
+1184   1        temp_time.sec = sys_time[6];
+1185   1        //  printf_tab(8,sys_time);
+1186   1        if (sec_bak != temp_time.sec)
+1187   1        {
+1188   2          sec_bak = temp_time.sec;
+1189   2          for (i = 0; i < TIMING_SCENE_NUB_SIGNLE; i++)
+1190   2          {
+1191   3            if (BLANK == timing_content[i].time_scene_set.data_sta)
+1192   3              continue;
+1193   3            if (0 == timing_content[i].time_scene_set.date_enable)
+1194   3            {
+1195   4              //      USER_PRINTF("--->week is %bd \n",week);
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 22  
+
+1196   4              if (1 == GET_BIT(timing_content[i].time_scene_set.week_enable, week))
+1197   4              {
+1198   5                //        USER_PRINTF("--->%bd week enable\n",i);
+1199   5                if ((temp_time.hour == timing_content[i].exectue_time.hour) && (temp_time.min == timing_content[i].ex
+             -ectue_time.min) && (0 == temp_time.sec) && (0 == GET_BIT(time_scene_var.scene_send_sta[i / 8], i)))
+1200   5                {
+1201   6                  USER_PRINTF("--->it is time to send uart data\n");
+1202   6                  SET_BIT(time_scene_var.scene_send_sta[i / 8], i);
+1203   6                }
+1204   5              }
+1205   4            }
+1206   3            else
+1207   3            {
+1208   4              if ((timing_content[i].start_date.year <= temp_date.year) && (timing_content[i].start_date.month <= te
+             -mp_date.month) && (timing_content[i].start_date.day <= temp_date.day) && (timing_content[i].end_date.year >= temp_date.y
+             -ear) && (timing_content[i].end_date.month >= temp_date.month) && (timing_content[i].end_date.day >= temp_date.day))
+1209   4              {
+1210   5                if (1 == GET_BIT(timing_content[i].time_scene_set.week_enable, week))
+1211   5                {
+1212   6                  if ((temp_time.hour == timing_content[i].exectue_time.hour) && (temp_time.min == timing_content[i].e
+             -xectue_time.min) && (0 == temp_time.sec) && (0 == GET_BIT(time_scene_var.scene_send_sta[i / 8], i)))
+1213   6                  {
+1214   7                    SET_BIT(time_scene_var.scene_send_sta[i / 8], i);
+1215   7                  }
+1216   6                }
+1217   5              }
+1218   4            }
+1219   3          }
+1220   2        }
+1221   1      }
+1222          void timed_auto_send(void)
+1223          {
+1224   1        static unsigned char i = 0;
+1225   1        if (GET_BIT(time_scene_var.scene_send_sta[i / 8], i))
+1226   1        {
+1227   2      
+1228   2          if ((0 == time_scene_var.send_delay_time))
+1229   2          {
+1230   3            if ((0 == time_scene_var.cyc_send_time) && (mbh_getState() == MBH_STATE_IDLE))
+1231   3            {
+1232   4      
+1233   4              time_scene_var.cyc_send_time = 100;
+1234   4              CLEAR_BIT(time_scene_var.scene_send_sta[i / 8], i);
+1235   4      
+1236   4              switch (timing_content[i].time_scene_set.time_scene_exectue_type)
+1237   4              {
+1238   5              case MODULE_TIME:
+1239   5                USER_PRINTF("time_scene_exectue_type is MODULE_TIME\n");
+1240   5                module_timing_send(&timing_content[i].time_scene_set.time_module_scene_set);
+1241   5                break;
+1242   5              case ALL_ON_OFF_TIME:
+1243   5                USER_PRINTF("time_scene_exectue_type is ALL_ON_OFF_TIME\n");
+1244   5                all_on_off_timing_send(&timing_content[i].time_scene_set);
+1245   5      
+1246   5                break;
+1247   5              case SCENE_TIME:
+1248   5                USER_PRINTF("time_scene_exectue_type is SCENE_TIME\n");
+1249   5                scene_timing_send(&timing_content[i].time_scene_set);
+1250   5                break;
+1251   5              default:
+1252   5                break;
+1253   5              }
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 23  
+
+1254   4              i++;
+1255   4            }
+1256   3          }
+1257   2        }
+1258   1        else
+1259   1        {
+1260   2          i++;
+1261   2          //    time_scene_var.cyc_send_time = 100;
+1262   2        }
+1263   1        if (i > TIMING_SCENE_NUB_SIGNLE)
+1264   1        {
+1265   2          i = 0;
+1266   2          //    memset(time_scene_var.scene_send_sta,0,16);
+1267   2          //    memset(time_scene_var.scene_send_sta);
+1268   2        }
+1269   1      }
+1270          void set_the_right_number_of_days(unsigned short year_adr, unsigned short month_adr,unsigned short day_adr
+             -)
+1271          {
+1272   1        unsigned char day = 0;
+1273   1        unsigned char month = 0;
+1274   1        unsigned short year = 0;
+1275   1        year = read_dgus(year_adr);
+1276   1        month = read_dgus(month_adr);
+1277   1        sys_delay_about_ms(2);
+1278   1        day = get_days_in_month(year,month);
+1279   1        // sys_delay_about_ms(2);
+1280   1        // USER_PRINTF("the year is %d\n",year);
+1281   1        // USER_PRINTF("the month is %bd\n",month);
+1282   1        // USER_PRINTF("the day is %bd\n",day);
+1283   1        if(read_dgus(day_adr)>day)
+1284   1        {
+1285   2          sys_delay_about_ms(2);
+1286   2          write_dgus(day_adr,day);
+1287   2        }
+1288   1      
+1289   1      }
+1290          void right_number_of_days_ctrl(void)
+1291          {
+1292   1        set_the_right_number_of_days(TIMING_SCENE_START_YEAR,TIMING_SCENE_START_MONTH,TIMING_SCENE_START_DAY);
+1293   1        set_the_right_number_of_days(TIMING_SCENE_END_YEAR,TIMING_SCENE_END_MONTH,TIMING_SCENE_END_DAY);  
+1294   1      
+1295   1      }
+1296          void timing_scene_run(void)
+1297          {
+1298   1        module_timing_scene_select_ctrl(&timing_module);
+1299   1        operand_ctrl(&timing_module, &temp_timing_content);
+1300   1        timing_scene_infor_ctrl(&timing_module, (timing_content + temp_timing_content.time_scene_set.index), &tem
+             -p_timing_content.time_scene_set);
+1301   1        timing_all_on_off_ctrl();
+1302   1        timing_scene_select_ctrl(&temp_timing_content.time_scene_set);
+1303   1        timing_scene_edit(&timing_content, &temp_timing_content.time_scene_set);
+1304   1      
+1305   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =  10338    ----
+   CONSTANT SIZE    =   2676    ----
+   XDATA SIZE       =   4937    1132
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        09/27/2023 17:05:16 PAGE 24  
+
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

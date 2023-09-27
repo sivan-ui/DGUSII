@@ -1,0 +1,349 @@
+C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE SYS
+OBJECT MODULE PLACED IN .\OBJ\sys.obj
+COMPILER INVOKED BY: C:\Keil_C51\C51\BIN\C51.EXE sys.c LARGE OMF2 OPTIMIZE(9,SIZE) BROWSE INCDIR(..\USER;..\FUNC_HANDLER
+                    -;..\GUI_APP) DEBUG PRINT(.\OBJ\sys.lst) TABS(2) OBJECT(.\OBJ\sys.obj)
+
+line level    source
+
+   1          /*
+   2           * @Author: xw.qu
+   3           * @Date: 2023-08-31 09:22:42
+   4           * @LastEditors: xw.qu
+   5           * @LastEditTime: 2023-09-26 10:47:02
+   6           * @FilePath: \USER\sys.c
+   7           * @Description: about system function
+   8           *
+   9           * Copyright (c) 2023 by xw.qu, All Rights Reserved.
+  10           */
+  11          #include "Sys.h"
+  12          unsigned char pic_page = 0;
+  13          u16 xdata TimVal = 0;
+  14          u16 xdata Count_num1 = 0;
+  15          u16 xdata Count_for_tx = 0;
+  16          u32 xdata enter_code_time_cnt = 120000u;
+  17          u16 xdata SysTick_RTC = 0;
+  18          bit RTC_Flog = 0;
+  19          u16 xdata time_tick = 0;
+  20          u16 xdata re_send_time = 0;
+  21          void Sys_Timer2_isr() interrupt 5 // 1MS
+  22          {
+  23   1      
+  24   1        TF2 = 0; // Çå³ý¶¨Ê±Æ÷2µÄÖÐ¶Ï±êÖ¾Î»
+  25   1        if (TimVal < 255)
+  26   1          TimVal++;
+  27   1        time_tick++;
+  28   1        //  retransmission_time++;
+  29   1        SysTick_RTC++;
+  30   1        if (T_O5 > 0)
+  31   1          T_O5--;
+  32   1        if (T_O4 > 0)
+  33   1          T_O4--;
+  34   1        if (T_O3 > 0)
+  35   1          T_O3--;
+  36   1        if (T_O2 > 0)
+  37   1          T_O2--;
+  38   1        if (Count_num1 > 0)
+  39   1          Count_num1--;
+  40   1        if (Count_for_tx > 0)
+  41   1          Count_for_tx--;
+  42   1        if (enter_code_time_cnt < 120000u)
+  43   1          enter_code_time_cnt++;
+  44   1        if (mbHost.scene_send_cyc_time > 0)
+  45   1          mbHost.scene_send_cyc_time--;
+  46   1        if (time_scene_var.cyc_send_time > 0)
+  47   1          time_scene_var.cyc_send_time--;
+  48   1        if (time_scene_var.send_delay_time > 0)
+  49   1          time_scene_var.send_delay_time--;
+  50   1        if (g_var_module.batch_send_cyc_time > 0)
+  51   1          g_var_module.batch_send_cyc_time--;
+  52   1        //  if(g_var_module.batch_relay_send_cyc_time>0) g_var_module.batch_relay_send_cyc_time--;
+  53   1        if (g_var_module.auto_retrieve_cyc_time > 0)
+  54   1          g_var_module.auto_retrieve_cyc_time--;
+C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 2   
+
+  55   1        if (scene_data.delete_scenc_send_cyc_time > 0)
+  56   1          scene_data.delete_scenc_send_cyc_time--;
+  57   1      
+  58   1        mbh_timer3T5Isr();
+  59   1        mbh_resend_time_run();
+  60   1      }
+  61          // Èí¼þ´óÖÂÑÓÊ±,µ¥Î»ms
+  62          // Èç¹ûÐÞ¸ÄÁËÓÅ»¯µÈ¼¶,ÄÇÃ´´Ëº¯ÊýÄÚ²¿µÄ²ÎÊýÐèÒªÖØÐÂµ÷ÊÔ
+  63          /**
+  64           * @brief Èí¼þ´óÖÂÑÓÊ±,µ¥Î»ms
+  65           * @param {u16} ms
+  66           * @return {*}
+  67           */
+  68          void sys_delay_about_ms(u16 ms)
+  69          {
+  70   1        u16 i, j;
+  71   1        for (i = 0; i < ms; i++)
+  72   1          for (j = 0; j < 3000; j++)
+  73   1            ;
+  74   1      }
+  75          //=====================================
+  76          void Sys_Cpu_Init()
+  77          {
+  78   1        IEN0 = 0x00;  // IEN0.7=EA ÖÐ¶Ï×Ü¿ØÖÆ .6=0£¬.5=ET2£¬.4=ES0£¬.3=ET1£¬.2=EX1£¬.1=ET0£¬.0=EX0   ES0 ´®¿Ú2 ½ÓÊ
+             -Ü+·¢ËÍÖÐ¶Ï
+  79   1        IEN1 = 0x00;  // IEN1.7=0£¬.6=0£¬.5=´®¿Ú5½ÓÊÜÖÐ¶Ï,.4=´®¿Ú5·¢ËÍÖÐ¶Ï,.3=´®¿Ú4½ÓÊÜÖÐ¶Ï,.2=´®¿Ú4·¢ËÍÖÐ¶Ï,.1=ca
+             -nÖÐ¶Ï
+  80   1        IEN2 = 0x00;  // .7-.1=0 , .0=ES1 ´®¿Ú3 ½ÓÊÜ+·¢ËÍÖÐ¶Ï
+  81   1                      //========================================MODE
+  82   1        DPC = 0x00;   // DPTR ÊÇ·ñ+1 C51=0
+  83   1        CKCON = 0x00; // CPUÔËÐÐ=0, 1TÄ£Ê½
+  84   1      
+  85   1        IP0 = 0x00;
+  86   1        IP1 = 0x00; // ÖÐ¶ÏÓÅÏÈ¼¶Ä¬ÈÏ
+  87   1        RAMMODE = 0x00;
+  88   1        //========================================IO³õÊ¼»¯
+  89   1        P0MDOUT = 0x53; // p0.0 p0.1 Ç¿ÍÆ ÓÃÓÚ485·½Ïò¿ØÖÆ P0.4Òý³öµ½´®¿Ú2 P0.6Òý³öµ½´®¿Ú3
+  90   1        P2MDOUT = 0xC0;
+  91   1        P3MDOUT = 0x0C; // ¿ªÆôP3_2ºÍP3_3µÄÊä³ö P3_2=RTC_SCL P3_3=RTC_SDA
+  92   1        PORTDRV = 0x01; // IOÇý¶¯ÄÜÁ¦Éè¶¨ 4mA=0,8mA=1,16mA=2,32mA=3
+  93   1        P2 = 0XC0;
+  94   1        P3 = 0x00;
+  95   1        WDT_OFF(); // ¹Ø±Õ¿ªÃÅ¹·
+  96   1        //========================================
+  97   1        TH2 = 0x00;
+  98   1        TL2 = 0x00;
+  99   1        T2CON = 0x70;
+ 100   1        TRL2H = 0xBC; // 1msµÄ¶¨Ê±Æ÷
+ 101   1        TRL2L = 0xCD;
+ 102   1        IEN0 |= 0x20; // Æô¶¯¶¨Ê±Æ÷2
+ 103   1        TR2 = 0x01;
+ 104   1        ET2 = 1; // T2¶¨Ê±Æ÷ÖÐ¶ÏÊ¹ÄÜ¿ØÖÆÎ»
+ 105   1        EA = 1;
+ 106   1      }
+ 107          
+ 108          u16 read_dgus(u16 Dgus_Addr)
+ 109          {
+ 110   1        u16 R_Dgus = 0;
+ 111   1        //      EA = 0;
+ 112   1        ADR_H = 0x00;
+ 113   1        ADR_M = (u8)((Dgus_Addr / 2) >> 8);
+ 114   1        ADR_L = (u8)(Dgus_Addr / 2);
+C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 3   
+
+ 115   1        RAMMODE = 0xAF; // ¶Á²Ù×÷
+ 116   1        // while(!APP_ACK); //test LKC
+ 117   1        APP_EN = 1;
+ 118   1        // while(APP_EN); //test LKC
+ 119   1        if (Dgus_Addr % 2)
+ 120   1          R_Dgus = (DATA1 << 8) + DATA0;
+ 121   1        else
+ 122   1          R_Dgus = (DATA3 << 8) + DATA2;
+ 123   1        RAMMODE = 0;
+ 124   1        //      EA = 1;
+ 125   1        return R_Dgus;
+ 126   1      }
+ 127          /****************************************************************************/
+ 128          void write_dgus(u16 Dgus_Addr, u16 Val)
+ 129          {
+ 130   1        //      EA = 0;
+ 131   1        ADR_H = 0x00;
+ 132   1        ADR_M = (u8)((Dgus_Addr / 2) >> 8);
+ 133   1        ADR_L = (u8)(Dgus_Addr / 2);
+ 134   1        RAMMODE = 0xAF; // ¶Á²Ù×÷
+ 135   1        while (!APP_ACK)
+ 136   1          ;
+ 137   1        APP_EN = 1;
+ 138   1        while (APP_EN)
+ 139   1          ;
+ 140   1        RAMMODE = 0;
+ 141   1        ADR_M = (u8)((Dgus_Addr / 2) >> 8);
+ 142   1        ADR_L = (u8)(Dgus_Addr / 2);
+ 143   1        RAMMODE = 0x8F; // Ð´²Ù×÷
+ 144   1        while (!APP_ACK)
+ 145   1          ;
+ 146   1        if (Dgus_Addr % 2)
+ 147   1        {
+ 148   2          DATA1 = (u8)(Val >> 8);
+ 149   2          DATA0 = (u8)(Val);
+ 150   2        }
+ 151   1        else
+ 152   1        {
+ 153   2          DATA3 = (u8)(Val >> 8);
+ 154   2          DATA2 = (u8)(Val);
+ 155   2        }
+ 156   1        APP_EN = 1;
+ 157   1        while (APP_EN)
+ 158   1          ;
+ 159   1        RAMMODE = 0;
+ 160   1        //      EA = 1;
+ 161   1      }
+ 162          
+ 163          // ´òÓ¡Êý×é
+ 164          void printf_tab(unsigned short nb, unsigned char *p)
+ 165          {
+ 166   1        unsigned short i = 0;
+ 167   1        for (i = 0; i < nb; i++)
+ 168   1        {
+ 169   2          USER_PRINTF(" %bx ", p[i]);
+ 170   2        }
+ 171   1        USER_PRINTF("\n");
+ 172   1      }
+ 173          /**
+ 174           * @brief Ìí¼ÓÊý×éÊý¾Ý
+ 175           * @param {unsigned char} *t_arr Ìí¼ÓÄ¿±êÊý×é
+ 176           * @param {unsigned char} element Ìí¼ÓÊý¾Ý
+C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 4   
+
+ 177           * @param {unsigned char} pos Ìí¼ÓÎ»ÖÃ
+ 178           * @return {*} 0:Ìí¼ÓÊ§°Ü 1:Ìí¼Ó³É¹¦
+ 179           */
+ 180          unsigned char add_arr_data(unsigned char *t_arr, unsigned char element, unsigned char pos)
+ 181          {
+ 182   1        if (pos > MAX_DEVICE_ADR)
+ 183   1        {
+ 184   2          USER_PRINTF("-->arr is oversize!\n");
+ 185   2          return 0;
+ 186   2        }
+ 187   1        else
+ 188   1        {
+ 189   2          *(t_arr + pos) = element;
+ 190   2          return 1;
+ 191   2        }
+ 192   1      }
+ 193          /**
+ 194           * @brief É¾³ýÊý×éÊý¾Ý
+ 195           * @param {unsigned char} *t_arr É¾³ýÄ¿±êÊý×é
+ 196           * @param {unsigned char} element É¾³ýÊý¾Ý
+ 197           * @param {unsigned char} pos É¾³ýÎ»ÖÃ
+ 198           * @return {*} 0:É¾³ýÊ§°Ü 1:É¾³ý³É¹¦
+ 199           */
+ 200          unsigned char delete_arr_data(unsigned char *t_arr, unsigned char pos)
+ 201          {
+ 202   1        if (pos > MAX_DEVICE_ADR)
+ 203   1        {
+ 204   2          return 0;
+ 205   2        }
+ 206   1        else
+ 207   1        {
+ 208   2          *(t_arr + pos) = 0;
+ 209   2          return 1;
+ 210   2        }
+ 211   1      }
+ 212          /**
+ 213           * @brief ²éÕÒÊý¾ÝÊÇ·ñ´æÔÚÊý×éÖÐ
+ 214           * @param {unsigned char} *t_arr Ä¿±êÊý×é
+ 215           * @param {unsigned char} num_to_find Ðè²éÕÒÊý¾Ý
+ 216           * @return {*}1:´æÔÚÊý¾Ý 0:²»´æÔÚÊý¾Ý
+ 217           */
+ 218          unsigned char find_nub_index(unsigned char *t_arr, unsigned char num_to_find)
+ 219          {
+ 220   1        unsigned char i = 0;
+ 221   1        for (i = 0; i < MAX_DEVICE_ADR; i++)
+ 222   1        {
+ 223   2          if (t_arr[i] == num_to_find)
+ 224   2          {
+ 225   3            return 1;
+ 226   3          }
+ 227   2        }
+ 228   1        return 0;
+ 229   1      }
+ 230          /**
+ 231           * @brief ²éÕÒ´æÔÚµÄ×Ö·ûÌæ»»ÎªÖ¸¶¨µÄ×Ö·û
+ 232           * @param {char} *s ×Ö·û´®
+ 233           * @param {char} *old_str Ìæ»»µÄ×Ö·û
+ 234           * @param {char} *new_str ÐÂµÄ×Ö·û
+ 235           * @return {*}
+ 236           */
+ 237          char *strrpl(char *s, const char *old_str, const char *new_str)
+ 238          {
+C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 5   
+
+ 239   1        char *ptr;
+ 240   1        while (ptr = strstr(s, old_str)) /* Èç¹ûÔÚsÖÐÕÒµ½s1 */
+ 241   1        {
+ 242   2          memmove(ptr + strlen(new_str), ptr + strlen(old_str), strlen(ptr) - strlen(old_str) + 1);
+ 243   2          memcpy(ptr, &new_str[0], strlen(new_str));
+ 244   2        }
+ 245   1        return s;
+ 246   1      }
+ 247          /**
+ 248           * @brief ·µ»ØÕýÈ·µÄÌìÊý
+ 249           * @param {unsigned short} year ÊäÈëÄê
+ 250           * @param {unsigned char} month ÊäÈëÔÂ
+ 251           * @return {*}µ±ÔÂÌìÊý
+ 252           */
+ 253          unsigned char get_days_in_month(unsigned short year, unsigned char month)
+ 254          {
+ 255   1        unsigned char days = 0;
+ 256   1        switch (month)
+ 257   1        {
+ 258   2        case 1:
+ 259   2        case 3:
+ 260   2        case 5:
+ 261   2        case 7:
+ 262   2        case 8:
+ 263   2        case 10:
+ 264   2        case 12:
+ 265   2          days = 31;
+ 266   2          break;
+ 267   2        case 4:
+ 268   2        case 6:
+ 269   2        case 9:
+ 270   2        case 11:
+ 271   2          days = 30;
+ 272   2          break;
+ 273   2        case 2:
+ 274   2          if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
+ 275   2          {
+ 276   3            days = 29;
+ 277   3          }
+ 278   2          else
+ 279   2          {
+ 280   3            days = 28;
+ 281   3          }
+ 282   2          break;
+ 283   2        default:
+ 284   2          USER_PRINTF("invalid month!\n");
+ 285   2          return -1;
+ 286   2        }
+ 287   1        return days;
+ 288   1      }
+ 289          /**
+ 290           * @brief ÅÐ¶ÏÊäÈëÖµºÍÖ®Ç°ÖµÊÇ·ñÒ»ÖÂ
+ 291           * @param {unsigned short} var ÊäÈëµÄÖµ
+ 292           * @param {unsigned char} *pre_var Ö®Ç°µÄÖµ
+ 293           * @return {*}
+ 294           */
+ 295          unsigned char check_constant(unsigned short var,unsigned char *pre_var)
+ 296          {
+ 297   1        // static unsigned short previous_value = 0;
+ 298   1        // USER_PRINTF("--new var is %bd\n", var);
+ 299   1        // USER_PRINTF("--pre var is %bd\n", previous_value);
+ 300   1        if (var != *pre_var)
+C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 6   
+
+ 301   1        {
+ 302   2          *pre_var = var;
+ 303   2          return 1; // ±äÁ¿µÄÖµÒÑ¾­·¢Éú±ä»¯
+ 304   2        }
+ 305   1        else
+ 306   1        {
+ 307   2          return 0; // ±äÁ¿µÄÖµÒ»Ö±Ã»ÓÐ·¢Éú±ä»¯
+ 308   2        }
+ 309   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1120    ----
+   CONSTANT SIZE    =     45    ----
+   XDATA SIZE       =     17      28
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
