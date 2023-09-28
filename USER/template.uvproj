@@ -542,6 +542,21 @@
             </File>
           </Files>
         </Group>
+        <Group>
+          <GroupName>touch_panel</GroupName>
+          <Files>
+            <File>
+              <FileName>touch_panel.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\touch_panel.c</FilePath>
+            </File>
+            <File>
+              <FileName>touch_panel.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\touch_panel.h</FilePath>
+            </File>
+          </Files>
+        </Group>
       </Groups>
     </Target>
   </Targets>

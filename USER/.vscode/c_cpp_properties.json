@@ -3,9 +3,9 @@
         {
             "name": "TEMPLATE",
             "includePath": [
-                "d:\\七寸屏\\NEW_UI\\PROJ_V1.0-20230927 - 13\\C51\\template\\USER",
-                "d:\\七寸屏\\NEW_UI\\PROJ_V1.0-20230927 - 13\\C51\\template\\FUNC_HANDLER",
-                "d:\\七寸屏\\NEW_UI\\PROJ_V1.0-20230927 - 13\\C51\\template\\GUI_APP",
+                "d:\\七寸屏\\NEW_UI\\PROJ_V1.0-20230928\\C51\\template\\USER",
+                "d:\\七寸屏\\NEW_UI\\PROJ_V1.0-20230928\\C51\\template\\FUNC_HANDLER",
+                "d:\\七寸屏\\NEW_UI\\PROJ_V1.0-20230928\\C51\\template\\GUI_APP",
                 "C:\\Keil_C51\\C51\\INC"
             ],
             "defines": [
