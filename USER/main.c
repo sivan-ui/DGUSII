@@ -13,6 +13,7 @@
 #include "sys.h"
 #include "scene.h"
 #include "time_scene.h"
+#include "stdio.h"
 
 void main(void)
 
