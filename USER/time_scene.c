@@ -2,7 +2,7 @@
  * @Author: xw.qu
  * @Date: 2023-08-31 09:22:43
  * @LastEditors: xw.qu
- * @LastEditTime: 2023-09-26 15:30:39
+ * @LastEditTime: 2023-10-28 15:32:19
  * @FilePath: \USER\time_scene.c
  * @Description: module time scene modify
  *
@@ -77,12 +77,14 @@ void clear_all_timing_scene_content(timing_content_t *p_timing_content)
 		clear_single_timing_scene_content(p_timing_content + i);
 	}
 }
+//判断定时信息是否写满
 unsigned char get_blank_timing_scene_infor_index(void)
 {
 	// return find_index(SCENE_INFOR_FLASH_ADR_SATRT,SCENC_INFOR_T_SIZE,SCENE_NUB);
 	unsigned char i = 0;
 	//	unsigned short temp_data = 0;
-	for (i = 0; i < TIMING_SCENE_NUB_SIGNLE; i++)
+	// for (i = 0; i < TIMING_SCENE_NUB_SIGNLE; i++)
+	for (i = 0; i < TIMING_SCENE_NUB_SIGNLE_LIMIT; i++)
 	{
 		if ((0 == timing_content[i].time_scene_set.data_sta))
 		{
@@ -628,7 +630,7 @@ void display_timing_scene_infor(timing_content_t *p_timing_content)
 
 		else
 		{
-			sprintf(mod_infom_tab, "地址:%bd;%bd路;未配置场景,执行时间:%s,%bd:%02bd;模块:%s", p_timing_content->time_scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, temp_week_tb, p_timing_content->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
+			sprintf(mod_infom_tab, "地址:%bd;%bd路;未配置场景,执行时间:%s%bd:%02bd;%s", p_timing_content->time_scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, temp_week_tb, p_timing_content->exectue_time.hour, p_timing_content->exectue_time.min, module_name_1);
 		}
 	}
 	else
@@ -677,8 +679,8 @@ void display_timing_scene_infor(timing_content_t *p_timing_content)
 		}
 		else
 		{
-			sprintf(mod_infom_tab, "%s;地址:%bd;%bd路;未配置场景;时间:%d-%bd-%bd~%d-%bd-%bd,%s,%bd:%02bd", module_name_1, p_timing_content->time_scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, p_timing_content->start_date.year, p_timing_content->start_date.month, p_timing_content->start_date.day, p_timing_content->end_date.year, p_timing_content->end_date.month, p_timing_content->end_date.day, temp_week_tb, p_timing_content->exectue_time.hour, p_timing_content->exectue_time.min);
-		}
+			sprintf(mod_infom_tab, "地址:%bd;%bd路;未配置场景;时间:%d-%bd-%bd~%d-%bd-%bd,%s%bd:%02bd;%s;",  p_timing_content->time_scene_set.time_module_scene_set.adr, p_timing_content->time_scene_set.time_module_scene_set.channel_nb, p_timing_content->start_date.year, p_timing_content->start_date.month, p_timing_content->start_date.day, p_timing_content->end_date.year, p_timing_content->end_date.month, p_timing_content->end_date.day, temp_week_tb, p_timing_content->exectue_time.hour, p_timing_content->exectue_time.min,module_name_1);
+		}                            
 	}
 	// USER_PRINTF("-->timing_message is %s\n", mod_infom_tab);
 	//	USER_PRINTF("-->module->index %bd\n",p_scenc_infor->index);
@@ -733,7 +735,16 @@ void module_timing_scene_select_ctrl(module_t *p)
 // 定时场景添加
 void timing_scene_add(time_scene_set_t *p_time_scene)
 {
-	p_time_scene->index = get_blank_timing_scene_infor_index();
+	unsigned char index = 0;
+	index = get_blank_timing_scene_infor_index();
+	if(OVERFLOW_SIZE == index)
+	{
+		USER_PRINTF("-->waring! too many timing scene \n");
+		pop_menu_key_ctrl(OVERFLOW_WARING_CODE);
+		return;
+	}	
+	pic_set(TIMING_SCENE_ADD_PAGE);
+	p_time_scene->index = index;
 	// USER_PRINTF("-->temp_get_blank_scene_index is %bd\n", p_time_scene->index);
 }
 // 定时场景删除
@@ -843,6 +854,8 @@ void timing_scene_modtify(timing_content_t *p_timing_content, time_scene_set_t *
 void timing_scene_edit(timing_content_t *p_timing_content, time_scene_set_t *p_time_scene)
 {
 	unsigned short key_nb = 0;
+	timing_scene_clear(p_timing_content);
+	timing_scene_delete(p_timing_content, p_time_scene);
 	get_key_value(0x1087, &key_nb);
 	if ((key_nb))
 	{
@@ -861,8 +874,6 @@ void timing_scene_edit(timing_content_t *p_timing_content, time_scene_set_t *p_t
 		}
 		clear_key_value(0x1087, &key_nb);
 	}
-	timing_scene_clear(p_timing_content);
-	timing_scene_delete(p_timing_content, p_time_scene);
 }
 // 定时模块场景设定
 void timing_module_scene_set(module_t *p_module, timing_content_t *p_timing_content)
@@ -893,17 +904,23 @@ void scene_infor_module_confim_key(module_t *p_module, timing_content_t *p_timin
 	//	printf_timing_content(10);
 	clear_timing_scene_var();
 	// p_time_scene_set->index
+  USER_PRINTF("p_time_scene_set->index is %bd\n",p_time_scene_set->index);
 	if (p_time_scene_set->index >= 5)
 	{
+		// USER_PRINTF("pic_page is %bd\n",pic_page);
 		pic_page = TIMING_SCENE_MANGE_SECOND_PAGE + p_time_scene_set->index / 5 - 1;
+		USER_PRINTF("pic_page is %bd\n",pic_page);
 		pic_set(pic_page);
 		
 	}
 	else
 	{
+		USER_PRINTF("p_time_scene_set->index is %bd\n",p_time_scene_set->index);
 		pic_page = TIMING_SCENE_MANGE_FIRST_PAGE;
+		USER_PRINTF("pic_page is %bd\n",pic_page);
 		pic_set(pic_page);
 	}	
+	
 }
 void scene_infor_cancle_key(void)
 {
@@ -1273,8 +1290,9 @@ void set_the_right_number_of_days(unsigned short year_adr, unsigned short month_
 	unsigned char month = 0;
 	unsigned short year = 0;
 	year = read_dgus(year_adr);
+	sys_delay_about_ms(1);
 	month = read_dgus(month_adr);
-	sys_delay_about_ms(2);
+	
 	day = get_days_in_month(year,month);
 	// sys_delay_about_ms(2);
 	// USER_PRINTF("the year is %d\n",year);

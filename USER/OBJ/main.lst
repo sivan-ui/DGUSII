@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   MAIN                                                              09/27/2023 17:05:14 PAGE 1   
+C51 COMPILER V9.60.0.0   MAIN                                                              11/02/2023 16:36:08 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
@@ -12,23 +12,23 @@ line level    source
    2           * @Author: xw.qu
    3           * @Date: 2023-08-31 09:22:42
    4           * @LastEditors: xw.qu
-   5           * @LastEditTime: 2023-09-26 10:15:37
+   5           * @LastEditTime: 2023-10-31 09:54:19
    6           * @FilePath: \USER\main.c
    7           * @Description: main.c
-   8           * 
-   9           * Copyright (c) 2023 by xw.qu, All Rights Reserved. 
+   8           *
+   9           * Copyright (c) 2023 by xw.qu, All Rights Reserved.
   10           */
   11          
-  12          
-  13          #include "sys.h"
-  14          #include "scene.h"
-  15          #include "time_scene.h"
-  16          
-  17          void main(void)
-  18          
-  19          {
-  20   1        unsigned short i = 0;
-  21   1        static unsigned char time = 0;
+  12          #include "sys.h"
+  13          #include "scene.h"
+  14          #include "time_scene.h"
+  15          
+  16          void main(void)
+  17          
+  18          {
+  19   1        unsigned short i = 0;
+  20   1        static unsigned char time_100ms = 0;
+  21   1        static unsigned char time_10ms = 0;
   22   1        static unsigned char time_200ms = 0;
   23   1        module_t module_read = {0};
   24   1        name_scene_t module_scene_read = {0};
@@ -44,119 +44,121 @@ line level    source
   34   1        //  init_beep_enable();
   35   1        init_flash_parameters();
   36   1      
-  37   1      
-  38   1        for (i = 0; i < MODULE_NUB; i++)
-  39   1        {
-  40   2          norflash_read(i * 140, (unsigned char *)&module_read, 140);
-  41   2          norflash_read(MODULE_FLASH_ADR_END + i * NAME_SCENE_T_SIZE, (unsigned char *)&module_scene_read, NAME_SC
+  37   1        for (i = 0; i < MODULE_NUB_LIMIT; i++)
+  38   1        {
+  39   2          norflash_read(i * 140, (unsigned char *)&module_read, 140);
+  40   2          norflash_read(MODULE_FLASH_ADR_END + i * NAME_SCENE_T_SIZE, (unsigned char *)&module_scene_read, NAME_SC
              -ENE_T_SIZE);
-  42   2      
-  43   2          if (FULL == module_read.data_sta)
-  44   2          {
-  45   3            write_dgusii_vp(0x3120 + 8 * i, (unsigned char *)module_read.module_name, 8);
-  46   3            // USER_PRINTF(" module_read index%bd  flash data is full\n", module_read.index);
-  47   3            display_module_information(&module_read, i);
-  48   3            add_arr_data(&g_var_module.module_adr[0],module_read.adr,module_read.index);
-  49   3          }
-  50   2          if (FULL == module_scene_read.data_sta)
-  51   2          {
-  52   3            write_dgusii_vp(0x4100 + i * 32, (unsigned char *)module_scene_read.scene_name, 8);
-  53   3            write_dgusii_vp(0x3320 + i * 8, (unsigned char *)module_scene_read.scene_name, 8);
-C51 COMPILER V9.60.0.0   MAIN                                                              09/27/2023 17:05:14 PAGE 2   
+  41   2      
+  42   2          if (FULL == module_read.data_sta)
+  43   2          {
+  44   3            write_dgusii_vp(0x3120 + 8 * i, (unsigned char *)module_read.module_name, 8);
+  45   3            // USER_PRINTF(" module_read index%bd  flash data is full\n", module_read.index);
+  46   3            display_module_information(&module_read, i);
+  47   3            add_arr_data(&g_var_module.module_adr[0], module_read.adr, module_read.index);
+  48   3          }
+  49   2          if (FULL == module_scene_read.data_sta)
+  50   2          {
+  51   3            write_dgusii_vp(0x4100 + i * 32, (unsigned char *)module_scene_read.scene_name, 8);
+  52   3            write_dgusii_vp(0x3320 + i * 8, (unsigned char *)module_scene_read.scene_name, 8);
+  53   3            //      USER_PRINTF(" module_scene index%bd  flash data is full\n", module_scene_read.scene_name_index);
+C51 COMPILER V9.60.0.0   MAIN                                                              11/02/2023 16:36:08 PAGE 2   
 
-  54   3      //      USER_PRINTF(" module_scene index%bd  flash data is full\n", module_scene_read.scene_name_index);
-  55   3          }
-  56   2        }
-  57   1        printf_tab(20,&g_var_module.module_adr[0]);
-  58   1        //  norflash_read(TIMING_SCENE_INFOR_FLASH_ADR_SATRT,(unsigned char *)&timing_content,ALL_TIMING_SCENC_INF
+  54   3          }
+  55   2        }
+  56   1        printf_tab(20, &g_var_module.module_adr[0]);
+  57   1        //  norflash_read(TIMING_SCENE_INFOR_FLASH_ADR_SATRT,(unsigned char *)&timing_content,ALL_TIMING_SCENC_INF
              -OR_T_SIZE);
-  59   1        norflash_read(TIMING_SCENE_INFOR_FLASH_ADR_SATRT, (unsigned char *)&timing_content, ALL_TIMING_SCENC_INFO
+  58   1        norflash_read(TIMING_SCENE_INFOR_FLASH_ADR_SATRT, (unsigned char *)&timing_content, ALL_TIMING_SCENC_INFO
              -R_T_SIZE);
-  60   1        //  printf_temp_timing_content(&timing_content_read);
-  61   1        for (i = 0; i < TIMING_SCENE_NUB_SIGNLE; i++)
-  62   1        {
-  63   2          //    norflash_read(TIMING_SCENE_INFOR_FLASH_ADR_SATRT+i*SINGLE_TIMING_SCENC_INFOR_T_SIZE,(unsigned char *
+  59   1        //  printf_temp_timing_content(&timing_content_read);
+  60   1        for (i = 0; i < TIMING_SCENE_NUB_SIGNLE; i++)
+  61   1        {
+  62   2          //    norflash_read(TIMING_SCENE_INFOR_FLASH_ADR_SATRT+i*SINGLE_TIMING_SCENC_INFOR_T_SIZE,(unsigned char *
              -)&timing_content_read,SINGLE_TIMING_SCENC_INFOR_T_SIZE);
-  64   2          if (1 == timing_content[i].time_scene_set.data_sta)
-  65   2          {
-  66   3            display_timing_scene_infor(timing_content + i);
-  67   3            //      USER_PRINTF(" timing_content index%d  flash data is full\n",i);
-  68   3          }
-  69   2          else
-  70   2          {
-  71   3            //      USER_PRINTF(" timing_content index%d  flash data is blank\n",i);
-  72   3          }
-  73   2        }
-  74   1        //   printf_timing_content(10);
-  75   1        write_dgus(0x1001, 0xff);
-  76   1        write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[0], 6);
-  77   1        //  init_pwd_f();
-  78   1        // time_scene_init();
-  79   1        USER_PRINTF("SYS HAS BEEN INITING\n");  
+  63   2          if (1 == timing_content[i].time_scene_set.data_sta)
+  64   2          {
+  65   3            display_timing_scene_infor(timing_content + i);
+  66   3            USER_PRINTF(" timing_content index%d  flash data is full\n", i);
+  67   3          }
+  68   2          else
+  69   2          {
+  70   3            USER_PRINTF(" timing_content index%d  flash data is blank\n", i);
+  71   3          }
+  72   2        }
+  73   1        //   printf_timing_content(10);
+  74   1        write_dgus(0x1001, 0xff);
+  75   1        write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[0], 6);
+  76   1        //  init_pwd_f();
+  77   1        // time_scene_init();
+  78   1        USER_PRINTF("SYS HAS BEEN INITING\n");
+  79   1        simulate_touch();
   80   1        while (1)
   81   1        {
   82   2          Clock();           // RTC时间更新
   83   2          uart_frame_deal(); // 串口数据处理
   84   2          read_dgus_time();  // 设置时间时读取一下时间
   85   2          timing_auto_detect();
-  86   2          if (time_tick > 100)
+  86   2          if (time_tick > 10)
   87   2          {
   88   3            time_tick = 0;
-  89   3            time++;
-  90   3            module_modify();
-  91   3      
-  92   3          }
-  93   2          if (time > 2)
-  94   2          {
-  95   3            time = 0;
-  96   3            time_200ms++;
-  97   3            
-  98   3          
-  99   3            relay_ctrl(&module);
- 100   3            timing_module_parameter_settings(&module);
- 101   3            
- 102   3            all_module_on_off();
- 103   3            all_dim_on_off();
- 104   3            scene_modify();
- 105   3            scene_touch_run();
- 106   3            select_password_enable();
- 107   3            lock_screen_enable_ctrl();
- 108   3      
- 109   3          }
- 110   2          if(time_200ms>2)
- 111   2          {
- 112   3            time_200ms = 0;
-C51 COMPILER V9.60.0.0   MAIN                                                              09/27/2023 17:05:14 PAGE 3   
+  89   3            time_10ms++;
+  90   3          }
+  91   2          if (time_10ms > 10)
+  92   2          {
+  93   3            time_10ms = 0;
+  94   3            time_100ms++;
+  95   3            module_modify();
+  96   3            set_scene_infor_select_sequence_number();
+  97   3            set_scene_name_select_sequence_number();
+  98   3            set_timing_scene_name_select_sequence_number();
+  99   3          }
+ 100   2          if (time_100ms > 2)
+ 101   2          {
+ 102   3            time_100ms = 0;
+ 103   3            time_200ms++;
+ 104   3      
+ 105   3            relay_ctrl(&module);
+ 106   3            read_timing_module_set_parameter(&module);
+ 107   3      
+ 108   3            all_module_on_off();
+ 109   3            all_dim_on_off();
+ 110   3            scene_modify();
+ 111   3            scene_touch_run();
+ 112   3            select_password_enable();
+C51 COMPILER V9.60.0.0   MAIN                                                              11/02/2023 16:36:08 PAGE 3   
 
- 113   3            right_number_of_days_ctrl();      
- 114   3      
- 115   3          }
- 116   2          dim_ctrl(&module);
- 117   2          module_scene_send();
- 118   2          scene_delete_ctrl_send(&module_scene);
- 119   2          scene_name_ctrl_send(&module_scene);
- 120   2          module_touch_ctrl();
- 121   2          mbh_uartTxIsr();
- 122   2          mbh_poll();
- 123   2          factory_data_reset();
- 124   2          set_scene_infor_select_sequence_number();
- 125   2          set_scene_name_select_sequence_number();
- 126   2          set_timing_scene_name_select_sequence_number();
- 127   2          timing_scene_run();
- 128   2          timed_auto_send();
- 129   2          timing_module_parameter_batch_send();
- 130   2          automatically_retrieve();
- 131   2          auto_add_module();
- 132   2          //    timing_module_parameter_week_enable_batch_send();
- 133   2          //    operand();
- 134   2        }
- 135   1      }
+ 113   3            lock_screen_enable_ctrl();
+ 114   3          }
+ 115   2          if (time_200ms > 2)
+ 116   2          {
+ 117   3            time_200ms = 0;
+ 118   3            right_number_of_days_ctrl();
+ 119   3          }
+ 120   2          dim_ctrl(&module);
+ 121   2          module_scene_send();
+ 122   2          scene_delete_ctrl_send(&module_scene);
+ 123   2          scene_name_ctrl_send(&module_scene);
+ 124   2          module_touch_ctrl();
+ 125   2          mbh_uartTxIsr();
+ 126   2          mbh_poll();
+ 127   2          factory_data_reset();
+ 128   2          timing_scene_run();
+ 129   2      
+ 130   2          timed_auto_send();
+ 131   2          timing_module_parameter_batch_send();
+ 132   2          automatically_retrieve();
+ 133   2          auto_add_module();
+ 134   2          //    timing_module_parameter_week_enable_batch_send();
+ 135   2          //    operand();
+ 136   2        }
+ 137   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    690    ----
-   CONSTANT SIZE    =    374    ----
-   XDATA SIZE       =      2     354
+   CODE SIZE        =    748    ----
+   CONSTANT SIZE    =    465    ----
+   XDATA SIZE       =      3     354
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

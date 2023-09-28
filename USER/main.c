@@ -2,23 +2,25 @@
  * @Author: xw.qu
  * @Date: 2023-08-31 09:22:42
  * @LastEditors: xw.qu
- * @LastEditTime: 2023-09-26 10:15:37
+ * @LastEditTime: 2023-11-04 10:52:24
  * @FilePath: \USER\main.c
  * @Description: main.c
- * 
- * Copyright (c) 2023 by xw.qu, All Rights Reserved. 
+ *
+ * Copyright (c) 2023 by xw.qu, All Rights Reserved.
  */
-
 
 #include "sys.h"
 #include "scene.h"
 #include "time_scene.h"
 
+
+//主函数
 void main(void)
 
 {
 	unsigned short i = 0;
-	static unsigned char time = 0;
+	static unsigned char time_100ms = 0;
+	static unsigned char time_10ms = 0;
 	static unsigned char time_200ms = 0;
 	module_t module_read = {0};
 	name_scene_t module_scene_read = {0};
@@ -34,8 +36,7 @@ void main(void)
 	//  init_beep_enable();
 	init_flash_parameters();
 
-
-	for (i = 0; i < MODULE_NUB; i++)
+	for (i = 0; i < MODULE_NUB_LIMIT; i++)
 	{
 		norflash_read(i * 140, (unsigned char *)&module_read, 140);
 		norflash_read(MODULE_FLASH_ADR_END + i * NAME_SCENE_T_SIZE, (unsigned char *)&module_scene_read, NAME_SCENE_T_SIZE);
@@ -45,16 +46,16 @@ void main(void)
 			write_dgusii_vp(0x3120 + 8 * i, (unsigned char *)module_read.module_name, 8);
 			// USER_PRINTF(" module_read index%bd  flash data is full\n", module_read.index);
 			display_module_information(&module_read, i);
-			add_arr_data(&g_var_module.module_adr[0],module_read.adr,module_read.index);
+			add_arr_data(&g_var_module.module_adr[0], module_read.adr, module_read.index);
 		}
 		if (FULL == module_scene_read.data_sta)
 		{
 			write_dgusii_vp(0x4100 + i * 32, (unsigned char *)module_scene_read.scene_name, 8);
 			write_dgusii_vp(0x3320 + i * 8, (unsigned char *)module_scene_read.scene_name, 8);
-//			USER_PRINTF(" module_scene index%bd  flash data is full\n", module_scene_read.scene_name_index);
+			//			USER_PRINTF(" module_scene index%bd  flash data is full\n", module_scene_read.scene_name_index);
 		}
 	}
-  printf_tab(20,&g_var_module.module_adr[0]);
+	printf_tab(20, &g_var_module.module_adr[0]);
 	//	norflash_read(TIMING_SCENE_INFOR_FLASH_ADR_SATRT,(unsigned char *)&timing_content,ALL_TIMING_SCENC_INFOR_T_SIZE);
 	norflash_read(TIMING_SCENE_INFOR_FLASH_ADR_SATRT, (unsigned char *)&timing_content, ALL_TIMING_SCENC_INFOR_T_SIZE);
 	//	printf_temp_timing_content(&timing_content_read);
@@ -64,11 +65,11 @@ void main(void)
 		if (1 == timing_content[i].time_scene_set.data_sta)
 		{
 			display_timing_scene_infor(timing_content + i);
-			//			USER_PRINTF(" timing_content index%d  flash data is full\n",i);
+			USER_PRINTF(" timing_content index%d  flash data is full\n", i);
 		}
 		else
 		{
-			//			USER_PRINTF(" timing_content index%d  flash data is blank\n",i);
+			USER_PRINTF(" timing_content index%d  flash data is blank\n", i);
 		}
 	}
 	//	 printf_timing_content(10);
@@ -76,42 +77,47 @@ void main(void)
 	write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[0], 6);
 	//	init_pwd_f();
 	// time_scene_init();
-	USER_PRINTF("SYS HAS BEEN INITING\n");	
+	USER_PRINTF("SYS HAS BEEN INITING\n");
+	simulate_touch();
 	while (1)
 	{
 		Clock();					 // RTC时间更新
 		uart_frame_deal(); // 串口数据处理
 		read_dgus_time();	 // 设置时间时读取一下时间
 		timing_auto_detect();
-		if (time_tick > 100)
+		if (time_tick > 10)
 		{
 			time_tick = 0;
-			time++;
-			module_modify();
-
+			time_10ms++;
 		}
-		if (time > 2)
+		if (time_10ms > 10)
 		{
-			time = 0;
+			time_10ms = 0;
+			time_100ms++;
+			module_modify();
+			set_scene_infor_select_sequence_number();
+			set_scene_name_select_sequence_number();
+			set_timing_scene_name_select_sequence_number();
+		}
+		if (time_100ms > 2)
+		{
+			time_100ms = 0;
 			time_200ms++;
-			
-		
+
 			relay_ctrl(&module);
-			timing_module_parameter_settings(&module);
-			
+			read_timing_module_set_parameter(&module);
+
 			all_module_on_off();
 			all_dim_on_off();
 			scene_modify();
 			scene_touch_run();
 			select_password_enable();
 			lock_screen_enable_ctrl();
-
 		}
-		if(time_200ms>2)
+		if (time_200ms > 2)
 		{
 			time_200ms = 0;
-			right_number_of_days_ctrl();			
-
+			right_number_of_days_ctrl();
 		}
 		dim_ctrl(&module);
 		module_scene_send();
@@ -121,10 +127,8 @@ void main(void)
 		mbh_uartTxIsr();
 		mbh_poll();
 		factory_data_reset();
-		set_scene_infor_select_sequence_number();
-		set_scene_name_select_sequence_number();
-		set_timing_scene_name_select_sequence_number();
 		timing_scene_run();
+
 		timed_auto_send();
 		timing_module_parameter_batch_send();
 		automatically_retrieve();

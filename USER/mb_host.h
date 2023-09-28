@@ -2,7 +2,7 @@
  * @Author: xw.qu
  * @Date: 2023-08-31 09:22:42
  * @LastEditors: xw.qu
- * @LastEditTime: 2023-09-26 18:17:46
+ * @LastEditTime: 2023-11-02 16:29:32
  * @FilePath: \USER\mb_host.h
  * @Description: 
  * 
@@ -26,6 +26,7 @@ typedef struct
 {
 	unsigned char receive_frame_state;//收到一帧的数据状态
 	unsigned char state;						//modbus host状态
+	unsigned char rec_hook_state;						//modbus 接收指令
 	unsigned char errTimes;  					//失败次数计数
 	unsigned short txLen;     					//需要发送的帧长度
 	unsigned short txCounter;					//已发送bytes计数
@@ -106,6 +107,7 @@ void mbh_uartRxIsr(void);
  */
 void mbh_uartTxIsr(void);
 unsigned char mbh_getState(void);
-
+unsigned char mbh_getRecHookState(void);
+void mbh_clearRecHookState(void);
 #endif
 

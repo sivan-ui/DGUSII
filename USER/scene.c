@@ -2,7 +2,7 @@
  * @Author: xw.qu
  * @Date: 2023-08-31 09:22:42
  * @LastEditors: xw.qu
- * @LastEditTime: 2023-09-27 16:47:10
+ * @LastEditTime: 2023-10-30 08:26:58
  * @FilePath: \USER\scene.c
  * @Description: module scene modify
  *
@@ -15,8 +15,9 @@
 // unsigned short mbHost.scene_send_cyc_time;
 name_scene_t module_scene; //
 scenc_infor_t scenc_infor; //
-scenc_infor_t temp_scenc_infor[SCENE_NUB_SIGNLE];
+scenc_infor_t temp_scenc_infor[SINGLE_SCENE_NAME_INFOR_SIZE];
 scene_data_t scene_data;
+unsigned char default_scene_name[17] = {"场景1"};
 unsigned char module_scene_select_key_bak[8] = {0};
 unsigned char temp_module_index = 0;
 unsigned char infor_clear_sta = 0;
@@ -28,9 +29,14 @@ unsigned char scene_name_select_sta_bak = 0;
 unsigned short scene_infor_key_nb_bak = 0;
 unsigned char scene_infor_select_sta_bak = 0;
 unsigned char scene_infor_page = 0;
+unsigned char scene_index = 0;
 void pop_menu_key_ctrl(unsigned char menu_key_value);
 // static void get_led_set_sta(unsigned short *led_enable,unsigned short *led_sta);
-// module_infor_t temp_module_infor[SCENE_NUB_SIGNLE];
+// module_infor_t temp_module_infor[SINGLE_SCENE_NAME_INFOR_SIZE];
+void set_default_scene_name(void)
+{
+	write_dgusii_vp(0x4089, (unsigned char *)&default_scene_name, 8);
+}
 // 获取场景名字编辑状态
 unsigned char get_module_scene_edit_sta(void)
 {
@@ -76,7 +82,7 @@ void clear_all_module_var_en(unsigned short adr, unsigned char len)
 // 清空临时变量场景信息内容
 void clear_temp_scenc_infor(void)
 {
-	memset((unsigned char *)temp_scenc_infor, 0, sizeof(scenc_infor_t) * SCENE_NAME_NUB);
+	memset((unsigned char *)temp_scenc_infor, 0, sizeof(scenc_infor_t) * SINGLE_SCENE_NAME_INFOR_SIZE);
 }
 // 获取空白场景名字序号
 unsigned char get_blank_scene_name_index(void)
@@ -84,7 +90,7 @@ unsigned char get_blank_scene_name_index(void)
 	// return find_index(SCENE_NAME_FLASH_ADR_SATRT,NAME_SCENE_T_SIZE,SCENE_NAME_NUB);
 	unsigned char i = 0;
 	unsigned short temp_data = 0;
-	for (i = 0; i < SCENE_NAME_NUB; i++)
+	for (i = 0; i < SCENE_NAME_NUB_LIMIT; i++)
 	{
 		read_dgusii_vp(0x4100 + i * 32, (unsigned char *)&temp_data, 1);
 		if (0 == temp_data)
@@ -97,7 +103,7 @@ unsigned char if_all_scene_infor_blank(void)
 {
 	unsigned char i = 0;
 	unsigned short temp_data = 0;
-	for (i = 0; i < SCENE_NUB_SIGNLE; i++)
+	for (i = 0; i < SINGLE_SCENE_NAME_INFOR_SIZE; i++)
 	{
 		//		read_dgusii_vp(0x5000+i*70,(unsigned char *)&temp_data,1);
 		if (1 == temp_scenc_infor[i].data_sta)
@@ -115,7 +121,7 @@ void clear_single_scene(unsigned char index)
 void clear_all_scene_infor(void)
 {
 	unsigned char i = 0;
-	for (i = 0; i < SCENE_NUB_SIGNLE; i++)
+	for (i = 0; i < SINGLE_SCENE_NAME_INFOR_SIZE; i++)
 	{
 		clear_single_scene(i);
 	}
@@ -123,10 +129,10 @@ void clear_all_scene_infor(void)
 // 获取空白的场景内容序号
 unsigned char get_blank_scene_infor_index(void)
 {
-	// return find_index(SCENE_INFOR_FLASH_ADR_SATRT,SCENC_INFOR_T_SIZE,SCENE_NUB);
+
 	unsigned char i = 0;
 	//	unsigned short temp_data = 0;
-	for (i = 0; i < SCENE_NUB_SIGNLE; i++)
+	for (i = 0; i < SINGLE_SCENE_NAME_INFOR_SIZE; i++)
 	{
 		//		read_dgusii_vp(0x5000+i*70,(unsigned char *)&temp_data,1);
 		//		USER_PRINTF("-->temp_data_value is %d\n",temp_data);
@@ -179,7 +185,7 @@ unsigned char if_scene_name_exists(unsigned char index)
 unsigned char if_all_scene_name_blank(void)
 {
 	unsigned char i = 0;
-	for (i = 0; i < SCENE_NAME_NUB; i++)
+	for (i = 0; i < SCENE_NAME_NUB_LIMIT; i++)
 	{
 		if (FULL == if_scene_name_exists(i))
 		{
@@ -195,8 +201,8 @@ void scene_name_save_flash(name_scene_t *p)
 	//	p->scene_name_index = index;//设置场景序号
 	//	read_dgusii_vp(0x4089,(unsigned char *)&p->scene_name,8);//读取设定的场景名称
 	norflash_write(SCENE_NAME_FLASH_ADR_SATRT + (p->scene_name_index - 1) * NAME_SCENE_T_SIZE, (unsigned char *)p, NAME_SCENE_T_SIZE); // 存到flash
-	//	write_dgusii_vp(0x4100+(p->scene_name_index-1)*32,(unsigned char *)&p->scene_name,8);//屏幕显示场景名称
-	//	write_dgusii_vp(0x3320+(p->scene_name_index-1)*8,(unsigned char *)&p->scene_name,8);
+																																																																		 //	write_dgusii_vp(0x4100+(p->scene_name_index-1)*32,(unsigned char *)&p->scene_name,8);//屏幕显示场景名称
+																																																																		 //	write_dgusii_vp(0x3320+(p->scene_name_index-1)*8,(unsigned char *)&p->scene_name,8);
 }
 // 写场景名称
 void scene_name_write_dgusii(name_scene_t *p)
@@ -230,7 +236,7 @@ void delete_scene_list_name(unsigned char index)
 void clear_scene_list_name(void)
 {
 	unsigned char i = 0;
-	for (i = 0; i < SCENE_NUB_SIGNLE; i++ )
+	for (i = 0; i < SINGLE_SCENE_NAME_INFOR_SIZE; i++)
 	{
 		delete_scene_list_name(i);
 	}
@@ -244,7 +250,7 @@ void scene_name_delete_flash(unsigned char index)
 	T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (index)*SINGLE_NAME_SCENC_INFOR_SIZE, SINGLE_NAME_SCENC_INFOR_SIZE); // 写0FLASHscencinfor清除
 
 	//	write_dgusii_vp(0x3320+index*8,(unsigned char *)&name_space,8);//清除场景名字
-	//	clear_all_module_var_en(SCENE_NAME_LIST_SELECT_ADR,SCENE_NAME_NUB);
+	//	clear_all_module_var_en(SCENE_NAME_LIST_SELECT_ADR,SCENE_NAME_NUB_LIMIT);
 }
 void scene_edit_clear_infor(name_scene_t *p_module_scene)
 {
@@ -268,13 +274,13 @@ void scene_name_clear_flash(void)
 
 		T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (index)*0x1000, 0x1000); // 写0FLASHscencinfor清除
 	}
-	T5L_Flash(0xA5, 0Xe000, SCENE_NAME_FLASH_ADR_SATRT, SCENE_NAME_NUB * NAME_SCENE_T_SIZE); // 写0FLASHname清除
-	T5L_Flash(0x5A, 0X4100, SCENE_NAME_FLASH_ADR_SATRT, 32 * 64);														 // 清空场景管理场景名称
-	//	for(index = 0;index<SCENE_NAME_NUB;index++)
-	//	{
-	//		write_dgusii_vp(0x4100+(p->scene_name_index-1)*32,(unsigned char *)&p->scene_name,8);//屏幕显示场景名称
-	//
-	//	}
+	T5L_Flash(0xA5, 0Xe000, SCENE_NAME_FLASH_ADR_SATRT, SCENE_NAME_NUB_MAX * NAME_SCENE_T_SIZE); // 写0FLASHname清除
+	T5L_Flash(0x5A, 0X4100, SCENE_NAME_FLASH_ADR_SATRT, 32 * 64);																 // 清空场景管理场景名称
+																																															 //	for(index = 0;index<SCENE_NAME_NUB_LIMIT;index++)
+																																															 //	{
+																																															 //		write_dgusii_vp(0x4100+(p->scene_name_index-1)*32,(unsigned char *)&p->scene_name,8);//屏幕显示场景名称
+																																															 //
+																																															 //	}
 }
 // 存储场景信息内容
 void scene_infor_save_flash(name_scene_t *p_module_scene)
@@ -295,14 +301,14 @@ void scene_infor_clear_flash(scenc_infor_t *p)
 {
 	T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p->scene_infor_index - 1) * SINGLE_NAME_SCENC_INFOR_SIZE, SINGLE_NAME_SCENC_INFOR_SIZE); // 写0FLASHscencinfor清除
 	T5L_Flash(0x5A, 0X5000, SCENE_INFOR_FLASH_ADR_SATRT + (p->scene_infor_index - 1) * SINGLE_NAME_SCENC_INFOR_SIZE, SINGLE_NAME_SCENC_INFOR_SIZE); // 读为0场景信息
-	// USER_PRINTF("-->clear %bd scene all flash ok\n", p->scene_infor_index);
+																																																																									// USER_PRINTF("-->clear %bd scene all flash ok\n", p->scene_infor_index);
 }
 // 删除一个场景单个信息flash
 void scene_infor_delete_flash(scenc_infor_t *p)
 {
 	T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p->scene_infor_index - 1) * SINGLE_NAME_SCENC_INFOR_SIZE + (p->index - 1) * SCENC_INFOR_T_SIZE, SCENC_INFOR_T_SIZE); // 写0FLASH清除
-	//	T5L_Flash(0x5A,0X5000, SCENE_INFOR_FLASH_ADR_SATRT+(p->scene_infor_index-1)*SINGLE_NAME_SCENC_INFOR_SIZE+(p->index-1)*SCENC_INFOR_T_SIZE,SCENC_INFOR_T_SIZE); //读为0场景信息
-	// USER_PRINTF("-->delete %bd scene %d infor flash ok\n", p->scene_infor_index, p->index);
+																																																																																							//	T5L_Flash(0x5A,0X5000, SCENE_INFOR_FLASH_ADR_SATRT+(p->scene_infor_index-1)*SINGLE_NAME_SCENC_INFOR_SIZE+(p->index-1)*SCENC_INFOR_T_SIZE,SCENC_INFOR_T_SIZE); //读为0场景信息
+																																																																																							// USER_PRINTF("-->delete %bd scene %d infor flash ok\n", p->scene_infor_index, p->index);
 }
 // 模块场景信息显示
 void module_scene_infor_dis(scenc_infor_t *p)
@@ -702,7 +708,7 @@ void scene_delete_ctrl_send(name_scene_t *p)
 			}
 		}
 	}
-	if (scene_data.delete_scenc_send_cnt > SCENE_NUB_SIGNLE)
+	if (scene_data.delete_scenc_send_cnt > SINGLE_SCENE_NAME_INFOR_SIZE)
 	{
 		scene_data.delete_scenc_send_cnt = 0;
 		scene_data.delete_scenc_send_cyc_time = 0;
@@ -830,7 +836,8 @@ void module_scene_send(void)
 		scene_data.scenc_send_infor_cyc_flag = 0;
 		clear_temp_scenc_infor(); // 清空场景信息临时变量
 		clear_all_scene_infor();	// 清空场景信息显示
-		pic_set(22);
+		pop_menu_key_ctrl(0xf0);
+		// pic_set(22);
 	}
 }
 // 显示具体场景执行信息
@@ -968,13 +975,12 @@ void add_module_scene_infor(module_t *p, scenc_infor_t *p_scenc_infor, name_scen
 		{
 			scene_infor_page = SINGLE_SCENE_INFOR_LIST_SECOND_PAGE + p_scenc_infor->index / 5 - 1;
 			pic_set(scene_infor_page);
-			
 		}
 		else
 		{
 			scene_infor_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
 			pic_set(scene_infor_page);
-		}	
+		}
 		// USER_PRINTF("module_scene_select_key_bak[%d] is %bd\n", j, module_scene_select_key_bak[j]);
 		//		printf_tab(512,module_scene_select_key_bak);
 	}
@@ -1012,13 +1018,12 @@ void add_module_scene_infor(module_t *p, scenc_infor_t *p_scenc_infor, name_scen
 		{
 			scene_infor_page = SINGLE_SCENE_INFOR_LIST_SECOND_PAGE + p_scenc_infor->index / 5 - 1;
 			pic_set(scene_infor_page);
-			
 		}
 		else
 		{
 			scene_infor_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
 			pic_set(scene_infor_page);
-		}	
+		}
 		// USER_PRINTF("module_scene_select_key_bak[%d] is %bd\n", j, module_scene_select_key_bak[j]);
 		//		printf_tab(512,module_scene_select_key_bak);
 	}
@@ -1045,19 +1050,29 @@ void add_module_scene_infor(module_t *p, scenc_infor_t *p_scenc_infor, name_scen
 		// USER_PRINTF("p_module_scene->scene_name_index -->%bd\n", p_module_scene->scene_name_index);
 		// USER_PRINTF("p->index -->%bd\n", p->index);
 		// USER_PRINTF("module_scene_select_key_bak[%d] is %bd\n", j, module_scene_select_key_bak[(p_module_scene->scene_name_index - 1) + ((p->index) / 8)]);
-		pic_set(scene_infor_page);	
+		pic_set(scene_infor_page);
 	}
 }
 // 添加场景序号
 void scene_name_add(name_scene_t *p_module_scene)
 {
-	p_module_scene->scene_name_index = get_blank_scene_name_index() + 1;
+	unsigned char index = 0;
+	index = get_blank_scene_name_index();
+	if (OVERFLOW_SIZE == index)
+	{
+		USER_PRINTF("-->waring! too many scene \n");
+		pop_menu_key_ctrl(OVERFLOW_WARING_CODE);
+		return;
+	}
+	pic_set(SCENE_ADD_PAGE);
+	p_module_scene->scene_name_index = index + 1;
 	// USER_PRINTF("-->current_scene_name_index is %bd\n", p_module_scene->scene_name_index);
 	clear_temp_scenc_infor();
 	clear_all_scene_infor();
 	memset((unsigned char *)module_scene_select_key_bak, 0, 8);
-	clear_all_module_var_en(0x1200, SCENE_NUB_SIGNLE);
+	clear_all_module_var_en(0x1200, SINGLE_SCENE_NAME_INFOR_SIZE);
 	p_module_scene->edit_sta = 1;
+	set_default_scene_name();
 	// pic_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
 }
 // 场景修改
@@ -1074,7 +1089,7 @@ void scene_name_modify(name_scene_t *p_module_scene)
 	{
 		return;
 	}
-  // pic_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
+	// pic_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
 	pic_set(SINGLE_SCENE_INFOR_LIST_FIRST_PAGE);
 
 	scene_name_read_flash(p_module_scene, index);
@@ -1098,7 +1113,7 @@ void scene_name_modify(name_scene_t *p_module_scene)
 		}
 	}
 
-	for (i = 0; i < SCENE_NUB_SIGNLE; i++)
+	for (i = 0; i < SINGLE_SCENE_NAME_INFOR_SIZE; i++)
 	{
 		if (FULL == (temp_scenc_infor + i)->data_sta)
 			display_scene_infor(temp_scenc_infor + i);
@@ -1146,7 +1161,7 @@ void scene_name_key_ctrl(name_scene_t *p_module_scene)
 		{
 		case 1: // 添加
 			scene_name_add(p_module_scene);
-      
+
 			break;
 		case 3: // 修改
 			//				edit_sta = 2;
@@ -1204,12 +1219,13 @@ void scene_infor_confirm_ctrl(name_scene_t *p_module_scene)
 	scene_name_save(p_module_scene);
 	if (p_module_scene->scene_name_index > 6)
 	{
-		pic_page = SINGLE_SCENE_NAME_MANGE_SECOND_PAGE + p_module_scene->scene_name_index / 6 - 1;
+
+		pic_page = SINGLE_SCENE_NAME_MANGE_SECOND_PAGE + (p_module_scene->scene_name_index - 1) / 6;
 		pic_set(pic_page);
-		
 	}
 	else
 	{
+
 		pic_page = SINGLE_SCENE_NAME_MANGE_FIRST_PAGE;
 		pic_set(pic_page);
 	}
@@ -1223,7 +1239,7 @@ void scene_infor_cancel_ctrl(name_scene_t *p_module_scene, scenc_infor_t *p_scen
 	memset((unsigned char *)p_scenc_infor, 0, sizeof(scenc_infor_t)); // 清空场景信息变量
 	memset((unsigned char *)p_module_scene, 0, sizeof(name_scene_t)); // 清空场景名字变量
 	clear_all_scene_infor();																					// 清空场景信息显示
-	clear_all_module_var_en(0x1200, SCENE_NUB_SIGNLE);
+	clear_all_module_var_en(0x1200, SINGLE_SCENE_NAME_INFOR_SIZE);
 	pic_set(pic_page);
 }
 ////场景信息列表清空发送删除场景指令
@@ -1253,7 +1269,7 @@ void scene_infor_clear_ctrl(name_scene_t *p_module_scene, scenc_infor_t *p_scenc
 	memset((unsigned char *)p_scenc_infor, 0, sizeof(scenc_infor_t)); // 清空场景信息变量
 	memset((unsigned char *)p_module_scene, 0, sizeof(name_scene_t)); // 清空场景名字变量
 	clear_all_scene_infor();																					// 清空场景信息显示
-	clear_all_module_var_en(0x1200, SCENE_NUB_SIGNLE);
+	clear_all_module_var_en(0x1200, SINGLE_SCENE_NAME_INFOR_SIZE);
 }
 // 场景信息列表修改
 void scene_infor_modify_ctrl(scenc_infor_t *p_scenc_infor)
@@ -1320,7 +1336,7 @@ void scene_infor_delete_ctrl(scenc_infor_t *p_scenc_infor)
 // 场景编辑状态清空信息
 void scene_edit_sta_clear_infor(name_scene_t *p_module_scene, scenc_infor_t *p_scenc_infor)
 {
-	clear_all_module_var_en(0x1200, SCENE_NUB_SIGNLE);
+	clear_all_module_var_en(0x1200, SINGLE_SCENE_NAME_INFOR_SIZE);
 	// USER_PRINTF("clear scene_name_index is %bd\n", p_module_scene->scene_name_index);
 	T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p_module_scene->scene_name_index - 1) * SINGLE_NAME_SCENC_INFOR_SIZE, SINGLE_NAME_SCENC_INFOR_SIZE); // 写0FLASHscencinfor清除
 	clear_all_scene_infor();																																																																		// 清空场景列表信息显示
@@ -1337,7 +1353,7 @@ void scene_edit_sta_clear_infor(name_scene_t *p_module_scene, scenc_infor_t *p_s
 	//	memset((unsigned char *)p_scenc_infor,0,sizeof(scenc_infor_t));//清空场景信息变量
 	//	memset((unsigned char *)p_module_scene,0,sizeof(name_scene_t));//清空场景名字变量
 	//	clear_all_scene_infor();//清空场景信息显示
-	//	clear_all_module_var_en(0x1200,SCENE_NUB_SIGNLE);
+	//	clear_all_module_var_en(0x1200,SINGLE_SCENE_NAME_INFOR_SIZE);
 }
 
 // 场景信息列表按键控制
@@ -1406,7 +1422,7 @@ void scene_infor_key_ctrl(name_scene_t *p_module_scene, scenc_infor_t *p_scenc_i
 		clear_key_value(0x1076, &key_nb);
 	}
 }
-//设置场景信息列表界面
+// 设置场景信息列表界面
 void set_scene_infor_page(void)
 {
 	unsigned short key_nb = 0;
@@ -1415,6 +1431,19 @@ void set_scene_infor_page(void)
 	{
 		scene_infor_page = key_nb;
 		clear_key_value(0x1b25, &key_nb);
+	}
+}
+void scene_touch_ctrl(unsigned char index)
+{
+	unsigned char action = 0;
+	action = read_dgus(0x1b30);
+	if (action)
+	{
+		set_master_send_hr(master_send_hr, 7, index);
+		set_master_send_hr(master_send_hr, 8, action);
+		pack_data_send(&user_modbus, 0, MD_FR_MHR, 7, 2);
+		action = 0;
+		write_dgus(0x1b30, action);
 	}
 }
 // 场景配置
@@ -1430,6 +1459,7 @@ void scene_modify(void)
 
 	scene_infor_key_ctrl(&module_scene, &scenc_infor);
 	set_scene_infor_page();
+	scene_touch_ctrl(scene_index);
 }
 // void scene_key_run(void)
 //{
@@ -1514,7 +1544,7 @@ void pop_menu_key_ctrl(unsigned char menu_key_value)
 void scene_touch_run(void)
 {
 	unsigned short key_nb = 0;
-	static unsigned char action_sta[SCENE_NAME_NUB] = {1};
+	// static unsigned char action_sta[SCENE_NAME_NUB_LIMIT] = {1};
 	name_scene_t module_scene_r = {0};
 	get_key_value(0x102d, &key_nb);
 	if ((key_nb))
@@ -1523,10 +1553,12 @@ void scene_touch_run(void)
 		norflash_read(MODULE_FLASH_ADR_END + (key_nb - 1) * NAME_SCENE_T_SIZE, (unsigned char *)&module_scene_r, NAME_SCENE_T_SIZE);
 		if (FULL == module_scene_r.data_sta)
 		{
-			action_sta[key_nb - 1] = 0;
-			set_master_send_hr(master_send_hr, 7, key_nb);
-			set_master_send_hr(master_send_hr, 8, action_sta[key_nb - 1] + 1);
-			pack_data_send(&user_modbus, 0, MD_FR_MHR, 7, 2);
+			pop_menu_key_ctrl(0x14);
+			scene_index = key_nb;
+			// action_sta[key_nb - 1] = 0;
+			// set_master_send_hr(master_send_hr, 7, key_nb);
+			// set_master_send_hr(master_send_hr, 8, action_sta[key_nb - 1] + 1);
+			// pack_data_send(&user_modbus, 0, MD_FR_MHR, 7, 2);
 		}
 		clear_key_value(0x102d, &key_nb);
 	}

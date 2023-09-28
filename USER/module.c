@@ -2,8 +2,8 @@
  * @Author: xw.qu
  * @Date: 2023-08-31 09:22:42
  * @LastEditors: xw.qu
- * @LastEditTime: 2023-09-27 15:35:35
- * @FilePath: \USER\module.c
+ * @LastEditTime: 2023-11-04 11:08:31
+ * @FilePath: \Binaryd:\七寸屏\NEW_UI\PROJ_V1.0-20231102 - 13\C51\template\USER\module.c
  * @Description: relay module configuration
  *
  * Copyright (c) 2023 by xw.qu, All Rights Reserved.
@@ -18,10 +18,11 @@ v_module_t g_var_module;
 u16 xdata num4 = 4;
 unsigned char modfity_index = 0;
 unsigned char var_previous_page = 0;
-
+static unsigned char para_set_fun = 0;
 unsigned char channel_number = 0;
 unsigned short module_key_nb_bak = 0;
 unsigned char module_select_sta_bak = 0;
+unsigned short temp_adr = 0;
 unsigned short init_pwd = 8888; // default password
 module_t module = {
 		{1},
@@ -109,7 +110,9 @@ unsigned char check_or_not_frame(unsigned short adr);
 //};
 // unsigned char *p_module_name;
 unsigned char xdata module_default_name[17] = {
-		" "};
+		"房间1"};
+unsigned char xdata module_no_name[17] = {
+		""};
 unsigned char xdata module_name_tab[6][13] = {
 		"普通模块    ", // 普通模块
 		"时控模块    ", // 时控模块
@@ -119,9 +122,25 @@ unsigned char xdata module_name_tab[6][13] = {
 		"双层时控模块", // 双层时控模块
 
 };
-unsigned char default_module_channel_name[257] = {
-		"通道1           通道2           通道3           通道4           通道5           通道6           通道7           通道8           通道9           通道10          通道11          通道12          通道13          通道14          通道15          通道16          "};
 
+unsigned char default_module_channel_name[16][16] = {
+		{"通道1"},
+		{"通道2"},
+		{"通道3"},
+		{"通道4"},
+		{"通道5"},
+		{"通道6"},
+		{"通道7"},
+		{"通道8"},
+		{"通道9"},
+		{"通道10"},
+		{"通道11"},
+		{"通道12"},
+		{"通道13"},
+		{"通道14"},
+		{"通道15"},
+		{"通道16"},
+};
 
 // 获取键值
 void get_key_value(unsigned short adr, unsigned short *key_value)
@@ -172,12 +191,9 @@ unsigned short find_index(unsigned int adr_start, unsigned char flash_size, unsi
 			return index;
 		}
 	}
-	return 0xffff;
+	return 0xff;
 }
-// void return_to_previous_page(unsigned char page)
-//{
-//	pic_set(page);
-// }
+
 // 设置模块信息
 void set_module_information(module_t *p, unsigned char index, unsigned short module_type)
 {
@@ -192,7 +208,7 @@ void set_module_information(module_t *p, unsigned char index, unsigned short mod
 	//	unsigned char module_name[16];
 	//	unsigned char channel_name[16][16];
 	//	unsigned char index = 0 ;
-	//	for(index = 0;index<MODULE_NUB;index++)
+	//	for(index = 0;index<MODULE_NUB_LIMIT;index++)
 	//	{
 	//		if( BLANK == check_whether_data_exists(index))
 	//		{
@@ -246,52 +262,59 @@ void display_module_information(module_t *p, unsigned char index)
 	//	USER_PRINTF("-->p->index %bd\n", p->index);
 	write_dgusii_vp(0x3520 + index * 32, (unsigned char *)mod_infom_tab, 32);
 }
-//是否存在重复地址
-// unsigned char if_adr_repeat(unsigned char edit_sta,unsigned char adr,unsigned char *p)
-// {
-// 	switch (edit_sta)
-// 	{
-// 		case ADD:
-// 		if(find_nub_index(p,adr))
-// 		{
-// 			USER_PRINTF("--> adr already exist\n!");
-// 			USER_PRINTF("--> save module information fail!\n");
-// 			return 1;
-// 		}		
-// 		break;
-// 		case MODIFY:
-// 		if(find_nub_index(p,adr))
-// 		{
-// 			USER_PRINTF("--> adr already exist\n!");
-// 			USER_PRINTF("--> save module information fail!\n");
-// 			return 1;
-// 		}			
-// 		break;
-// 		default:
-// 		break;
-// 	}
-// 	return 0;
+// 是否存在重复地址
+//  unsigned char if_adr_repeat(unsigned char edit_sta,unsigned char adr,unsigned char *p)
+//  {
+//  	switch (edit_sta)
+//  	{
+//  		case ADD:
+//  		if(find_nub_index(p,adr))
+//  		{
+//  			USER_PRINTF("--> adr already exist\n!");
+//  			USER_PRINTF("--> save module information fail!\n");
+//  			return 1;
+//  		}
+//  		break;
+//  		case MODIFY:
+//  		if(find_nub_index(p,adr))
+//  		{
+//  			USER_PRINTF("--> adr already exist\n!");
+//  			USER_PRINTF("--> save module information fail!\n");
+//  			return 1;
+//  		}
+//  		break;
+//  		default:
+//  		break;
+//  	}
+//  	return 0;
 
-	
 // }
 // 存储模块信息
 void save_module_information(module_t *p)
 {
-	unsigned short key_nb1 = 0;
+	// unsigned short key_nb1 = 0;
 	unsigned short key_nb2 = 0;
-	unsigned short temp_adr = 0;
 	//	static unsigned char temp_index = 0;
-	read_dgusii_vp(0x1009, (unsigned char *)&key_nb1, 1);
-	if (1 == key_nb1)
-	{
-		key_nb1 = 0;
-		write_dgusii_vp(0x1009, (unsigned char *)&key_nb1, 1);
-		USER_PRINTF("-->ctrl_mgmt_sta\n");
-		modfity_index = find_index(0, MODULE_FLASH_SIZE, MODULE_NUB);
-		//		USER_PRINTF("<--get_blank_index -->%bd\n", modfity_index);
-		write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[0], 6);
-		write_dgus(0X1000, 4);
-	}
+	// read_dgusii_vp(0x1009, (unsigned char *)&key_nb1, 1);
+	// if (1 == key_nb1)//添加模块
+	// {
+	// 	key_nb1 = 0;
+	// 	write_dgusii_vp(0x1009, (unsigned char *)&key_nb1, 1);
+	// 	USER_PRINTF("-->ctrl_mgmt_sta\n");
+	// 	modfity_index = find_index(0, MODULE_FLASH_SIZE, MODULE_NUB_LIMIT);
+	// 	if(OVERFLOW_SIZE == modfity_index)
+	// 	{
+	// 		USER_PRINTF("-->waring! too many module \n");
+	// 		pop_menu_key_ctrl(OVERFLOW_WARING_CODE);
+	// 		return;
+	// 	}
+	// 	pic_set(MODULE_ADD_PAGE);
+	// 	//		USER_PRINTF("<--get_blank_index -->%bd\n", modfity_index);
+	// 	write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[0], 6);
+	// 	write_dgusii_vp(0x3008, (unsigned char *)&default_module_channel_name, 256);
+	// 	write_dgusii_vp(0x3000, (unsigned char *)module_default_name, 8);
+	// 	write_dgus(0X1000, 4);
+	// }
 	sys_delay_about_ms(5);
 	read_dgusii_vp(0x1006, (unsigned char *)&key_nb2, 1);
 	// if (key_nb2)
@@ -303,19 +326,20 @@ void save_module_information(module_t *p)
 		key_nb2 = 0;
 		sys_delay_about_ms(1);
 		write_dgusii_vp(0x1006, (unsigned char *)&key_nb2, 1);
-		printf_tab(20,&g_var_module.module_adr[0]);
+		printf_tab(20, &g_var_module.module_adr[0]);
 		read_dgusii_vp(0x2000, (unsigned char *)&temp_adr, 1);
-		if(find_nub_index(&g_var_module.module_adr[0],temp_adr))
+		sys_delay_about_ms(2);
+		if (find_nub_index(&g_var_module.module_adr[0], temp_adr))
 		{
 			pop_menu_key_ctrl(0x1f);
 			USER_PRINTF("--> adr already exist!\n");
 			USER_PRINTF("--> save module information fail!\n");
-			return ;
+			return;
 		}
 		set_module_information(p, modfity_index, (unsigned char)module_type_bak);
 		//		USER_PRINTF("-->module_type_bak is %d\n",module_type_bak);
-		
-		add_arr_data(&g_var_module.module_adr[0],p->adr,modfity_index);
+
+		add_arr_data(&g_var_module.module_adr[0], p->adr, modfity_index);
 
 		norflash_write(modfity_index * MODULE_FLASH_SIZE, (unsigned char *)p, MODULE_FLASH_SIZE);
 		write_dgusii_vp(0x3120 + 8 * modfity_index, (unsigned char *)p->module_name, 8);
@@ -325,7 +349,6 @@ void save_module_information(module_t *p)
 		{
 			pic_page = 88 + modfity_index / 5 - 1;
 			pic_set(pic_page);
-			
 		}
 		else
 		{
@@ -338,8 +361,8 @@ void save_module_information(module_t *p)
 	{
 		key_nb2 = 0;
 		sys_delay_about_ms(1);
-		write_dgusii_vp(0x1006, (unsigned char *)&key_nb2, 1);	
-		pic_set(pic_page); 	
+		write_dgusii_vp(0x1006, (unsigned char *)&key_nb2, 1);
+		pic_set(pic_page);
 		// if (modfity_index >= 5)
 		// {
 		// 	pic_set(88 + modfity_index / 5 - 1);
@@ -386,7 +409,7 @@ void set_selected_sequence_number(unsigned short touch_key_adr, unsigned short s
  * @param {unsigned char} *p_select_sta  框选备份
  * @return {*}
  */
-void set_box_select(unsigned short touch_key_adr, unsigned short select_key_adr, unsigned char nb,unsigned short *p_key_nb_bak, unsigned char *p_select_sta)
+void set_box_select(unsigned short touch_key_adr, unsigned short select_key_adr, unsigned char nb, unsigned short *p_key_nb_bak, unsigned char *p_select_sta)
 {
 	unsigned short key_nb = 0;
 	// static unsigned short key_nb_bak = 0;
@@ -395,7 +418,7 @@ void set_box_select(unsigned short touch_key_adr, unsigned short select_key_adr,
 	get_key_value(touch_key_adr, &key_nb);
 
 	if ((key_nb)) // 按键触发
-	{		
+	{
 		for (i = 0; i < nb; i++)
 		{
 			if (i == key_nb - 1)
@@ -408,7 +431,6 @@ void set_box_select(unsigned short touch_key_adr, unsigned short select_key_adr,
 		{
 			*p_key_nb_bak = key_nb;
 			*p_select_sta = 0;
-			
 		}
 		// USER_PRINTF("-->set_select_sta before is--%bd\n", select_sta);
 		*p_select_sta ^= 1;
@@ -762,24 +784,43 @@ void display_dim_interface(module_t *p)
 		break;
 	}
 }
+/**
+ * @brief 返回之前页面
+ * @return {*}
+ */
 void return_to_previous_page(void)
 {
 	pic_set(var_previous_page);
 }
+/**
+ * @brief 发送读取时间指令
+ * @param {module_t} *p
+ * @return {*}
+ */
 void read_timing_module_parameter(module_t *p)
 {
 	pack_data_send(&user_modbus, p->adr, MD_RD_HR, 35, 146);
 }
-void timing_module_parameter_settings(module_t *p)
+/**
+ * @brief 读取时间段设定
+ * @param {module_t} *p
+ * @return {*}
+ */
+void read_timing_module_set_parameter(module_t *p)
 {
 	unsigned short key_nb = 0;
 	get_key_value(0x10dd, &key_nb);
 	if (key_nb)
 	{
-		channel_number = key_nb;
+		
 		// USER_PRINTF("-->channel number is %bd\n", channel_number);
 		if (0x12 != key_nb)
+		{
+			channel_number = key_nb;
 			pack_data_send(&user_modbus, p->adr, MD_RD_HR, 35, 200); // 从35开始读200个
+			g_var_module.read_time_set_para_flag = 1;
+		}
+
 		clear_key_value(0x10dd, &key_nb);
 	}
 }
@@ -833,7 +874,7 @@ void display_time_frame_parameter(unsigned short time_frame_adr, unsigned char *
 		}
 	}
 }
-// 显示模块参数
+// 显示模块定时参数
 void display_timing_module_parameter(module_t *p, unsigned char channel)
 {
 	unsigned short week_enable_adr = 0;
@@ -844,42 +885,54 @@ void display_timing_module_parameter(module_t *p, unsigned char channel)
 	unsigned char solar_up = 0;
 	unsigned char solar_down = 0;
 	unsigned short time_frame_adr = 0;
-	unsigned char p_data[16] = {0};
+	unsigned char p_data[17] = {0};
 	if (SINGLE_TIME_PARA_SET_PAGE != read_pic())
 		return;
-	//	USER_PRINTF("-->display_timing_module_parameter_page\n");
-	if ((DOUBLE_TIME_RELAY_MODULE == p->type) && (mbHost.errTimes < MBH_ERR_MAX_TIMES))
+	// USER_PRINTF("-->display_timing_module_parameter_page\n");
+	if ((g_var_module.read_time_set_para_flag == 1) && (3 == mbh_getRecHookState()))
 	{
-		solar_enable = HR[200 + channel] >> 15 & 0x01;
-		solar_up = HR[200 + channel] >> 8 & 0x7f;
-		solar_down = HR[200 + channel] & 0xff;
-		memcpy(p_data, (unsigned char *)(HR + 53 + (channel - 1) * 8), 16);
+		printf_tab(80,(unsigned char *)(HR+49));
+		g_var_module.read_time_set_para_flag = 0;
+		mbh_clearRecHookState();
+		USER_PRINTF("-->read_time_para_successfully!\n");
+		if ((DOUBLE_TIME_RELAY_MODULE == p->type) && (mbHost.errTimes < MBH_ERR_MAX_TIMES))
+		{
+			USER_PRINTF("-->double!\n");
+			solar_enable = HR[200 + channel] >> 15 & 0x01;
+			solar_up = HR[200 + channel] >> 8 & 0x7f;
+			solar_down = HR[200 + channel] & 0xff;
+			memcpy(p_data, (unsigned char *)(HR + 53 + (channel - 1) * 8), 16);
+		}
+		else if ((SINGLE_TIME_RELAY_MODULE == p->type) && (mbHost.errTimes < MBH_ERR_MAX_TIMES))
+		{
+      USER_PRINTF("-->single!\n");
+			// USER_PRINTF("-->current channel is %bd!\n",channel);
+			solar_enable = (HR[160 + channel] >> 15) & 0x01;
+			solar_up = (HR[160 + channel] >> 8) & 0x7f;
+			solar_down = HR[160 + channel] & 0xff;
+			USER_PRINTF("-->current solar_up is %bd!\n",solar_up);
+			USER_PRINTF("-->current solar_down is %bd!\n",solar_down);
+			USER_PRINTF("-->current time_frame is %d!\n",HR[49]);
+			memcpy(p_data, (unsigned char *)(HR + 49 + (channel - 1) * 8), 16);
+		}
+		else
+		{
+		}
+		week_enable = ~HR[34 + channel];
+		week_enable_adr = 0x10de;
+		solar_en_adr = 0x10ed;
+		solar_adr = 0x201d;
+		time_frame_adr = 0x201f;
+		write_dgus(0x201c, channel);
+		//	USER_PRINTF("-->solar_enable is %bd\n",solar_enable);
+		//	USER_PRINTF("-->solar_up is %bd\n",solar_up);
+		//	USER_PRINTF("-->solar_down is %bd\n",solar_down);
+		//	printf_tab(16,p_data);
+		//	USER_PRINTF("-->solar_enable is %bd\n",solar_enable);
+		display_week_parameter(week_enable_adr, week_enable);
+		display_solar_parameter(solar_adr, solar_en_adr, solar_enable, solar_up, solar_down);
+		display_time_frame_parameter(time_frame_adr, p_data);
 	}
-	else if ((SINGLE_TIME_RELAY_MODULE == p->type) && (mbHost.errTimes < MBH_ERR_MAX_TIMES))
-	{
-
-		solar_enable = (HR[160 + channel] >> 15) & 0x01;
-		solar_up = (HR[160 + channel] >> 8) & 0x7f;
-		solar_down = HR[160 + channel] & 0xff;
-		memcpy(p_data, (unsigned char *)(HR + 49 + (channel - 1) * 8), 16);
-	}
-	else
-	{
-	}
-	week_enable = ~HR[34 + channel];
-	week_enable_adr = 0x10de;
-	solar_en_adr = 0x10ed;
-	solar_adr = 0x201d;
-	time_frame_adr = 0x201f;
-	write_dgus(0x201c, channel);
-	//	USER_PRINTF("-->solar_enable is %bd\n",solar_enable);
-	//	USER_PRINTF("-->solar_up is %bd\n",solar_up);
-	//	USER_PRINTF("-->solar_down is %bd\n",solar_down);
-	//	printf_tab(16,p_data);
-	//	USER_PRINTF("-->solar_enable is %bd\n",solar_enable);
-	display_week_parameter(week_enable_adr, week_enable);
-	display_solar_parameter(solar_adr, solar_en_adr, solar_enable, solar_up, solar_down);
-	display_time_frame_parameter(time_frame_adr, p_data);
 }
 // 通道设置
 unsigned short get_channel_set(struct this_module *p, unsigned char channel, unsigned char state)
@@ -1048,14 +1101,14 @@ void timing_module_parameter_time_frame_channel_send(struct this_module *p, unsi
 	default:
 		break;
 	}
-	time_frame_parameter[0] = read_dgus(time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
-	time_frame_parameter[1] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
-	time_frame_parameter[2] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
-	time_frame_parameter[3] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
-	time_frame_parameter[4] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
-	time_frame_parameter[5] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
-	time_frame_parameter[6] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
-	time_frame_parameter[7] = read_dgus(++time_frame_set_adr) << 8 | read_dgus(++time_frame_set_adr);
+	time_frame_parameter[0] = read_dgus(time_frame_set_adr++) << 8 | read_dgus(time_frame_set_adr++);
+	time_frame_parameter[1] = read_dgus(time_frame_set_adr++) << 8 | read_dgus(time_frame_set_adr++);
+	time_frame_parameter[2] = read_dgus(time_frame_set_adr++) << 8 | read_dgus(time_frame_set_adr++);
+	time_frame_parameter[3] = read_dgus(time_frame_set_adr++) << 8 | read_dgus(time_frame_set_adr++);
+	time_frame_parameter[4] = read_dgus(time_frame_set_adr++) << 8 | read_dgus(time_frame_set_adr++);
+	time_frame_parameter[5] = read_dgus(time_frame_set_adr++) << 8 | read_dgus(time_frame_set_adr++);
+	time_frame_parameter[6] = read_dgus(time_frame_set_adr++) << 8 | read_dgus(time_frame_set_adr++);
+	time_frame_parameter[7] = read_dgus(time_frame_set_adr++) << 8 | read_dgus(time_frame_set_adr++);
 	if ((DOUBLE_TIME_RELAY_MODULE == p->type))
 	{
 		time_frame_adr_start = 52;
@@ -1166,14 +1219,13 @@ void timing_module_parameter_time_send(struct this_module *p)
 	// USER_PRINTF("-->p->adr is %bd\n", p->adr);
 	pack_data_send(&user_modbus, p->adr, MD_FR_MHR, 241, 9);
 }
-// 参数发送控制
-void timing_module_parameter_key_ctrl(struct this_module *p, unsigned char channel)
+void timing_module_parameter_ctrl(unsigned char fun, struct this_module *p, unsigned char channel)
 {
 	unsigned short key_nb = 0;
-	get_key_value(0x10E5, &key_nb);
-	if (key_nb)
+	get_key_value(CONFIRM_POP_VALUE_ADR, &key_nb);
+	if (1 == key_nb)
 	{
-		switch (key_nb)
+		switch (fun)
 		{
 		case 1:
 			timing_module_parameter_week_enable_channel_send(p, channel, SINGLE_CHANNEL_STATE);
@@ -1183,9 +1235,6 @@ void timing_module_parameter_key_ctrl(struct this_module *p, unsigned char chann
 			break;
 		case 3:
 			timing_module_parameter_time_frame_channel_send(p, channel, SINGLE_CHANNEL_STATE);
-			break;
-		case 4:
-			return_to_previous_page();
 			break;
 		case 0xa:
 			timing_module_parameter_ongitude_latitude_send(p);
@@ -1202,15 +1251,33 @@ void timing_module_parameter_key_ctrl(struct this_module *p, unsigned char chann
 		case 0x13:
 			timing_module_parameter_time_frame_channel_send(p, channel, SINGLE_CHANNELS_STATE);
 			break;
+		default:
+			break;
+		}
+		clear_key_value(CONFIRM_POP_VALUE_ADR, &key_nb);
+	}
+}
+// 时控 参数发送控制
+void timing_module_parameter_key_ctrl(struct this_module *p, unsigned char channel)
+{
+	unsigned short key_nb = 0;
+	get_key_value(0x10E5, &key_nb);
+	if (key_nb)
+	{
+		para_set_fun = key_nb;
+		switch (key_nb)
+		{
+		case 4:
 		case 0x14:
 			return_to_previous_page();
 			break;
 		default:
 			break;
 		}
-		//		pack_data_send(&user_modbus,p->adr,MD_RD_HR,35,146);//从35开始读146个
+		pop_menu_key_ctrl(CONFIRM_POP_KEY_ADR);
 		clear_key_value(0x10E5, &key_nb);
 	}
+	timing_module_parameter_ctrl(para_set_fun, p, channel);
 }
 unsigned short led_sta[16] = {0};
 // 清空led状态
@@ -1256,7 +1323,7 @@ void relay_single_ctrl(module_t *p)
 			//			sys_delay_about_ms(1);
 		}
 	}
-	if (key_nb)
+	if ((key_nb) && (mbh_getState() == MBH_STATE_IDLE))
 	{
 
 		led_sta[key_nb - 1] ^= 1;
@@ -1618,7 +1685,7 @@ void factory_data_reset(void)
 		// 读写T5L片内256KW Flash，mod=0x5A 为读取，mod=0xA5为写入
 		// addr=DGUS变量地址，必须是偶数；addr_flash=flash读取地址，必须是偶数；len=读取字长度，必须是偶数。
 		// 从屏幕的变量地址区域找一块连续的全是0的，然后将数据写入到数据库进行覆盖
-		for (i = 0; i < 60; i++)//清到F000 一些参数设置不清空
+		for (i = 0; i < 61; i++) // 清到F400 一些参数设置不清空
 		{
 			T5L_Flash(0xA5, 0Xe000, 1024 * i, 1024); // 写0FLASH清除
 		}
@@ -1652,65 +1719,82 @@ void display_edit_interface(module_t *p)
 	{
 	case 4:
 		if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
-			pic_set(10);
+			pic_set(DOUBLE_MODULE_4_CHANNEL_EDIT_PAGE);
 		else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
-			pic_set(5);
+			pic_set(SINGLE_MODULE_4_CHANNEL_EDIT_PAGE);
 		else if ((VOL_DIM_MODULE == p->type))
-			pic_set(63);
+			pic_set(PWM_MODULE_4_CHANNEL_EDIT_PAGE);
 		else if ((SCR_DIM_MODULE == p->type))
-			pic_set(64);
+			pic_set(SCR_MODULE_4_CHANNEL_EDIT_PAGE);
 		break;
 	case 6:
 		if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
-			pic_set(11);
+			pic_set(DOUBLE_MODULE_6_CHANNEL_EDIT_PAGE);
 		else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
-			pic_set(6);
+			pic_set(SINGLE_MODULE_6_CHANNEL_EDIT_PAGE);
 
 		break;
 	case 8:
 		if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
-			pic_set(12);
+			pic_set(DOUBLE_MODULE_8_CHANNEL_EDIT_PAGE);
 		else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
-			pic_set(7);
+			pic_set(SINGLE_MODULE_8_CHANNEL_EDIT_PAGE);
 
 		break;
 	case 10:
 		if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
-			pic_set(13);
-		else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type));
-			pic_set(8);
+			pic_set(DOUBLE_MODULE_10_CHANNEL_EDIT_PAGE);
+		else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
+			pic_set(SINGLE_MODULE_10_CHANNEL_EDIT_PAGE);
 
 		break;
 	case 12:
 		if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
-			pic_set(14);
+			pic_set(DOUBLE_MODULE_12_CHANNEL_EDIT_PAGE);
 		else if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
-			pic_set(9);
+			pic_set(SINGLE_MODULE_12_CHANNEL_EDIT_PAGE);
 
 		break;
 	case 14:
 		if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
-			pic_set(15);
+			pic_set(DOUBLE_MODULE_14_CHANNEL_EDIT_PAGE);
 
 		break;
 	case 16:
 		if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
-			pic_set(16);
+			pic_set(DOUBLE_MODULE_16_CHANNEL_EDIT_PAGE);
 		break;
 	default:
 		break;
 	}
-
 }
 
-// 修改模块信息
+// 配置模块信息
 void modifying_module_information(module_t *p)
 
 {
 	unsigned short key_nb = 0;
 	unsigned char select_index = 0;
 	get_key_value(0x1009, &key_nb);
-	if ((3 == key_nb))
+	if (1 == key_nb) // 添加模块
+	{
+		clear_key_value(0x1009, &key_nb);
+		USER_PRINTF("-->ctrl_mgmt_sta\n");
+		modfity_index = find_index(0, MODULE_FLASH_SIZE, MODULE_NUB_LIMIT);
+		if (OVERFLOW_SIZE == modfity_index)
+		{
+			USER_PRINTF("-->waring! too many module \n");
+			pop_menu_key_ctrl(OVERFLOW_WARING_CODE);
+			return;
+		}
+		pic_set(MODULE_ADD_PAGE);
+		//		USER_PRINTF("<--get_blank_index -->%bd\n", modfity_index);
+		write_dgusii_vp(0x3110, (unsigned char *)&module_name_tab[0], 6);
+		write_dgusii_vp(0x3008, (unsigned char *)&default_module_channel_name, 256);
+		write_dgusii_vp(0x3000, (unsigned char *)module_default_name, 8);
+		write_dgus(0X1000, 4);
+	}
+	if ((3 == key_nb)) // 修改模块
 	{
 		clear_key_value(0x1009, &key_nb);
 		// select_index = get_selected_sequence_number(0x1104, 8);
@@ -1723,7 +1807,7 @@ void modifying_module_information(module_t *p)
 			//			display_interface(p);
 			display_edit_interface(p);
 			USER_PRINTF("-->modify module successfully!\n");
-			delete_arr_data(&g_var_module.module_adr[0],modfity_index);
+			delete_arr_data(&g_var_module.module_adr[0], modfity_index);
 			// g_var_module.module_edit_sta = MODIFY;
 		}
 	}
@@ -1750,9 +1834,9 @@ void clear_select_module_information(void)
 			T5L_Flash(0x5A, 0X3520 + (select_index - 1) * 32, (select_index - 1) * MODULE_FLASH_SIZE, 32); // 读为0控制器信息
 			//				T5L_Flash(0x5A,0X3120+(select_index-1)*32, TIMING_SCENE_INFOR_FLASH_ADR_END,32); //读为0控制器信息
 			T5L_Flash(0x5A, 0x3120 + (select_index - 1) * 8, (select_index - 1) * MODULE_FLASH_SIZE, 8); // 读为0
-			write_dgusii_vp(0x3120 + 8 * (select_index - 1), (unsigned char *)module_default_name, 8);
-			delete_arr_data(&g_var_module.module_adr[0],select_index - 1);
-			printf_tab(20,&g_var_module.module_adr[0]);
+			write_dgusii_vp(0x3120 + 8 * (select_index - 1), (unsigned char *)module_no_name, 8);
+			delete_arr_data(&g_var_module.module_adr[0], select_index - 1);
+			printf_tab(20, &g_var_module.module_adr[0]);
 			//			}
 		}
 		clear_all_module_var_en(0x1400, 64);
@@ -1783,10 +1867,11 @@ void clear_all_module_information(void)
 		T5L_Flash(0xA5, 0Xe000, 8192, 768);	 // 写0FLASH清除
 		T5L_Flash(0x5A, 0X3520, 0, 32 * 64); // 读为0
 		T5L_Flash(0x5A, 0x3120, 0, 8 * 64);	 // 读为0
-		for (i = 0; i < 64; i++)
-		{
-			write_dgusii_vp(0x3120 + 8 * i, (unsigned char *)module_default_name, 8);
-		}
+		clear_arr_data(&g_var_module.module_adr, MODULE_NUB_LIMIT);
+		// for (i = 0; i < 64; i++)
+		// {
+		// 	write_dgusii_vp(0x3120 + 8 * i, (unsigned char *)module_default_name, 8);
+		// }
 		//		T5L_Flash(0x5A,0X3120, 0,1024); //读为0
 		clear_key_value(0x1011, &key_nb);
 	}
@@ -1843,10 +1928,10 @@ void select_password_enable(void)
 	{
 
 		pwd_enable = check_or_not_frame(PWD_SELECT_FRAME_ADR);
-		if (1 == check_constant(pwd_enable,&g_var_module.pwd_enable_bak))
+		if (1 == check_constant(pwd_enable, &g_var_module.pwd_enable_bak))
 		{
 			T5L_Flash(0xA5, PWD_SELECT_FRAME_ADR, PWD_FLASH_ADR, 2); // 写密码使能到FLASH
-			// USER_PRINTF("-->set password enable is %bd\n", pwd_enable);
+																															 // USER_PRINTF("-->set password enable is %bd\n", pwd_enable);
 		}
 
 		clear_key_value(0x1242, &key_nb);
@@ -1885,12 +1970,12 @@ void select_beep_enable(void)
 	{
 		beep_enable = check_or_not_frame(0x1800);
 
-		if (1 == check_constant(beep_enable,&g_var_module.beep_enable_bak))
+		if (1 == check_constant(beep_enable, &g_var_module.beep_enable_bak))
 		{
 			T5L_Flash(0xA5, BEEP_ENABLE_DGUS_ADR, 0x020006, 2); // 写蜂鸣器使能到FLASH
 			norflash_write(0x020008, (unsigned char *)&mask, 2);
 			beep_ctrl(beep_enable); // control蜂鸣器声音
-			// USER_PRINTF("-->set beep enable is %bd,\n!", beep_enable);
+															// USER_PRINTF("-->set beep enable is %bd,\n!", beep_enable);
 		}
 		clear_key_value(0x1241, &key_nb);
 	}
@@ -2005,7 +2090,7 @@ void lock_screen_enable_ctrl(void)
 	{
 		backlight_enable = check_or_not_frame(0x1704);
 
-		if (1 == check_constant(backlight_enable,&g_var_module.backlight_enable_bak))
+		if (1 == check_constant(backlight_enable, &g_var_module.backlight_enable_bak))
 		{
 			back_light_ctrl(backlight_enable);
 			USER_PRINTF("-->backlight_enable is %bd\n", backlight_enable);
@@ -2066,7 +2151,7 @@ void black_screen_switches_to_home_page(void)
 // 清除时控参数设置变量
 void clear_batch_set_var(void)
 {
-	if (g_var_module.batch_send_count > MODULE_NUB)
+	if (g_var_module.batch_send_count > MODULE_NUB_LIMIT)
 	{
 		g_var_module.batch_send_count = 0;
 		g_var_module.batch_set_parameters_flag = 0;
@@ -2259,7 +2344,7 @@ void auto_add_module(void)
 	unsigned char device_channel = 0;
 	if (HR[DEVICE_INFOR_INDEX])
 	{
-		auto_module.index = find_index(0, MODULE_FLASH_SIZE, MODULE_NUB);
+		auto_module.index = find_index(0, MODULE_FLASH_SIZE, MODULE_NUB_LIMIT);
 		device_channel = HR[DEVICE_INFOR_INDEX] & 0x0f;
 		device_channel = device_channel > 14 ? 16 : device_channel;
 		auto_module.adr = g_var_module.slave_adr;
@@ -2330,9 +2415,8 @@ void module_all_ctrl(void)
 		set_master_send_hr(master_send_hr, 33, ENTERPRISE);
 		pack_data_send(&user_modbus, 0, MD_FR_MHR, 22, 13);
 		clear_key_value(BOARDCAST_ALL_OFF_ADR, &key_nb);
-
-	}	
-}	
+	}
+}
 /**
  * @brief 返回页面
  * @return {*}
@@ -2350,10 +2434,9 @@ void return_page(void)
 	if (1 == key_nb)
 	{
 		pic_set(pic_page);
+		USER_PRINTF("-->%bd\n", pic_page);
 		clear_key_value(0x1b24, &key_nb);
-	}	
-
-
+	}
 }
 // 模块配置
 void module_modify(void)
@@ -2363,7 +2446,7 @@ void module_modify(void)
 	page = read_pic();
 	size_struct = sizeof(module_t);
 	/*module edit page*/
-	if (((page <= 16) && (page >= 5)) || (page == 63) || (page == 64))
+	if (((page <= 16) && (page >= 5)) || (page == 63) || (page == 64) || ((page <= SCR_MODULE_4_CHANNEL_EDIT_PAGE) && (page >= SINGLE_MODULE_4_CHANNEL_EDIT_PAGE)))
 	{
 		//		USER_PRINTF("-->page is %d\n", page);
 		set_module_type();
@@ -2389,7 +2472,10 @@ void module_modify(void)
 	return_page();
 }
 
-
+/**
+ * @brief 初始化flash参数
+ * @return {*}
+ */
 void init_flash_parameters(void)
 {
 	init_pwd_f();
@@ -2401,4 +2487,26 @@ void init_flash_parameters(void)
 	g_var_module.beep_enable_bak = 0xff;
 	g_var_module.backlight_enable_bak = 0xff;
 	g_var_module.pwd_enable_bak = 0xff;
+}
+/**
+ * @brief 模拟按压触发
+ * @return {*}
+ */
+void simulate_touch(void)
+{
+	unsigned short cmd = 0;
+	write_dgus(0xd4, 0x5aa5);
+	cmd = read_dgus(0xd4);
+
+	write_dgus(0x00D5, 0x0001);
+	write_dgus(0x00D6, 0x03E8);
+	write_dgus(0x00D7, 0x03E8);
+
+	while (cmd)
+	{
+		cmd = read_dgus(0xd4);
+	}
+
+	write_dgus(0xd4, 0x5aa5);
+	write_dgus(0x00D5, 0x0002);
 }

@@ -2,7 +2,7 @@
  * @Author: xw.qu
  * @Date: 2023-08-31 09:22:42
  * @LastEditors: xw.qu
- * @LastEditTime: 2023-09-26 10:15:50
+ * @LastEditTime: 2023-11-02 18:44:44
  * @FilePath: \USER\mb_hook.c
  * @Description: modbus callback function
  * 
@@ -27,6 +27,8 @@ void mbh_hook_rec03(unsigned char add,unsigned char *dat,unsigned short *datalen
 	{
 
 		short_copy_xch(HR+user_modbus.da_adr,(dat+1),*datalen-3,0);//copy数据
+		if(35 == user_modbus.da_adr) mbHost.rec_hook_state = 3;
+		
 //		USER_PRINTF("03 receive datalen = %d \n",*datalen);
 //		USER_PRINTF("03 receive datalen = %d \n",*datalen);
 		
@@ -34,7 +36,7 @@ void mbh_hook_rec03(unsigned char add,unsigned char *dat,unsigned short *datalen
 	}	
 	// USER_PRINTF("HR[32] = 0x%x \n",*(HR+32));	
 	g_var_module.slave_adr = add;
-//	printf_tab(80,(unsigned char *)HR);
+	printf_tab(80,(unsigned char *)(HR+49));
 //		USER_PRINTF("HR[49] = 0x%x \n",*(HR+49));
 //	USER_PRINTF("HR[161] = 0x%x \n",*(HR+161));
 

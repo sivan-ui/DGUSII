@@ -13,7 +13,8 @@
 ".\OBJ\mb_port.obj",
 ".\OBJ\nor_flash.obj",
 ".\OBJ\scene.obj",
-".\OBJ\time_scene.obj" 
+".\OBJ\time_scene.obj",
+".\OBJ\touch_panel.obj" 
 TO ".\OBJ\T5L51" 
 
 PRINT(".\OBJ\T5L51.map") REMOVEUNUSED 

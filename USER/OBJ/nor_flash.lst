@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   NOR_FLASH                                                         09/27/2023 17:05:15 PAGE 1   
+C51 COMPILER V9.60.0.0   NOR_FLASH                                                         11/02/2023 16:36:10 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE NOR_FLASH
@@ -62,7 +62,7 @@ line level    source
   52          
   53          //向T5L内部自带的nor flash读取数据
   54          //addr:nor flash的地址,必须为偶数,范围为:0x000000-0x027FFE,然后一个地址对应2个字节,即总容量为320KB
-C51 COMPILER V9.60.0.0   NOR_FLASH                                                         09/27/2023 17:05:15 PAGE 2   
+C51 COMPILER V9.60.0.0   NOR_FLASH                                                         11/02/2023 16:36:10 PAGE 2   
 
   55          //buff:需要读入的缓冲区,长度至少大于len*2
   56          //len:读取的字数,必须为偶数,而且写入的最大长度也有限制,这个跟CACHE_ADDR的值有关系

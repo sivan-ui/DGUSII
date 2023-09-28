@@ -2,7 +2,7 @@
  * @Author: xw.qu
  * @Date: 2023-08-31 09:22:42
  * @LastEditors: xw.qu
- * @LastEditTime: 2023-09-26 17:01:27
+ * @LastEditTime: 2023-11-02 16:34:14
  * @FilePath: \USER\mb_host.c
  * @Description:
  *
@@ -24,6 +24,14 @@ void mbh_init(unsigned long baud, unsigned char parity)
 unsigned char mbh_getState(void)
 {
 	return mbHost.state;
+}
+unsigned char mbh_getRecHookState(void)
+{
+	return mbHost.rec_hook_state;
+}
+void mbh_clearRecHookState(void)
+{
+	mbHost.rec_hook_state = 0;
 }
 
 // 发送一帧命令

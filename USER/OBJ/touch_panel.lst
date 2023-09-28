@@ -1,0 +1,43 @@
+C51 COMPILER V9.60.0.0   TOUCH_PANEL                                                       11/02/2023 16:36:11 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE TOUCH_PANEL
+OBJECT MODULE PLACED IN .\OBJ\touch_panel.obj
+COMPILER INVOKED BY: C:\Keil_C51\C51\BIN\C51.EXE touch_panel.c LARGE OMF2 OPTIMIZE(9,SIZE) BROWSE INCDIR(..\USER;..\FUNC
+                    -_HANDLER;..\GUI_APP) DEBUG PRINT(.\OBJ\touch_panel.lst) TABS(2) OBJECT(.\OBJ\touch_panel.obj)
+
+line level    source
+
+   1          /*
+   2           * @Author: xw.qu
+   3           * @Date: 2023-09-28 09:14:31
+   4           * @LastEditors: xw.qu
+   5           * @LastEditTime: 2023-09-28 09:15:45
+   6           * @FilePath: \USER\touch_panel.c
+   7           * @Description: ´¥ÃþÃæ°å
+   8           * 
+   9           * Copyright (c) 2023 by xw.qu, All Rights Reserved. 
+  10           */
+  11          
+  12          #include "touch_panel.h"
+  13          #include "sys.h"
+  14          #include "T5LLIB.h"
+  15          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+   EDATA SIZE       =   ----    ----
+   HDATA SIZE       =   ----    ----
+   XDATA CONST SIZE =   ----    ----
+   FAR CONST SIZE   =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

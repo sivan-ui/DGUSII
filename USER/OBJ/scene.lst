@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 1   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE SCENE
@@ -12,7 +12,7 @@ line level    source
    2           * @Author: xw.qu
    3           * @Date: 2023-08-31 09:22:42
    4           * @LastEditors: xw.qu
-   5           * @LastEditTime: 2023-09-27 16:47:10
+   5           * @LastEditTime: 2023-10-30 08:26:58
    6           * @FilePath: \USER\scene.c
    7           * @Description: module scene modify
    8           *
@@ -25,1664 +25,1700 @@ line level    source
   15          // unsigned short mbHost.scene_send_cyc_time;
   16          name_scene_t module_scene; //
   17          scenc_infor_t scenc_infor; //
-  18          scenc_infor_t temp_scenc_infor[SCENE_NUB_SIGNLE];
+  18          scenc_infor_t temp_scenc_infor[SINGLE_SCENE_NAME_INFOR_SIZE];
   19          scene_data_t scene_data;
-  20          unsigned char module_scene_select_key_bak[8] = {0};
-  21          unsigned char temp_module_index = 0;
-  22          unsigned char infor_clear_sta = 0;
-  23          unsigned char scene_vaild[8] = {0};
-  24          // unsigned char name_space[16] = "";
-  25          unsigned char name_space[140] = "";
-  26          unsigned short scene_name_key_nb_bak = 0;
-  27          unsigned char scene_name_select_sta_bak = 0;
-  28          unsigned short scene_infor_key_nb_bak = 0;
-  29          unsigned char scene_infor_select_sta_bak = 0;
-  30          unsigned char scene_infor_page = 0;
-  31          void pop_menu_key_ctrl(unsigned char menu_key_value);
-  32          // static void get_led_set_sta(unsigned short *led_enable,unsigned short *led_sta);
-  33          // module_infor_t temp_module_infor[SCENE_NUB_SIGNLE];
-  34          // »ñÈ¡³¡¾°Ãû×Ö±à¼­×´Ì¬
-  35          unsigned char get_module_scene_edit_sta(void)
-  36          {
-  37   1        // USER_PRINTF("name_scene.edit_sta is %bd\n", module_scene.edit_sta);
-  38   1        return module_scene.edit_sta;
+  20          unsigned char default_scene_name[17] = {"³¡¾°1"};
+  21          unsigned char module_scene_select_key_bak[8] = {0};
+  22          unsigned char temp_module_index = 0;
+  23          unsigned char infor_clear_sta = 0;
+  24          unsigned char scene_vaild[8] = {0};
+  25          // unsigned char name_space[16] = "";
+  26          unsigned char name_space[140] = "";
+  27          unsigned short scene_name_key_nb_bak = 0;
+  28          unsigned char scene_name_select_sta_bak = 0;
+  29          unsigned short scene_infor_key_nb_bak = 0;
+  30          unsigned char scene_infor_select_sta_bak = 0;
+  31          unsigned char scene_infor_page = 0;
+  32          unsigned char scene_index = 0;
+  33          void pop_menu_key_ctrl(unsigned char menu_key_value);
+  34          // static void get_led_set_sta(unsigned short *led_enable,unsigned short *led_sta);
+  35          // module_infor_t temp_module_infor[SINGLE_SCENE_NAME_INFOR_SIZE];
+  36          void set_default_scene_name(void)
+  37          {
+  38   1        write_dgusii_vp(0x4089, (unsigned char *)&default_scene_name, 8);
   39   1      }
-  40          // »ñÈ¡Ä£¿é±à¼­×´Ì¬
-  41          unsigned char *get_module_scene_module_select(void)
+  40          // »ñÈ¡³¡¾°Ãû×Ö±à¼­×´Ì¬
+  41          unsigned char get_module_scene_edit_sta(void)
   42          {
-  43   1        //  USER_PRINTF("name_scene.edit_sta is %bd\n",module_scene.edit_sta);
-  44   1        printf_tab(8, &module_scene.module_select[0]);
-  45   1        return &module_scene.module_select[0];
-  46   1      }
-  47          void scene_init(scenc_infor_t *p_scenc_infor, name_scene_t *p)
+  43   1        // USER_PRINTF("name_scene.edit_sta is %bd\n", module_scene.edit_sta);
+  44   1        return module_scene.edit_sta;
+  45   1      }
+  46          // »ñÈ¡Ä£¿é±à¼­×´Ì¬
+  47          unsigned char *get_module_scene_module_select(void)
   48          {
-  49   1        p->scene_name_index = 1;
-  50   1        p->edit_sta = 1;
-  51   1        p_scenc_infor->edit_sta = 1;
-  52   1        p_scenc_infor->index = 1;
-  53   1      }
-  54          void printf_temp_scenc_infor(unsigned char index)
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 2   
+  49   1        //  USER_PRINTF("name_scene.edit_sta is %bd\n",module_scene.edit_sta);
+  50   1        printf_tab(8, &module_scene.module_select[0]);
+  51   1        return &module_scene.module_select[0];
+  52   1      }
+  53          void scene_init(scenc_infor_t *p_scenc_infor, name_scene_t *p)
+  54          {
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 2   
 
-  55          {
-  56   1        unsigned char i = 0;
-  57   1        for (i = 0; i < index; i++)
-  58   1        {
-  59   2          //    USER_PRINTF("temp_scenc_infor[%bd].edit_sta is %bd,data_sta is %bd,type is %bd,index is %d,adr is %b
+  55   1        p->scene_name_index = 1;
+  56   1        p->edit_sta = 1;
+  57   1        p_scenc_infor->edit_sta = 1;
+  58   1        p_scenc_infor->index = 1;
+  59   1      }
+  60          void printf_temp_scenc_infor(unsigned char index)
+  61          {
+  62   1        unsigned char i = 0;
+  63   1        for (i = 0; i < index; i++)
+  64   1        {
+  65   2          //    USER_PRINTF("temp_scenc_infor[%bd].edit_sta is %bd,data_sta is %bd,type is %bd,index is %d,adr is %b
              -d,led_enable is %d,led_sta is %d\n",i,temp_scenc_infor[i].edit_sta,temp_scenc_infor[i].data_sta,temp_scenc_infor[i].type
              -,temp_scenc_infor[i].index,temp_scenc_infor[i].adr,temp_scenc_infor[i].led_enable,temp_scenc_infor[i].led_sta);
-  60   2        }
-  61   1      }
-  62          // Çå³ýµ¥Ñ¡¿ò
-  63          void clear_single_module_var_en(unsigned short adr)
-  64          {
-  65   1        write_dgus(adr, 0);
-  66   1      }
-  67          // Çå³ýËùÓÐµ¥Ñ¡¿ò
-  68          void clear_all_module_var_en(unsigned short adr, unsigned char len)
-  69          {
-  70   1        unsigned char i = 0;
-  71   1        for (i = 0; i < len; i++)
-  72   1        {
-  73   2          clear_single_module_var_en(adr + i);
-  74   2        }
-  75   1      }
-  76          // Çå¿ÕÁÙÊ±±äÁ¿³¡¾°ÐÅÏ¢ÄÚÈÝ
-  77          void clear_temp_scenc_infor(void)
-  78          {
-  79   1        memset((unsigned char *)temp_scenc_infor, 0, sizeof(scenc_infor_t) * SCENE_NAME_NUB);
-  80   1      }
-  81          // »ñÈ¡¿Õ°×³¡¾°Ãû×ÖÐòºÅ
-  82          unsigned char get_blank_scene_name_index(void)
-  83          {
-  84   1        // return find_index(SCENE_NAME_FLASH_ADR_SATRT,NAME_SCENE_T_SIZE,SCENE_NAME_NUB);
-  85   1        unsigned char i = 0;
-  86   1        unsigned short temp_data = 0;
-  87   1        for (i = 0; i < SCENE_NAME_NUB; i++)
-  88   1        {
-  89   2          read_dgusii_vp(0x4100 + i * 32, (unsigned char *)&temp_data, 1);
-  90   2          if (0 == temp_data)
-  91   2            return i;
-  92   2        }
-  93   1        return 0xff;
-  94   1      }
-  95          // ÅÐ¶Ï³¡¾°ËùÓÐÐÅÏ¢ÄÚÈÝÊÇÎª¿Õ
-  96          unsigned char if_all_scene_infor_blank(void)
-  97          {
-  98   1        unsigned char i = 0;
-  99   1        unsigned short temp_data = 0;
- 100   1        for (i = 0; i < SCENE_NUB_SIGNLE; i++)
- 101   1        {
- 102   2          //    read_dgusii_vp(0x5000+i*70,(unsigned char *)&temp_data,1);
- 103   2          if (1 == temp_scenc_infor[i].data_sta)
- 104   2            return i;
- 105   2        }
- 106   1        return 0xff;
- 107   1      }
- 108          // Çå¿ÕÒ»¸ö³¡¾°ÐÅÏ¢ÄÚÈÝ
- 109          void clear_single_scene(unsigned char index)
- 110          {
- 111   1      
- 112   1        write_dgusii_vp(0x5000 + index * 70, (unsigned char *)&name_space, 70);
+  66   2        }
+  67   1      }
+  68          // Çå³ýµ¥Ñ¡¿ò
+  69          void clear_single_module_var_en(unsigned short adr)
+  70          {
+  71   1        write_dgus(adr, 0);
+  72   1      }
+  73          // Çå³ýËùÓÐµ¥Ñ¡¿ò
+  74          void clear_all_module_var_en(unsigned short adr, unsigned char len)
+  75          {
+  76   1        unsigned char i = 0;
+  77   1        for (i = 0; i < len; i++)
+  78   1        {
+  79   2          clear_single_module_var_en(adr + i);
+  80   2        }
+  81   1      }
+  82          // Çå¿ÕÁÙÊ±±äÁ¿³¡¾°ÐÅÏ¢ÄÚÈÝ
+  83          void clear_temp_scenc_infor(void)
+  84          {
+  85   1        memset((unsigned char *)temp_scenc_infor, 0, sizeof(scenc_infor_t) * SINGLE_SCENE_NAME_INFOR_SIZE);
+  86   1      }
+  87          // »ñÈ¡¿Õ°×³¡¾°Ãû×ÖÐòºÅ
+  88          unsigned char get_blank_scene_name_index(void)
+  89          {
+  90   1        // return find_index(SCENE_NAME_FLASH_ADR_SATRT,NAME_SCENE_T_SIZE,SCENE_NAME_NUB);
+  91   1        unsigned char i = 0;
+  92   1        unsigned short temp_data = 0;
+  93   1        for (i = 0; i < SCENE_NAME_NUB_LIMIT; i++)
+  94   1        {
+  95   2          read_dgusii_vp(0x4100 + i * 32, (unsigned char *)&temp_data, 1);
+  96   2          if (0 == temp_data)
+  97   2            return i;
+  98   2        }
+  99   1        return 0xff;
+ 100   1      }
+ 101          // ÅÐ¶Ï³¡¾°ËùÓÐÐÅÏ¢ÄÚÈÝÊÇÎª¿Õ
+ 102          unsigned char if_all_scene_infor_blank(void)
+ 103          {
+ 104   1        unsigned char i = 0;
+ 105   1        unsigned short temp_data = 0;
+ 106   1        for (i = 0; i < SINGLE_SCENE_NAME_INFOR_SIZE; i++)
+ 107   1        {
+ 108   2          //    read_dgusii_vp(0x5000+i*70,(unsigned char *)&temp_data,1);
+ 109   2          if (1 == temp_scenc_infor[i].data_sta)
+ 110   2            return i;
+ 111   2        }
+ 112   1        return 0xff;
  113   1      }
- 114          // Çå¿ÕËùÓÐ³¡¾°ÐÅÏ¢ÄÚÈÝ
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 3   
+ 114          // Çå¿ÕÒ»¸ö³¡¾°ÐÅÏ¢ÄÚÈÝ
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 3   
 
- 115          void clear_all_scene_infor(void)
+ 115          void clear_single_scene(unsigned char index)
  116          {
- 117   1        unsigned char i = 0;
- 118   1        for (i = 0; i < SCENE_NUB_SIGNLE; i++)
- 119   1        {
- 120   2          clear_single_scene(i);
- 121   2        }
- 122   1      }
- 123          // »ñÈ¡¿Õ°×µÄ³¡¾°ÄÚÈÝÐòºÅ
- 124          unsigned char get_blank_scene_infor_index(void)
- 125          {
- 126   1        // return find_index(SCENE_INFOR_FLASH_ADR_SATRT,SCENC_INFOR_T_SIZE,SCENE_NUB);
- 127   1        unsigned char i = 0;
- 128   1        //  unsigned short temp_data = 0;
- 129   1        for (i = 0; i < SCENE_NUB_SIGNLE; i++)
- 130   1        {
- 131   2          //    read_dgusii_vp(0x5000+i*70,(unsigned char *)&temp_data,1);
- 132   2          //    USER_PRINTF("-->temp_data_value is %d\n",temp_data);
- 133   2          if ((0 == temp_scenc_infor[i].data_sta)) //&&( 1 == temp_scenc_infor[i].edit_sta)
- 134   2            return i;
- 135   2        }
- 136   1        return 0xff;
- 137   1      }
- 138          // »ñÈ¡³¡¾°ÐÅÏ¢Ñ¡ÖÐÐòºÅ
- 139          unsigned char get_scene_infor_select_sequence_number(void)
- 140          {
- 141   1      
- 142   1        // return get_selected_sequence_number(0x1060,8);
- 143   1        return get_box_select_number(0x1900, 64);
- 144   1      }
- 145          // Éè¶¨³¡¾°ÐÅÏ¢Ñ¡ÖÐÐòºÅ
- 146          void set_scene_infor_select_sequence_number(void)
- 147          {
- 148   1        //  set_selected_sequence_number(0x1070,0x1060,8);
- 149   1        set_box_select(0x1070, 0x1900, 64, &scene_infor_key_nb_bak, &scene_infor_select_sta_bak);
+ 117   1      
+ 118   1        write_dgusii_vp(0x5000 + index * 70, (unsigned char *)&name_space, 70);
+ 119   1      }
+ 120          // Çå¿ÕËùÓÐ³¡¾°ÐÅÏ¢ÄÚÈÝ
+ 121          void clear_all_scene_infor(void)
+ 122          {
+ 123   1        unsigned char i = 0;
+ 124   1        for (i = 0; i < SINGLE_SCENE_NAME_INFOR_SIZE; i++)
+ 125   1        {
+ 126   2          clear_single_scene(i);
+ 127   2        }
+ 128   1      }
+ 129          // »ñÈ¡¿Õ°×µÄ³¡¾°ÄÚÈÝÐòºÅ
+ 130          unsigned char get_blank_scene_infor_index(void)
+ 131          {
+ 132   1      
+ 133   1        unsigned char i = 0;
+ 134   1        //  unsigned short temp_data = 0;
+ 135   1        for (i = 0; i < SINGLE_SCENE_NAME_INFOR_SIZE; i++)
+ 136   1        {
+ 137   2          //    read_dgusii_vp(0x5000+i*70,(unsigned char *)&temp_data,1);
+ 138   2          //    USER_PRINTF("-->temp_data_value is %d\n",temp_data);
+ 139   2          if ((0 == temp_scenc_infor[i].data_sta)) //&&( 1 == temp_scenc_infor[i].edit_sta)
+ 140   2            return i;
+ 141   2        }
+ 142   1        return 0xff;
+ 143   1      }
+ 144          // »ñÈ¡³¡¾°ÐÅÏ¢Ñ¡ÖÐÐòºÅ
+ 145          unsigned char get_scene_infor_select_sequence_number(void)
+ 146          {
+ 147   1      
+ 148   1        // return get_selected_sequence_number(0x1060,8);
+ 149   1        return get_box_select_number(0x1900, 64);
  150   1      }
- 151          // »ñÈ¡³¡¾°Ãû³ÆÑ¡ÖÐÐòºÅ
- 152          unsigned char get_scene_name_select_sequence_number(void)
+ 151          // Éè¶¨³¡¾°ÐÅÏ¢Ñ¡ÖÐÐòºÅ
+ 152          void set_scene_infor_select_sequence_number(void)
  153          {
- 154   1        // return get_selected_sequence_number(0x1068,8);
- 155   1        return get_box_select_number(SCENE_NAME_LIST_SELECT_ADR, 64);
+ 154   1        //  set_selected_sequence_number(0x1070,0x1060,8);
+ 155   1        set_box_select(0x1070, 0x1900, 64, &scene_infor_key_nb_bak, &scene_infor_select_sta_bak);
  156   1      }
- 157          // Éè¶¨³¡¾°Ãû³ÆÑ¡ÖÐÐòºÅ
- 158          void set_scene_name_select_sequence_number(void)
+ 157          // »ñÈ¡³¡¾°Ãû³ÆÑ¡ÖÐÐòºÅ
+ 158          unsigned char get_scene_name_select_sequence_number(void)
  159          {
- 160   1        // set_selected_sequence_number(0x102f,0x1068,8);
- 161   1        set_box_select(0x102f, SCENE_NAME_LIST_SELECT_ADR, 64, &scene_name_key_nb_bak, &scene_name_select_sta_bak
-             -);
+ 160   1        // return get_selected_sequence_number(0x1068,8);
+ 161   1        return get_box_select_number(SCENE_NAME_LIST_SELECT_ADR, 64);
  162   1      }
- 163          // ÅÐ¶ÏÖ¸¶¨³¡¾°ÊÇ·ñ´æÔÚ
- 164          unsigned char if_scene_name_exists(unsigned char index)
+ 163          // Éè¶¨³¡¾°Ãû³ÆÑ¡ÖÐÐòºÅ
+ 164          void set_scene_name_select_sequence_number(void)
  165          {
- 166   1        unsigned short temp_dat = 0;
- 167   1        read_dgusii_vp(0x4100 + index * 32, (unsigned char *)&temp_dat, 1);
- 168   1        ;
- 169   1        if (0 == temp_dat)
- 170   1        {
- 171   2          return BLANK;
- 172   2        }
- 173   1        else
- 174   1        {
- 175   2          return FULL;
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 4   
+ 166   1        // set_selected_sequence_number(0x102f,0x1068,8);
+ 167   1        set_box_select(0x102f, SCENE_NAME_LIST_SELECT_ADR, 64, &scene_name_key_nb_bak, &scene_name_select_sta_bak
+             -);
+ 168   1      }
+ 169          // ÅÐ¶ÏÖ¸¶¨³¡¾°ÊÇ·ñ´æÔÚ
+ 170          unsigned char if_scene_name_exists(unsigned char index)
+ 171          {
+ 172   1        unsigned short temp_dat = 0;
+ 173   1        read_dgusii_vp(0x4100 + index * 32, (unsigned char *)&temp_dat, 1);
+ 174   1        ;
+ 175   1        if (0 == temp_dat)
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 4   
 
- 176   2        }
- 177   1      }
- 178          // ÅÐ¶Ï³¡¾°Ãû×ÖÊÇ·ñ²»´æÔÚ
- 179          unsigned char if_all_scene_name_blank(void)
- 180          {
- 181   1        unsigned char i = 0;
- 182   1        for (i = 0; i < SCENE_NAME_NUB; i++)
- 183   1        {
- 184   2          if (FULL == if_scene_name_exists(i))
- 185   2          {
- 186   3            return i;
- 187   3          }
- 188   2        }
- 189   1        return 0xff;
- 190   1      }
- 191          // ´æ´¢³¡¾°Ãû³Æ
- 192          void scene_name_save_flash(name_scene_t *p)
- 193          {
- 194   1        //  p->data_sta = FULL;//ÉèÖÃÊý¾Ý
- 195   1        //  p->scene_name_index = index;//ÉèÖÃ³¡¾°ÐòºÅ
- 196   1        //  read_dgusii_vp(0x4089,(unsigned char *)&p->scene_name,8);//¶ÁÈ¡Éè¶¨µÄ³¡¾°Ãû³Æ
- 197   1        norflash_write(SCENE_NAME_FLASH_ADR_SATRT + (p->scene_name_index - 1) * NAME_SCENE_T_SIZE, (unsigned char
+ 176   1        {
+ 177   2          return BLANK;
+ 178   2        }
+ 179   1        else
+ 180   1        {
+ 181   2          return FULL;
+ 182   2        }
+ 183   1      }
+ 184          // ÅÐ¶Ï³¡¾°Ãû×ÖÊÇ·ñ²»´æÔÚ
+ 185          unsigned char if_all_scene_name_blank(void)
+ 186          {
+ 187   1        unsigned char i = 0;
+ 188   1        for (i = 0; i < SCENE_NAME_NUB_LIMIT; i++)
+ 189   1        {
+ 190   2          if (FULL == if_scene_name_exists(i))
+ 191   2          {
+ 192   3            return i;
+ 193   3          }
+ 194   2        }
+ 195   1        return 0xff;
+ 196   1      }
+ 197          // ´æ´¢³¡¾°Ãû³Æ
+ 198          void scene_name_save_flash(name_scene_t *p)
+ 199          {
+ 200   1        //  p->data_sta = FULL;//ÉèÖÃÊý¾Ý
+ 201   1        //  p->scene_name_index = index;//ÉèÖÃ³¡¾°ÐòºÅ
+ 202   1        //  read_dgusii_vp(0x4089,(unsigned char *)&p->scene_name,8);//¶ÁÈ¡Éè¶¨µÄ³¡¾°Ãû³Æ
+ 203   1        norflash_write(SCENE_NAME_FLASH_ADR_SATRT + (p->scene_name_index - 1) * NAME_SCENE_T_SIZE, (unsigned char
              - *)p, NAME_SCENE_T_SIZE); // ´æµ½flash
- 198   1        //  write_dgusii_vp(0x4100+(p->scene_name_index-1)*32,(unsigned char *)&p->scene_name,8);//ÆÁÄ»ÏÔÊ¾³¡¾°Ãû³
-             -Æ
- 199   1        //  write_dgusii_vp(0x3320+(p->scene_name_index-1)*8,(unsigned char *)&p->scene_name,8);
- 200   1      }
- 201          // Ð´³¡¾°Ãû³Æ
- 202          void scene_name_write_dgusii(name_scene_t *p)
- 203          {
- 204   1        p->data_sta = FULL;                                                                           // ÉèÖÃÊý¾Ý
- 205   1        read_dgusii_vp(0x4089, (unsigned char *)&p->scene_name, 8);                                   // ¶ÁÈ¡Éè¶¨µÄ³¡¾°Ãû³Æ
- 206   1        write_dgusii_vp(0x4100 + (p->scene_name_index - 1) * 32, (unsigned char *)&p->scene_name, 8); // ÆÁÄ»ÏÔÊ¾
+ 204   1                                                                                                                                           // write_dgusii_vp(0x4100+(p->scene_nam
+             -e_index-1)*32,(unsigned char *)&p->scene_name,8);//ÆÁÄ»ÏÔÊ¾³¡¾°Ãû³Æ
+ 205   1                                                                                                                                           // write_dgusii_vp(0x3320+(p->scene_nam
+             -e_index-1)*8,(unsigned char *)&p->scene_name,8);
+ 206   1      }
+ 207          // Ð´³¡¾°Ãû³Æ
+ 208          void scene_name_write_dgusii(name_scene_t *p)
+ 209          {
+ 210   1        p->data_sta = FULL;                                                                           // ÉèÖÃÊý¾Ý
+ 211   1        read_dgusii_vp(0x4089, (unsigned char *)&p->scene_name, 8);                                   // ¶ÁÈ¡Éè¶¨µÄ³¡¾°Ãû³Æ
+ 212   1        write_dgusii_vp(0x4100 + (p->scene_name_index - 1) * 32, (unsigned char *)&p->scene_name, 8); // ÆÁÄ»ÏÔÊ¾
              -³¡¾°Ãû³Æ
- 207   1        write_dgusii_vp(0x3320 + (p->scene_name_index - 1) * 8, (unsigned char *)&p->scene_name, 8);
- 208   1      }
- 209          void scene_name_save(name_scene_t *p)
- 210          {
- 211   1        scene_name_write_dgusii(p);
- 212   1        scene_name_save_flash(p);
- 213   1      }
- 214          //
- 215          // ¶ÁÈ¡³¡¾°Ãû³Æ
- 216          void scene_name_read_flash(name_scene_t *p, unsigned char index)
- 217          {
- 218   1        //  p->scene_name_index = index;//ÉèÖÃ³¡¾°ÐòºÅ
- 219   1      
- 220   1        norflash_read(SCENE_NAME_FLASH_ADR_SATRT + index * NAME_SCENE_T_SIZE, (unsigned char *)p, NAME_SCENE_T_SI
+ 213   1        write_dgusii_vp(0x3320 + (p->scene_name_index - 1) * 8, (unsigned char *)&p->scene_name, 8);
+ 214   1      }
+ 215          void scene_name_save(name_scene_t *p)
+ 216          {
+ 217   1        scene_name_write_dgusii(p);
+ 218   1        scene_name_save_flash(p);
+ 219   1      }
+ 220          //
+ 221          // ¶ÁÈ¡³¡¾°Ãû³Æ
+ 222          void scene_name_read_flash(name_scene_t *p, unsigned char index)
+ 223          {
+ 224   1        //  p->scene_name_index = index;//ÉèÖÃ³¡¾°ÐòºÅ
+ 225   1      
+ 226   1        norflash_read(SCENE_NAME_FLASH_ADR_SATRT + index * NAME_SCENE_T_SIZE, (unsigned char *)p, NAME_SCENE_T_SI
              -ZE); // ¶Á³¡¾°name²ÎÊý
- 221   1        write_dgusii_vp(0x4089, (unsigned char *)&p->scene_name, 8);                                                  // ÏÔÊ¾Éè¶¨µÄ³¡¾°Ãû³
+ 227   1        write_dgusii_vp(0x4089, (unsigned char *)&p->scene_name, 8);                                                  // ÏÔÊ¾Éè¶¨µÄ³¡¾°Ãû³
              -Æ
- 222   1      }
- 223          // É¾³ý³¡¾°ÁÐ±íÃû³Æ
- 224          void delete_scene_list_name(unsigned char index)
- 225          {
- 226   1      
- 227   1        write_dgusii_vp(0x3320 + index * 8, (unsigned char *)&name_space, 8); // Çå³ý³¡¾°Ãû×Ö
  228   1      }
- 229          // Çå¿Õ³¡¾°ÁÐ±íÃû³Æ
- 230          void clear_scene_list_name(void)
+ 229          // É¾³ý³¡¾°ÁÐ±íÃû³Æ
+ 230          void delete_scene_list_name(unsigned char index)
  231          {
- 232   1        unsigned char i = 0;
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 5   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 5   
 
- 233   1        for (i = 0; i < SCENE_NUB_SIGNLE; i++ )
- 234   1        {
- 235   2          delete_scene_list_name(i);
- 236   2        }
- 237   1      }
- 238          // É¾³ýÑ¡ÖÐµÄ³¡¾°Ãû³Æ
- 239          void scene_name_delete_flash(unsigned char index)
- 240          {
- 241   1        //  unsigned char name_space[16] = "";
- 242   1        T5L_Flash(0xA5, 0Xe000, SCENE_NAME_FLASH_ADR_SATRT + (index)*NAME_SCENE_T_SIZE, NAME_SCENE_T_SIZE);           
+ 232   1      
+ 233   1        write_dgusii_vp(0x3320 + index * 8, (unsigned char *)&name_space, 8); // Çå³ý³¡¾°Ãû×Ö
+ 234   1      }
+ 235          // Çå¿Õ³¡¾°ÁÐ±íÃû³Æ
+ 236          void clear_scene_list_name(void)
+ 237          {
+ 238   1        unsigned char i = 0;
+ 239   1        for (i = 0; i < SINGLE_SCENE_NAME_INFOR_SIZE; i++)
+ 240   1        {
+ 241   2          delete_scene_list_name(i);
+ 242   2        }
+ 243   1      }
+ 244          // É¾³ýÑ¡ÖÐµÄ³¡¾°Ãû³Æ
+ 245          void scene_name_delete_flash(unsigned char index)
+ 246          {
+ 247   1        //  unsigned char name_space[16] = "";
+ 248   1        T5L_Flash(0xA5, 0Xe000, SCENE_NAME_FLASH_ADR_SATRT + (index)*NAME_SCENE_T_SIZE, NAME_SCENE_T_SIZE);           
              -             // Ð´0FLASHnameÇå³ý
- 243   1        T5L_Flash(0x5A, 0X4100 + 32 * (index), SCENE_NAME_FLASH_ADR_SATRT + (index)*NAME_SCENE_T_SIZE, 32);           
+ 249   1        T5L_Flash(0x5A, 0X4100 + 32 * (index), SCENE_NAME_FLASH_ADR_SATRT + (index)*NAME_SCENE_T_SIZE, 32);           
              -             // ¶ÁÎª0³¡¾°Ãû³ÆÐÅÏ¢
- 244   1        T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (index)*SINGLE_NAME_SCENC_INFOR_SIZE, SINGLE_NAME_S
+ 250   1        T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (index)*SINGLE_NAME_SCENC_INFOR_SIZE, SINGLE_NAME_S
              -CENC_INFOR_SIZE); // Ð´0FLASHscencinforÇå³ý
- 245   1      
- 246   1        //  write_dgusii_vp(0x3320+index*8,(unsigned char *)&name_space,8);//Çå³ý³¡¾°Ãû×Ö
- 247   1        //  clear_all_module_var_en(SCENE_NAME_LIST_SELECT_ADR,SCENE_NAME_NUB);
- 248   1      }
- 249          void scene_edit_clear_infor(name_scene_t *p_module_scene)
- 250          {
- 251   1        clear_scene_list_name();                                                                                                                                    // Çå³ý³¡¾°ÐÅÏ¢
+ 251   1      
+ 252   1        //  write_dgusii_vp(0x3320+index*8,(unsigned char *)&name_space,8);//Çå³ý³¡¾°Ãû×Ö
+ 253   1        //  clear_all_module_var_en(SCENE_NAME_LIST_SELECT_ADR,SCENE_NAME_NUB_LIMIT);
+ 254   1      }
+ 255          void scene_edit_clear_infor(name_scene_t *p_module_scene)
+ 256          {
+ 257   1        clear_scene_list_name();                                                                                                                                    // Çå³ý³¡¾°ÐÅÏ¢
              -ÁÐ±í
- 252   1        T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p_module_scene->scene_name_index - 1) * SINGLE_NAM
+ 258   1        T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p_module_scene->scene_name_index - 1) * SINGLE_NAM
              -E_SCENC_INFOR_SIZE, SINGLE_NAME_SCENC_INFOR_SIZE); // Ð´0FLASHscencinforÇå³ý
- 253   1        USER_PRINTF("clear_single_scene_name_flash \n");
- 254   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
- 255   1        memset((unsigned char *)p_module_scene->module_select, 0, 8);
- 256   1        p_module_scene->edit_sta = 2;
- 257   1      }
- 258          // Çå³ýËùÓÐ³¡¾°flash
- 259          void scene_name_clear_flash(void)
- 260          {
- 261   1        unsigned char index = 0;
- 262   1        if (0xff == if_all_scene_name_blank())
- 263   1        {
- 264   2          return;
- 265   2        }
- 266   1        for (index = 0; index < 12; index++)
- 267   1        {
- 268   2      
- 269   2          T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (index)*0x1000, 0x1000); // Ð´0FLASHscencinforÇå³ý
- 270   2        }
- 271   1        T5L_Flash(0xA5, 0Xe000, SCENE_NAME_FLASH_ADR_SATRT, SCENE_NAME_NUB * NAME_SCENE_T_SIZE); // Ð´0FLASHnameÇ
-             -å³ý
- 272   1        T5L_Flash(0x5A, 0X4100, SCENE_NAME_FLASH_ADR_SATRT, 32 * 64);                            // Çå¿Õ³¡¾°¹ÜÀí³¡¾°Ãû³Æ
- 273   1        //  for(index = 0;index<SCENE_NAME_NUB;index++)
- 274   1        //  {
- 275   1        //    write_dgusii_vp(0x4100+(p->scene_name_index-1)*32,(unsigned char *)&p->scene_name,8);//ÆÁÄ»ÏÔÊ¾³¡¾°Ãû
-             -³Æ
- 276   1        //
- 277   1        //  }
- 278   1      }
- 279          // ´æ´¢³¡¾°ÐÅÏ¢ÄÚÈÝ
- 280          void scene_infor_save_flash(name_scene_t *p_module_scene)
- 281          {
- 282   1      
- 283   1        //  p->index = index;//ÉèÖÃ³¡¾°ÐÅÏ¢±êºÅ
- 284   1        //  p->type  = p_module->type;
- 285   1        //  p->adr   = p_module->adr;
- 286   1        //  p->channel_nb = p_module->channel_nb;
- 287   1        //  unsigned char index = 0;
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 6   
+ 259   1        USER_PRINTF("clear_single_scene_name_flash \n");
+ 260   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
+ 261   1        memset((unsigned char *)p_module_scene->module_select, 0, 8);
+ 262   1        p_module_scene->edit_sta = 2;
+ 263   1      }
+ 264          // Çå³ýËùÓÐ³¡¾°flash
+ 265          void scene_name_clear_flash(void)
+ 266          {
+ 267   1        unsigned char index = 0;
+ 268   1        if (0xff == if_all_scene_name_blank())
+ 269   1        {
+ 270   2          return;
+ 271   2        }
+ 272   1        for (index = 0; index < 12; index++)
+ 273   1        {
+ 274   2      
+ 275   2          T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (index)*0x1000, 0x1000); // Ð´0FLASHscencinforÇå³ý
+ 276   2        }
+ 277   1        T5L_Flash(0xA5, 0Xe000, SCENE_NAME_FLASH_ADR_SATRT, SCENE_NAME_NUB_MAX * NAME_SCENE_T_SIZE); // Ð´0FLASHn
+             -ameÇå³ý
+ 278   1        T5L_Flash(0x5A, 0X4100, SCENE_NAME_FLASH_ADR_SATRT, 32 * 64);                                // Çå¿Õ³¡¾°¹ÜÀí³¡¾°Ãû³Æ
+ 279   1                                                                                                     // for(index = 0;index<SCENE_NAME_NUB_LIMIT;index++)
+ 280   1                                                                                                     // {
+ 281   1                                                                                                     //   write_dgusii_vp(0x4100+(p->scene_name_index-1)*32,(uns
+             -igned char *)&p->scene_name,8);//ÆÁÄ»ÏÔÊ¾³¡¾°Ãû³Æ
+ 282   1                                                                                                     //
+ 283   1                                                                                                     // }
+ 284   1      }
+ 285          // ´æ´¢³¡¾°ÐÅÏ¢ÄÚÈÝ
+ 286          void scene_infor_save_flash(name_scene_t *p_module_scene)
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 6   
 
- 288   1        //  index = (p_module_scene->scene_name_index-1);
- 289   1        printf_temp_scenc_infor(10);
- 290   1        norflash_write(SCENE_INFOR_FLASH_ADR_SATRT + (p_module_scene->scene_name_index - 1) * SINGLE_NAME_SCENC_I
+ 287          {
+ 288   1      
+ 289   1        //  p->index = index;//ÉèÖÃ³¡¾°ÐÅÏ¢±êºÅ
+ 290   1        //  p->type  = p_module->type;
+ 291   1        //  p->adr   = p_module->adr;
+ 292   1        //  p->channel_nb = p_module->channel_nb;
+ 293   1        //  unsigned char index = 0;
+ 294   1        //  index = (p_module_scene->scene_name_index-1);
+ 295   1        printf_temp_scenc_infor(10);
+ 296   1        norflash_write(SCENE_INFOR_FLASH_ADR_SATRT + (p_module_scene->scene_name_index - 1) * SINGLE_NAME_SCENC_I
              -NFOR_SIZE, (unsigned char *)(temp_scenc_infor), SINGLE_NAME_SCENC_INFOR_SIZE);
- 291   1        USER_PRINTF("-->scene_infor_save_flash_success \n");
- 292   1      }
- 293          // Çå¿ÕÒ»¸ö³¡¾°ËùÓÐÐÅÏ¢ÄÚÈÝ
- 294          void scene_infor_clear_flash(scenc_infor_t *p)
- 295          {
- 296   1        T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p->scene_infor_index - 1) * SINGLE_NAME_SCENC_INFO
+ 297   1        USER_PRINTF("-->scene_infor_save_flash_success \n");
+ 298   1      }
+ 299          // Çå¿ÕÒ»¸ö³¡¾°ËùÓÐÐÅÏ¢ÄÚÈÝ
+ 300          void scene_infor_clear_flash(scenc_infor_t *p)
+ 301          {
+ 302   1        T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p->scene_infor_index - 1) * SINGLE_NAME_SCENC_INFO
              -R_SIZE, SINGLE_NAME_SCENC_INFOR_SIZE); // Ð´0FLASHscencinforÇå³ý
- 297   1        T5L_Flash(0x5A, 0X5000, SCENE_INFOR_FLASH_ADR_SATRT + (p->scene_infor_index - 1) * SINGLE_NAME_SCENC_INFO
+ 303   1        T5L_Flash(0x5A, 0X5000, SCENE_INFOR_FLASH_ADR_SATRT + (p->scene_infor_index - 1) * SINGLE_NAME_SCENC_INFO
              -R_SIZE, SINGLE_NAME_SCENC_INFOR_SIZE); // ¶ÁÎª0³¡¾°ÐÅÏ¢
- 298   1        // USER_PRINTF("-->clear %bd scene all flash ok\n", p->scene_infor_index);
- 299   1      }
- 300          // É¾³ýÒ»¸ö³¡¾°µ¥¸öÐÅÏ¢flash
- 301          void scene_infor_delete_flash(scenc_infor_t *p)
- 302          {
- 303   1        T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p->scene_infor_index - 1) * SINGLE_NAME_SCENC_INFO
+ 304   1                                                                                                                                                        // USER_PRINTF("-->clear %bd scen
+             -e all flash ok\n", p->scene_infor_index);
+ 305   1      }
+ 306          // É¾³ýÒ»¸ö³¡¾°µ¥¸öÐÅÏ¢flash
+ 307          void scene_infor_delete_flash(scenc_infor_t *p)
+ 308          {
+ 309   1        T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p->scene_infor_index - 1) * SINGLE_NAME_SCENC_INFO
              -R_SIZE + (p->index - 1) * SCENC_INFOR_T_SIZE, SCENC_INFOR_T_SIZE); // Ð´0FLASHÇå³ý
- 304   1        //  T5L_Flash(0x5A,0X5000, SCENE_INFOR_FLASH_ADR_SATRT+(p->scene_infor_index-1)*SINGLE_NAME_SCENC_INFOR_SI
-             -ZE+(p->index-1)*SCENC_INFOR_T_SIZE,SCENC_INFOR_T_SIZE); //¶ÁÎª0³¡¾°ÐÅÏ¢
- 305   1        // USER_PRINTF("-->delete %bd scene %d infor flash ok\n", p->scene_infor_index, p->index);
- 306   1      }
- 307          // Ä£¿é³¡¾°ÐÅÏ¢ÏÔÊ¾
- 308          void module_scene_infor_dis(scenc_infor_t *p)
- 309          {
- 310   1        unsigned char i = 0;
- 311   1        unsigned char temp_tab[32] = {0};
- 312   1        switch (p->type)
- 313   1        {
- 314   2        case SINGLE_RELAY_MODULE:
- 315   2        case SINGLE_TIME_RELAY_MODULE:
- 316   2        case DOUBLE_RELAY_MODULE:
- 317   2        case DOUBLE_TIME_RELAY_MODULE:
- 318   2          for (i = 0; i < 16; i++)
- 319   2          {
- 320   3            temp_tab[2 * i + 1] = (p->led_enable >> i) & 0x1;
- 321   3            ;
- 322   3          }
- 323   2          write_dgusii_vp(0x101c, (unsigned char *)&temp_tab, 16);
+ 310   1                                                                                                                                                                                    //  T5L_Flash(0x5A,0
+             -X5000, SCENE_INFOR_FLASH_ADR_SATRT+(p->scene_infor_index-1)*SINGLE_NAME_SCENC_INFOR_SIZE+(p->index-1)*SCENC_INFOR_T_SIZE
+             -,SCENC_INFOR_T_SIZE); //¶ÁÎª0³¡¾°ÐÅÏ¢
+ 311   1                                                                                                                                                                                    // USER_PRINTF("-->
+             -delete %bd scene %d infor flash ok\n", p->scene_infor_index, p->index);
+ 312   1      }
+ 313          // Ä£¿é³¡¾°ÐÅÏ¢ÏÔÊ¾
+ 314          void module_scene_infor_dis(scenc_infor_t *p)
+ 315          {
+ 316   1        unsigned char i = 0;
+ 317   1        unsigned char temp_tab[32] = {0};
+ 318   1        switch (p->type)
+ 319   1        {
+ 320   2        case SINGLE_RELAY_MODULE:
+ 321   2        case SINGLE_TIME_RELAY_MODULE:
+ 322   2        case DOUBLE_RELAY_MODULE:
+ 323   2        case DOUBLE_TIME_RELAY_MODULE:
  324   2          for (i = 0; i < 16; i++)
  325   2          {
- 326   3            temp_tab[2 * i + 1] = (p->led_sta >> i) & 0x1;
+ 326   3            temp_tab[2 * i + 1] = (p->led_enable >> i) & 0x1;
  327   3            ;
  328   3          }
- 329   2          write_dgusii_vp(0x1040, (unsigned char *)&temp_tab, 16);
- 330   2      
- 331   2          break;
- 332   2        case VOL_DIM_MODULE:
- 333   2          for (i = 0; i < 4; i++)
- 334   2          {
- 335   3            temp_tab[2 * i + 1] = p->diming_enable >> i & 0x1;
- 336   3          }
- 337   2          write_dgusii_vp(0x1050, (unsigned char *)&temp_tab, 4);
- 338   2          write_dgusii_vp(0x1054, (unsigned char *)&(p->dimming_duty[0]), 4);
- 339   2      
- 340   2          break;
- 341   2        case SCR_DIM_MODULE:
- 342   2          for (i = 0; i < 4; i++)
- 343   2          {
- 344   3            temp_tab[2 * i + 1] = p->diming_enable >> i & 0x1;
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 7   
+ 329   2          write_dgusii_vp(0x101c, (unsigned char *)&temp_tab, 16);
+ 330   2          for (i = 0; i < 16; i++)
+ 331   2          {
+ 332   3            temp_tab[2 * i + 1] = (p->led_sta >> i) & 0x1;
+ 333   3            ;
+ 334   3          }
+ 335   2          write_dgusii_vp(0x1040, (unsigned char *)&temp_tab, 16);
+ 336   2      
+ 337   2          break;
+ 338   2        case VOL_DIM_MODULE:
+ 339   2          for (i = 0; i < 4; i++)
+ 340   2          {
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 7   
 
- 345   3          }
- 346   2          write_dgusii_vp(0x1058, (unsigned char *)&temp_tab, 4);
- 347   2      
- 348   2          write_dgusii_vp(0x105c, (unsigned char *)&(p->dimming_duty[0]), 4);
- 349   2      
- 350   2          break;
- 351   2        }
- 352   1      }
- 353          // ÏÔÊ¾¼ÌµçÆ÷³¡¾°½çÃæ
- 354          void display_relay_scene_interface(module_t *p)
- 355          {
- 356   1        write_dgus(0x3f08, p->adr);
- 357   1        write_dgus(0x3f09, p->channel_nb);
- 358   1        write_dgusii_vp(0x3f00, (unsigned char *)&p->module_name, 8);
- 359   1        write_dgusii_vp(0x3f0a, (unsigned char *)&p->channel_name, 8 * 16);
- 360   1        // USER_PRINTF("display module index is %bd\n", p->index);
- 361   1        switch (p->channel_nb)
- 362   1        {
- 363   2        case 4:
- 364   2      
- 365   2          pic_set(24);
- 366   2          break;
- 367   2        case 6:
- 368   2      
- 369   2          pic_set(25);
- 370   2          break;
- 371   2        case 8:
- 372   2      
- 373   2          pic_set(26);
- 374   2          break;
- 375   2        case 10:
- 376   2      
- 377   2          pic_set(27);
- 378   2          break;
- 379   2        case 12:
- 380   2      
- 381   2          pic_set(28);
- 382   2          break;
- 383   2        case 14:
- 384   2      
- 385   2          pic_set(29);
- 386   2          break;
- 387   2        case 16:
- 388   2      
- 389   2          pic_set(30);
- 390   2          break;
- 391   2        default:
+ 341   3            temp_tab[2 * i + 1] = p->diming_enable >> i & 0x1;
+ 342   3          }
+ 343   2          write_dgusii_vp(0x1050, (unsigned char *)&temp_tab, 4);
+ 344   2          write_dgusii_vp(0x1054, (unsigned char *)&(p->dimming_duty[0]), 4);
+ 345   2      
+ 346   2          break;
+ 347   2        case SCR_DIM_MODULE:
+ 348   2          for (i = 0; i < 4; i++)
+ 349   2          {
+ 350   3            temp_tab[2 * i + 1] = p->diming_enable >> i & 0x1;
+ 351   3          }
+ 352   2          write_dgusii_vp(0x1058, (unsigned char *)&temp_tab, 4);
+ 353   2      
+ 354   2          write_dgusii_vp(0x105c, (unsigned char *)&(p->dimming_duty[0]), 4);
+ 355   2      
+ 356   2          break;
+ 357   2        }
+ 358   1      }
+ 359          // ÏÔÊ¾¼ÌµçÆ÷³¡¾°½çÃæ
+ 360          void display_relay_scene_interface(module_t *p)
+ 361          {
+ 362   1        write_dgus(0x3f08, p->adr);
+ 363   1        write_dgus(0x3f09, p->channel_nb);
+ 364   1        write_dgusii_vp(0x3f00, (unsigned char *)&p->module_name, 8);
+ 365   1        write_dgusii_vp(0x3f0a, (unsigned char *)&p->channel_name, 8 * 16);
+ 366   1        // USER_PRINTF("display module index is %bd\n", p->index);
+ 367   1        switch (p->channel_nb)
+ 368   1        {
+ 369   2        case 4:
+ 370   2      
+ 371   2          pic_set(24);
+ 372   2          break;
+ 373   2        case 6:
+ 374   2      
+ 375   2          pic_set(25);
+ 376   2          break;
+ 377   2        case 8:
+ 378   2      
+ 379   2          pic_set(26);
+ 380   2          break;
+ 381   2        case 10:
+ 382   2      
+ 383   2          pic_set(27);
+ 384   2          break;
+ 385   2        case 12:
+ 386   2      
+ 387   2          pic_set(28);
+ 388   2          break;
+ 389   2        case 14:
+ 390   2      
+ 391   2          pic_set(29);
  392   2          break;
- 393   2        }
- 394   1      }
- 395          // ÏÔÊ¾µ÷¹âÄ£¿é½çÃæ
- 396          void display_dim_scene_interface(module_t *p)
- 397          {
- 398   1        write_dgus(0x3f08, p->adr);
- 399   1        write_dgus(0x3f09, p->channel_nb);
- 400   1        write_dgusii_vp(0x3f00, (unsigned char *)&p->module_name, 8);
- 401   1        write_dgusii_vp(0x3f0a, (unsigned char *)&p->channel_name, 8 * 16);
- 402   1        // USER_PRINTF("display module index is %bd\n", p->index);
- 403   1        switch (p->type)
- 404   1        {
- 405   2        case VOL_DIM_MODULE:
- 406   2          pic_set(SCENE_DIM_PAGE);
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 8   
+ 393   2        case 16:
+ 394   2      
+ 395   2          pic_set(30);
+ 396   2          break;
+ 397   2        default:
+ 398   2          break;
+ 399   2        }
+ 400   1      }
+ 401          // ÏÔÊ¾µ÷¹âÄ£¿é½çÃæ
+ 402          void display_dim_scene_interface(module_t *p)
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 8   
 
- 407   2          break;
- 408   2        case SCR_DIM_MODULE:
- 409   2          pic_set(SCENE_SCR_PAGE);
- 410   2          break;
- 411   2        default:
- 412   2          break;
- 413   2        }
- 414   1      }
- 415          // ÏÔÊ¾ÉèÖÃ½çÃæ
- 416          void display_scene_interface(module_t *p)
- 417          {
- 418   1        if (0 == p->data_sta)
- 419   1        {
- 420   2          return;
- 421   2        }
- 422   1        switch (p->type)
- 423   1        {
- 424   2        case SINGLE_RELAY_MODULE:
- 425   2        case SINGLE_TIME_RELAY_MODULE:
- 426   2        case DOUBLE_RELAY_MODULE:
- 427   2        case DOUBLE_TIME_RELAY_MODULE:
- 428   2      
- 429   2          display_relay_scene_interface(p);
- 430   2          USER_PRINTF("display_relay_scene_interface\n");
- 431   2          //        relay_read(p);
- 432   2          break;
- 433   2        case VOL_DIM_MODULE:
- 434   2        case SCR_DIM_MODULE:
- 435   2          //        clear_touch_sta();
- 436   2          display_dim_scene_interface(p);
- 437   2          USER_PRINTF("display_dim_scene_interface\n");
- 438   2          //        dim_read(p);
- 439   2          break;
- 440   2          break;
- 441   2        default:
- 442   2      
- 443   2          break;
- 444   2        }
- 445   1      }
- 446          // Ñ¡ÔñÄ£¿é½øÐÐ³¡¾°ÉèÖÃ
- 447          void module_scene_select(module_t *p, unsigned char key)
- 448          {
- 449   1        norflash_read((key - 1) * 140, (unsigned char *)p, 140);
- 450   1        //  USER_PRINTF("module_scene.scene_name_index -->%bd\n",module_scene.scene_name_index);
- 451   1        display_scene_interface(p);
- 452   1      }
- 453          // Ñ¡ÔñÄ£¿é½øÐÐ³¡¾°ÉèÖÃ
- 454          void module_scene_select_ctrl(scenc_infor_t *p_scenc_infor)
- 455          {
- 456   1        unsigned short key_nb = 0;
- 457   1        unsigned short size_cal = 0;
- 458   1        // static unsigned char i = 0;
- 459   1        // if (0 == i)
- 460   1        // {
- 461   1        //  i = 1;
- 462   1        //  size_cal = SCENC_INFOR_T_SIZE; //
- 463   1      
- 464   1        //  USER_PRINTF("scenc_infor_t size is %d\n", size_cal);
- 465   1        //  size_cal = NAME_SCENE_T_SIZE;
- 466   1        //  USER_PRINTF("name_scene_t size is %d\n", size_cal);
- 467   1        //  size_cal = SINGLE_TIMING_SCENC_INFOR_T_SIZE;
- 468   1        //  USER_PRINTF("timing_scenc_infor_t size is %d\n", size_cal);
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 9   
+ 403          {
+ 404   1        write_dgus(0x3f08, p->adr);
+ 405   1        write_dgus(0x3f09, p->channel_nb);
+ 406   1        write_dgusii_vp(0x3f00, (unsigned char *)&p->module_name, 8);
+ 407   1        write_dgusii_vp(0x3f0a, (unsigned char *)&p->channel_name, 8 * 16);
+ 408   1        // USER_PRINTF("display module index is %bd\n", p->index);
+ 409   1        switch (p->type)
+ 410   1        {
+ 411   2        case VOL_DIM_MODULE:
+ 412   2          pic_set(SCENE_DIM_PAGE);
+ 413   2          break;
+ 414   2        case SCR_DIM_MODULE:
+ 415   2          pic_set(SCENE_SCR_PAGE);
+ 416   2          break;
+ 417   2        default:
+ 418   2          break;
+ 419   2        }
+ 420   1      }
+ 421          // ÏÔÊ¾ÉèÖÃ½çÃæ
+ 422          void display_scene_interface(module_t *p)
+ 423          {
+ 424   1        if (0 == p->data_sta)
+ 425   1        {
+ 426   2          return;
+ 427   2        }
+ 428   1        switch (p->type)
+ 429   1        {
+ 430   2        case SINGLE_RELAY_MODULE:
+ 431   2        case SINGLE_TIME_RELAY_MODULE:
+ 432   2        case DOUBLE_RELAY_MODULE:
+ 433   2        case DOUBLE_TIME_RELAY_MODULE:
+ 434   2      
+ 435   2          display_relay_scene_interface(p);
+ 436   2          USER_PRINTF("display_relay_scene_interface\n");
+ 437   2          //        relay_read(p);
+ 438   2          break;
+ 439   2        case VOL_DIM_MODULE:
+ 440   2        case SCR_DIM_MODULE:
+ 441   2          //        clear_touch_sta();
+ 442   2          display_dim_scene_interface(p);
+ 443   2          USER_PRINTF("display_dim_scene_interface\n");
+ 444   2          //        dim_read(p);
+ 445   2          break;
+ 446   2          break;
+ 447   2        default:
+ 448   2      
+ 449   2          break;
+ 450   2        }
+ 451   1      }
+ 452          // Ñ¡ÔñÄ£¿é½øÐÐ³¡¾°ÉèÖÃ
+ 453          void module_scene_select(module_t *p, unsigned char key)
+ 454          {
+ 455   1        norflash_read((key - 1) * 140, (unsigned char *)p, 140);
+ 456   1        //  USER_PRINTF("module_scene.scene_name_index -->%bd\n",module_scene.scene_name_index);
+ 457   1        display_scene_interface(p);
+ 458   1      }
+ 459          // Ñ¡ÔñÄ£¿é½øÐÐ³¡¾°ÉèÖÃ
+ 460          void module_scene_select_ctrl(scenc_infor_t *p_scenc_infor)
+ 461          {
+ 462   1        unsigned short key_nb = 0;
+ 463   1        unsigned short size_cal = 0;
+ 464   1        // static unsigned char i = 0;
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 9   
 
- 469   1        //  //    size_cal = SINGLE_TIMING_SCENC_INFOR_T_SIZE*2;
- 470   1      
- 471   1        //  USER_PRINTF("MODULE_FLASH_ADR_END is 0x%hx\n", MODULE_FLASH_ADR_END);
- 472   1        //  USER_PRINTF("SCENE_NAME_FLASH_ADR_END is 0x%hx\n", SCENE_NAME_FLASH_ADR_END);
- 473   1        //  USER_PRINTF("TIMING_SCENE_INFOR_FLASH_ADR_SATRT is 0x%hx\n", TIMING_SCENE_INFOR_FLASH_ADR_SATRT);
- 474   1        // }
- 475   1        get_key_value(0x101b, &key_nb);
- 476   1        if ((key_nb) && (0 == GET_BIT(module_scene_select_key_bak[((key_nb - 1) / 8)], (key_nb - 1) % 8)) && (0x3
+ 465   1        // if (0 == i)
+ 466   1        // {
+ 467   1        //  i = 1;
+ 468   1        //  size_cal = SCENC_INFOR_T_SIZE; //
+ 469   1      
+ 470   1        //  USER_PRINTF("scenc_infor_t size is %d\n", size_cal);
+ 471   1        //  size_cal = NAME_SCENE_T_SIZE;
+ 472   1        //  USER_PRINTF("name_scene_t size is %d\n", size_cal);
+ 473   1        //  size_cal = SINGLE_TIMING_SCENC_INFOR_T_SIZE;
+ 474   1        //  USER_PRINTF("timing_scenc_infor_t size is %d\n", size_cal);
+ 475   1        //  //    size_cal = SINGLE_TIMING_SCENC_INFOR_T_SIZE*2;
+ 476   1      
+ 477   1        //  USER_PRINTF("MODULE_FLASH_ADR_END is 0x%hx\n", MODULE_FLASH_ADR_END);
+ 478   1        //  USER_PRINTF("SCENE_NAME_FLASH_ADR_END is 0x%hx\n", SCENE_NAME_FLASH_ADR_END);
+ 479   1        //  USER_PRINTF("TIMING_SCENE_INFOR_FLASH_ADR_SATRT is 0x%hx\n", TIMING_SCENE_INFOR_FLASH_ADR_SATRT);
+ 480   1        // }
+ 481   1        get_key_value(0x101b, &key_nb);
+ 482   1        if ((key_nb) && (0 == GET_BIT(module_scene_select_key_bak[((key_nb - 1) / 8)], (key_nb - 1) % 8)) && (0x3
              -1 == p_scenc_infor->edit_sta))
- 477   1        {
- 478   2      
- 479   2          // USER_PRINTF("module_%d_select_ctrl_add\n", key_nb);
- 480   2          //    printf_tab(512,module_scene_select_key_bak);
- 481   2          temp_module_index = key_nb;
- 482   2          //    SET_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((key_nb-1)/8)],(key_nb-1)%
+ 483   1        {
+ 484   2      
+ 485   2          // USER_PRINTF("module_%d_select_ctrl_add\n", key_nb);
+ 486   2          //    printf_tab(512,module_scene_select_key_bak);
+ 487   2          temp_module_index = key_nb;
+ 488   2          //    SET_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((key_nb-1)/8)],(key_nb-1)%
              -8);
- 483   2          //    clear_led_sta(led_sta);
- 484   2          // USER_PRINTF("module_scene.scene_name_index -->%bd\n", module_scene.scene_name_index);
- 485   2          module_scene_select(&st_module, key_nb);
- 486   2      
- 487   2          clear_key_value(0x101b, &key_nb);
- 488   2          key_nb = 0;
- 489   2        }
- 490   1        else if ((key_nb) && (0 == GET_BIT(module_scene_select_key_bak[((key_nb - 1) / 8)], (key_nb - 1) % 8)) &&
+ 489   2          //    clear_led_sta(led_sta);
+ 490   2          // USER_PRINTF("module_scene.scene_name_index -->%bd\n", module_scene.scene_name_index);
+ 491   2          module_scene_select(&st_module, key_nb);
+ 492   2      
+ 493   2          clear_key_value(0x101b, &key_nb);
+ 494   2          key_nb = 0;
+ 495   2        }
+ 496   1        else if ((key_nb) && (0 == GET_BIT(module_scene_select_key_bak[((key_nb - 1) / 8)], (key_nb - 1) % 8)) &&
              - (0x51 == p_scenc_infor->edit_sta))
- 491   1        {
- 492   2          // USER_PRINTF("module_scene.scene_name_index -->%bd\n", module_scene.scene_name_index);
- 493   2          USER_PRINTF("module_scene_select_ctrl_modtify\n");
- 494   2          //    printf_tab(512,module_scene_select_key_bak);
- 495   2          temp_module_index = key_nb;
- 496   2          //    SET_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((key_nb-1)/8)],(key_nb-1)%
+ 497   1        {
+ 498   2          // USER_PRINTF("module_scene.scene_name_index -->%bd\n", module_scene.scene_name_index);
+ 499   2          USER_PRINTF("module_scene_select_ctrl_modtify\n");
+ 500   2          //    printf_tab(512,module_scene_select_key_bak);
+ 501   2          temp_module_index = key_nb;
+ 502   2          //    SET_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((key_nb-1)/8)],(key_nb-1)%
              -8);
- 497   2          //    clear_led_sta(led_sta);
- 498   2          module_scene_select(&st_module, key_nb);
- 499   2          clear_key_value(0x101b, &key_nb);
- 500   2          key_nb = 0;
- 501   2        }
- 502   1      }
- 503          // ÉèÖÃ³¡¾°¼ÌµçÆ÷Ä£¿éÐÅÏ¢
- 504          void module_relay_scene_set(module_t *p, scenc_infor_t *p_scenc_infor, name_scene_t *p_module_scene, unsig
+ 503   2          //    clear_led_sta(led_sta);
+ 504   2          module_scene_select(&st_module, key_nb);
+ 505   2          clear_key_value(0x101b, &key_nb);
+ 506   2          key_nb = 0;
+ 507   2        }
+ 508   1      }
+ 509          // ÉèÖÃ³¡¾°¼ÌµçÆ÷Ä£¿éÐÅÏ¢
+ 510          void module_relay_scene_set(module_t *p, scenc_infor_t *p_scenc_infor, name_scene_t *p_module_scene, unsig
              -ned short index, unsigned char edit_sta)
- 505          {
- 506   1        //  unsigned short scene_led_enable = 0,scene_led_sta = 0;
- 507   1        //  unsigned short led_hr_index_start = 0;
- 508   1        unsigned char temp_tab[32] = {0};
- 509   1        if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
- 510   1        {
- 511   2          p_scenc_infor->led_hr_index_start = 337;
- 512   2        }
- 513   1        else if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
- 514   1        {
- 515   2          p_scenc_infor->led_hr_index_start = 400;
- 516   2        }
- 517   1        else
- 518   1        {
- 519   2          return;
- 520   2        }
- 521   1        p_scenc_infor->scene_infor_index = p_module_scene->scene_name_index;
- 522   1        p_scenc_infor->type = p->type;
- 523   1        p_scenc_infor->adr = p->adr;
- 524   1        p_scenc_infor->channel_nb = p->channel_nb;
- 525   1        p_scenc_infor->module_index = p->index;
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 10  
+ 511          {
+ 512   1        //  unsigned short scene_led_enable = 0,scene_led_sta = 0;
+ 513   1        //  unsigned short led_hr_index_start = 0;
+ 514   1        unsigned char temp_tab[32] = {0};
+ 515   1        if ((SINGLE_RELAY_MODULE == p->type) || (SINGLE_TIME_RELAY_MODULE == p->type))
+ 516   1        {
+ 517   2          p_scenc_infor->led_hr_index_start = 337;
+ 518   2        }
+ 519   1        else if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
+ 520   1        {
+ 521   2          p_scenc_infor->led_hr_index_start = 400;
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 10  
 
- 526   1        p_scenc_infor->data_sta = 1;
- 527   1        p_scenc_infor->index = index + 1;
- 528   1        p_scenc_infor->edit_sta = edit_sta & 0x0f;
- 529   1        //  get_led_set_sta(&p_scenc_infor->led_enable,&p_scenc_infor->led_sta);
- 530   1        switch (p_scenc_infor->channel_nb)
- 531   1        {
- 532   2        case 4:
- 533   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
- 534   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
- 535   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3;
- 536   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
- 537   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3;
- 538   2          break;
- 539   2        case 6:
- 540   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
- 541   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
- 542   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
+ 522   2        }
+ 523   1        else
+ 524   1        {
+ 525   2          return;
+ 526   2        }
+ 527   1        p_scenc_infor->scene_infor_index = p_module_scene->scene_name_index;
+ 528   1        p_scenc_infor->type = p->type;
+ 529   1        p_scenc_infor->adr = p->adr;
+ 530   1        p_scenc_infor->channel_nb = p->channel_nb;
+ 531   1        p_scenc_infor->module_index = p->index;
+ 532   1        p_scenc_infor->data_sta = 1;
+ 533   1        p_scenc_infor->index = index + 1;
+ 534   1        p_scenc_infor->edit_sta = edit_sta & 0x0f;
+ 535   1        //  get_led_set_sta(&p_scenc_infor->led_enable,&p_scenc_infor->led_sta);
+ 536   1        switch (p_scenc_infor->channel_nb)
+ 537   1        {
+ 538   2        case 4:
+ 539   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
+ 540   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
+ 541   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3;
+ 542   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
+ 543   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3;
+ 544   2          break;
+ 545   2        case 6:
+ 546   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
+ 547   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
+ 548   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
              -tab[9] << 4 | temp_tab[11] << 5;
- 543   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
- 544   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
+ 549   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
+ 550   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
              -[9] << 4 | temp_tab[11] << 5;
- 545   2          break;
- 546   2        case 8:
- 547   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
- 548   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
- 549   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
+ 551   2          break;
+ 552   2        case 8:
+ 553   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
+ 554   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
+ 555   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
              -tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7;
- 550   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
- 551   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
+ 556   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
+ 557   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
              -[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7;
- 552   2          break;
- 553   2        case 10:
- 554   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
- 555   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
- 556   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
+ 558   2          break;
+ 559   2        case 10:
+ 560   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
+ 561   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
+ 562   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
              -tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
- 557   2                                      temp_tab[17] << 8 | temp_tab[19] << 9;
- 558   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
- 559   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
+ 563   2                                      temp_tab[17] << 8 | temp_tab[19] << 9;
+ 564   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
+ 565   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
              -[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
- 560   2                                   temp_tab[17] << 8 | temp_tab[19] << 9;
- 561   2          break;
- 562   2        case 12:
- 563   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
- 564   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
- 565   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
+ 566   2                                   temp_tab[17] << 8 | temp_tab[19] << 9;
+ 567   2          break;
+ 568   2        case 12:
+ 569   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
+ 570   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
+ 571   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
              -tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
- 566   2                                      temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11;
- 567   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
- 568   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
+ 572   2                                      temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11;
+ 573   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
+ 574   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
              -[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
- 569   2                                   temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11;
- 570   2          break;
- 571   2        case 14:
- 572   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
- 573   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
- 574   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
+ 575   2                                   temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11;
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 11  
+
+ 576   2          break;
+ 577   2        case 14:
+ 578   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
+ 579   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
+ 580   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
              -tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
- 575   2                                      temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_tab
+ 581   2                                      temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_tab
              -[25] << 12 | temp_tab[27] << 13;
- 576   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
- 577   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 11  
-
+ 582   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
+ 583   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
              -[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
- 578   2                                   temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_tab[
+ 584   2                                   temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_tab[
              -25] << 12 | temp_tab[27] << 13;
- 579   2        case 16:
- 580   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
- 581   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
- 582   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
+ 585   2        case 16:
+ 586   2          read_dgusii_vp(0x101c, (unsigned char *)temp_tab, 16);
+ 587   2          //  USER_PRINTF("function_module_relay_scene_send--->%x\n",scene_led_enable);
+ 588   2          p_scenc_infor->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_
              -tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
- 583   2                                      temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_tab
+ 589   2                                      temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_tab
              -[25] << 12 | temp_tab[27] << 13 | temp_tab[29] << 14 | temp_tab[31] << 15;
- 584   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
- 585   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
+ 590   2          read_dgusii_vp(0x1040, (unsigned char *)temp_tab, 16);
+ 591   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
              -[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
- 586   2                                   temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_tab[
+ 592   2                                   temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_tab[
              -25] << 12 | temp_tab[27] << 13 | temp_tab[29] << 14 | temp_tab[31] << 15;
- 587   2          break;
- 588   2        }
- 589   1      
- 590   1        USER_PRINTF("-->module_relay_scene_set\n");
- 591   1      }
- 592          
- 593          // ÉèÖÃ³¡¾°µ÷¹âÄ£¿éÐÅÏ¢
- 594          void module_dim_scene_set(module_t *p, scenc_infor_t *p_scenc_infor, name_scene_t *p_module_scene, unsigne
+ 593   2          break;
+ 594   2        }
+ 595   1      
+ 596   1        USER_PRINTF("-->module_relay_scene_set\n");
+ 597   1      }
+ 598          
+ 599          // ÉèÖÃ³¡¾°µ÷¹âÄ£¿éÐÅÏ¢
+ 600          void module_dim_scene_set(module_t *p, scenc_infor_t *p_scenc_infor, name_scene_t *p_module_scene, unsigne
              -d short index, unsigned char edit_sta)
- 595          {
- 596   1        unsigned short scene_dim_enable = 0;
- 597   1        unsigned short scene_dim_enable_adr = 0, scene_dim_gear_adr = 0;
- 598   1        unsigned char temp_tab[8] = {0}, dim_tab[4] = {0};
- 599   1        if ((VOL_DIM_MODULE == p->type))
- 600   1        {
- 601   2          scene_dim_enable_adr = 0x1050;
- 602   2          scene_dim_gear_adr = 0x1054;
- 603   2        }
- 604   1        else if ((SCR_DIM_MODULE == p->type))
- 605   1        {
- 606   2          scene_dim_enable_adr = 0x1058;
- 607   2          scene_dim_gear_adr = 0x105c;
- 608   2        }
- 609   1        else
- 610   1        {
- 611   2          return;
- 612   2        }
- 613   1        p_scenc_infor->type = p->type;
- 614   1        p_scenc_infor->adr = p->adr;
- 615   1        p_scenc_infor->channel_nb = p->channel_nb;
- 616   1        p_scenc_infor->module_index = p->index;
- 617   1        p_scenc_infor->data_sta = 1;
- 618   1        p_scenc_infor->index = index + 1;
- 619   1        p_scenc_infor->edit_sta = edit_sta & 0x0f;
- 620   1        read_dgusii_vp(scene_dim_enable_adr, (unsigned char *)temp_tab, 4);
- 621   1        p_scenc_infor->diming_enable = scene_dim_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | tem
+ 601          {
+ 602   1        unsigned short scene_dim_enable = 0;
+ 603   1        unsigned short scene_dim_enable_adr = 0, scene_dim_gear_adr = 0;
+ 604   1        unsigned char temp_tab[8] = {0}, dim_tab[4] = {0};
+ 605   1        if ((VOL_DIM_MODULE == p->type))
+ 606   1        {
+ 607   2          scene_dim_enable_adr = 0x1050;
+ 608   2          scene_dim_gear_adr = 0x1054;
+ 609   2        }
+ 610   1        else if ((SCR_DIM_MODULE == p->type))
+ 611   1        {
+ 612   2          scene_dim_enable_adr = 0x1058;
+ 613   2          scene_dim_gear_adr = 0x105c;
+ 614   2        }
+ 615   1        else
+ 616   1        {
+ 617   2          return;
+ 618   2        }
+ 619   1        p_scenc_infor->type = p->type;
+ 620   1        p_scenc_infor->adr = p->adr;
+ 621   1        p_scenc_infor->channel_nb = p->channel_nb;
+ 622   1        p_scenc_infor->module_index = p->index;
+ 623   1        p_scenc_infor->data_sta = 1;
+ 624   1        p_scenc_infor->index = index + 1;
+ 625   1        p_scenc_infor->edit_sta = edit_sta & 0x0f;
+ 626   1        read_dgusii_vp(scene_dim_enable_adr, (unsigned char *)temp_tab, 4);
+ 627   1        p_scenc_infor->diming_enable = scene_dim_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | tem
              -p_tab[7] << 3;
- 622   1        // USER_PRINTF("scene_dim_enable value--->%x\n", scene_dim_enable);
- 623   1        read_dgusii_vp(scene_dim_gear_adr, (unsigned char *)temp_tab, 4);
- 624   1        p_scenc_infor->dimming_duty[0] = dim_tab[0] = temp_tab[1];
- 625   1        p_scenc_infor->dimming_duty[1] = dim_tab[1] = temp_tab[3];
- 626   1        p_scenc_infor->dimming_duty[2] = dim_tab[2] = temp_tab[5];
- 627   1        p_scenc_infor->dimming_duty[3] = dim_tab[3] = temp_tab[7];
- 628   1        p_scenc_infor->scene_infor_index = p_module_scene->scene_name_index;
- 629   1        printf_tab(4, dim_tab);
- 630   1      }
- 631          // ¼ÌµçÆ÷Ä£¿é³¡¾°Éè¶¨ÐÅÏ¢modbus·¢ËÍÊý¾Ý
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 12  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 12  
 
- 632          void module_relay_scene_send(scenc_infor_t *p_scenc_infor)
- 633          {
- 634   1        if ((SINGLE_RELAY_MODULE == p_scenc_infor->type) || (SINGLE_TIME_RELAY_MODULE == p_scenc_infor->type) || 
+ 628   1        // USER_PRINTF("scene_dim_enable value--->%x\n", scene_dim_enable);
+ 629   1        read_dgusii_vp(scene_dim_gear_adr, (unsigned char *)temp_tab, 4);
+ 630   1        p_scenc_infor->dimming_duty[0] = dim_tab[0] = temp_tab[1];
+ 631   1        p_scenc_infor->dimming_duty[1] = dim_tab[1] = temp_tab[3];
+ 632   1        p_scenc_infor->dimming_duty[2] = dim_tab[2] = temp_tab[5];
+ 633   1        p_scenc_infor->dimming_duty[3] = dim_tab[3] = temp_tab[7];
+ 634   1        p_scenc_infor->scene_infor_index = p_module_scene->scene_name_index;
+ 635   1        printf_tab(4, dim_tab);
+ 636   1      }
+ 637          // ¼ÌµçÆ÷Ä£¿é³¡¾°Éè¶¨ÐÅÏ¢modbus·¢ËÍÊý¾Ý
+ 638          void module_relay_scene_send(scenc_infor_t *p_scenc_infor)
+ 639          {
+ 640   1        if ((SINGLE_RELAY_MODULE == p_scenc_infor->type) || (SINGLE_TIME_RELAY_MODULE == p_scenc_infor->type) || 
              -(DOUBLE_RELAY_MODULE == p_scenc_infor->type) || (DOUBLE_TIME_RELAY_MODULE == p_scenc_infor->type))
- 635   1        {
- 636   2          set_master_send_hr(master_send_hr, p_scenc_infor->led_hr_index_start, p_scenc_infor->scene_infor_index <
+ 641   1        {
+ 642   2          set_master_send_hr(master_send_hr, p_scenc_infor->led_hr_index_start, p_scenc_infor->scene_infor_index <
              -< 8 | p_scenc_infor->edit_sta);
- 637   2          // USER_PRINTF("scene_led_enable value--->%x\n", p_scenc_infor->led_enable);
- 638   2          set_master_send_hr(master_send_hr, p_scenc_infor->led_hr_index_start + 1, p_scenc_infor->led_enable);
- 639   2          set_master_send_hr(master_send_hr, p_scenc_infor->led_hr_index_start + 2, p_scenc_infor->led_sta);
- 640   2          // USER_PRINTF("scene_led_sta value--->%x\n", p_scenc_infor->led_sta);
- 641   2          set_master_send_hr(master_send_hr, p_scenc_infor->led_hr_index_start + 3, ENTERPRISE);
- 642   2          pack_data_send(&user_modbus, p_scenc_infor->adr, MD_FR_MHR, p_scenc_infor->led_hr_index_start, 4);
- 643   2        }
- 644   1        else
- 645   1        {
- 646   2          return;
- 647   2        }
- 648   1      }
- 649          // µ÷¹âÄ£¿é³¡¾°Éè¶¨ÐÅÏ¢modbus·¢ËÍÊý¾Ý
- 650          void module_dim_scene_send(scenc_infor_t *p_scenc_infor)
- 651          {
- 652   1        if ((VOL_DIM_MODULE == p_scenc_infor->type) || (SCR_DIM_MODULE == p_scenc_infor->type))
- 653   1        {
- 654   2          set_master_send_hr(master_send_hr, 50, p_scenc_infor->scene_infor_index << 8 | p_scenc_infor->edit_sta);
- 655   2          set_master_send_hr(master_send_hr, 51, p_scenc_infor->diming_enable);
- 656   2          set_master_send_hr(master_send_hr, 52, p_scenc_infor->dimming_duty[0]);
- 657   2          set_master_send_hr(master_send_hr, 53, p_scenc_infor->dimming_duty[1]);
- 658   2          set_master_send_hr(master_send_hr, 54, p_scenc_infor->dimming_duty[2]);
- 659   2          set_master_send_hr(master_send_hr, 55, p_scenc_infor->dimming_duty[3]);
- 660   2          set_master_send_hr(master_send_hr, 56, ENTERPRISE);
- 661   2          pack_data_send(&user_modbus, p_scenc_infor->adr, MD_FR_MHR, 50, 7);
- 662   2        }
- 663   1        else
- 664   1        {
- 665   2          return;
- 666   2        }
- 667   1      }
- 668          void scene_delete_ctrl_send(name_scene_t *p)
- 669          {
- 670   1        //  static unsigned char send_cnt
- 671   1        //  unsigned char index = 0;
- 672   1        if (2 == p->edit_sta) // É¾³ý
- 673   1        {
- 674   2      
- 675   2          if (0 == p->scene_name_index)
- 676   2          {
- 677   3            USER_PRINTF("-->no scene need to delete \n");
- 678   3            //      mbHost.scene_send_cyc_time = 0;
- 679   3            scene_data.delete_scenc_send_cyc_flag = 0;
- 680   3            pop_menu_key_ctrl(0xf0); // ¹Ø±Õ²Ù×÷µ¯´°
- 681   3            p->edit_sta = 0;
- 682   3            return;
- 683   3          }
- 684   2          scene_data.delete_scenc_send_cyc_flag = 1;
- 685   2        }
- 686   1        if (1 == scene_data.delete_scenc_send_cyc_flag)
- 687   1        {
- 688   2          if ((0 == scene_data.delete_scenc_send_cyc_time) && (mbh_getState() == MBH_STATE_IDLE))
- 689   2          {
- 690   3            scene_data.delete_scenc_send_cyc_time = 100;
- 691   3            if (FULL == ((temp_scenc_infor + scene_data.delete_scenc_send_cnt)->data_sta))
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 13  
+ 643   2          // USER_PRINTF("scene_led_enable value--->%x\n", p_scenc_infor->led_enable);
+ 644   2          set_master_send_hr(master_send_hr, p_scenc_infor->led_hr_index_start + 1, p_scenc_infor->led_enable);
+ 645   2          set_master_send_hr(master_send_hr, p_scenc_infor->led_hr_index_start + 2, p_scenc_infor->led_sta);
+ 646   2          // USER_PRINTF("scene_led_sta value--->%x\n", p_scenc_infor->led_sta);
+ 647   2          set_master_send_hr(master_send_hr, p_scenc_infor->led_hr_index_start + 3, ENTERPRISE);
+ 648   2          pack_data_send(&user_modbus, p_scenc_infor->adr, MD_FR_MHR, p_scenc_infor->led_hr_index_start, 4);
+ 649   2        }
+ 650   1        else
+ 651   1        {
+ 652   2          return;
+ 653   2        }
+ 654   1      }
+ 655          // µ÷¹âÄ£¿é³¡¾°Éè¶¨ÐÅÏ¢modbus·¢ËÍÊý¾Ý
+ 656          void module_dim_scene_send(scenc_infor_t *p_scenc_infor)
+ 657          {
+ 658   1        if ((VOL_DIM_MODULE == p_scenc_infor->type) || (SCR_DIM_MODULE == p_scenc_infor->type))
+ 659   1        {
+ 660   2          set_master_send_hr(master_send_hr, 50, p_scenc_infor->scene_infor_index << 8 | p_scenc_infor->edit_sta);
+ 661   2          set_master_send_hr(master_send_hr, 51, p_scenc_infor->diming_enable);
+ 662   2          set_master_send_hr(master_send_hr, 52, p_scenc_infor->dimming_duty[0]);
+ 663   2          set_master_send_hr(master_send_hr, 53, p_scenc_infor->dimming_duty[1]);
+ 664   2          set_master_send_hr(master_send_hr, 54, p_scenc_infor->dimming_duty[2]);
+ 665   2          set_master_send_hr(master_send_hr, 55, p_scenc_infor->dimming_duty[3]);
+ 666   2          set_master_send_hr(master_send_hr, 56, ENTERPRISE);
+ 667   2          pack_data_send(&user_modbus, p_scenc_infor->adr, MD_FR_MHR, 50, 7);
+ 668   2        }
+ 669   1        else
+ 670   1        {
+ 671   2          return;
+ 672   2        }
+ 673   1      }
+ 674          void scene_delete_ctrl_send(name_scene_t *p)
+ 675          {
+ 676   1        //  static unsigned char send_cnt
+ 677   1        //  unsigned char index = 0;
+ 678   1        if (2 == p->edit_sta) // É¾³ý
+ 679   1        {
+ 680   2      
+ 681   2          if (0 == p->scene_name_index)
+ 682   2          {
+ 683   3            USER_PRINTF("-->no scene need to delete \n");
+ 684   3            //      mbHost.scene_send_cyc_time = 0;
+ 685   3            scene_data.delete_scenc_send_cyc_flag = 0;
+ 686   3            pop_menu_key_ctrl(0xf0); // ¹Ø±Õ²Ù×÷µ¯´°
+ 687   3            p->edit_sta = 0;
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 13  
 
- 692   3            {
- 693   4              if (1 == infor_clear_sta)
- 694   4                (temp_scenc_infor + scene_data.delete_scenc_send_cnt)->edit_sta = 2;
- 695   4              module_relay_scene_send(temp_scenc_infor + scene_data.delete_scenc_send_cnt);
- 696   4              module_dim_scene_send(temp_scenc_infor + scene_data.delete_scenc_send_cnt);
- 697   4              scene_data.delete_scenc_send_cnt++;
- 698   4            }
- 699   3            else
- 700   3            {
- 701   4              scene_data.delete_scenc_send_cnt++;
- 702   4            }
- 703   3          }
- 704   2        }
- 705   1        if (scene_data.delete_scenc_send_cnt > SCENE_NUB_SIGNLE)
- 706   1        {
- 707   2          scene_data.delete_scenc_send_cnt = 0;
- 708   2          scene_data.delete_scenc_send_cyc_time = 0;
- 709   2          scene_data.delete_scenc_send_cyc_flag = 0;
- 710   2          p->edit_sta = 0;
- 711   2          infor_clear_sta = 0;
- 712   2          // USER_PRINTF("-->%bd scene name delete ok!\n", p->scene_name_index);
- 713   2          clear_temp_scenc_infor();
- 714   2        }
- 715   1      }
- 716          // ³¡¾°Ãû×ÖÁÐ±í²Ù×÷modbus·¢ËÍÊý¾Ý
- 717          void scene_name_ctrl_send(name_scene_t *p)
- 718          {
- 719   1        static unsigned char i = 0;
- 720   1        unsigned char j = 0;
- 721   1        unsigned char index = 0;
- 722   1        scenc_infor_t scenc_infor[4] = {
- 723   1            {0, 0, 0, SINGLE_RELAY_MODULE, 0, 0, 0, 0, 0, 0, 337, 0, 0},
- 724   1            {0, 0, 0, DOUBLE_RELAY_MODULE, 0, 0, 0, 0, 0, 0, 400, 0, 0},
- 725   1            {0, 0, 0, VOL_DIM_MODULE, 0, 0, 0, 0, 0, 0, 0, 0, 0},
- 726   1            {0, 0, 0, SCR_DIM_MODULE, 0, 0, 0, 0, 0, 0, 0, 0, 0},
- 727   1        };
- 728   1        //  USER_PRINTF("module_scene.edit_sta is %bd\n",p->edit_sta);
- 729   1        //  index = get_scene_name_select_sequence_number();
- 730   1        //  if(index)
- 731   1        //  {
- 732   1        //    USER_PRINTF("-->index is %bd\n",index);
- 733   1        //  }
- 734   1        if ((1 == p->edit_sta) || (0 == p->edit_sta))
- 735   1        {
- 736   2          //    mbHost.scene_send_cyc_time = 0;
- 737   2          scene_data.scenc_send_name_cyc_flag = 0;
- 738   2          return;
- 739   2        }
- 740   1        else if (3 == p->edit_sta) // Çå¿Õ
+ 688   3            return;
+ 689   3          }
+ 690   2          scene_data.delete_scenc_send_cyc_flag = 1;
+ 691   2        }
+ 692   1        if (1 == scene_data.delete_scenc_send_cyc_flag)
+ 693   1        {
+ 694   2          if ((0 == scene_data.delete_scenc_send_cyc_time) && (mbh_getState() == MBH_STATE_IDLE))
+ 695   2          {
+ 696   3            scene_data.delete_scenc_send_cyc_time = 100;
+ 697   3            if (FULL == ((temp_scenc_infor + scene_data.delete_scenc_send_cnt)->data_sta))
+ 698   3            {
+ 699   4              if (1 == infor_clear_sta)
+ 700   4                (temp_scenc_infor + scene_data.delete_scenc_send_cnt)->edit_sta = 2;
+ 701   4              module_relay_scene_send(temp_scenc_infor + scene_data.delete_scenc_send_cnt);
+ 702   4              module_dim_scene_send(temp_scenc_infor + scene_data.delete_scenc_send_cnt);
+ 703   4              scene_data.delete_scenc_send_cnt++;
+ 704   4            }
+ 705   3            else
+ 706   3            {
+ 707   4              scene_data.delete_scenc_send_cnt++;
+ 708   4            }
+ 709   3          }
+ 710   2        }
+ 711   1        if (scene_data.delete_scenc_send_cnt > SINGLE_SCENE_NAME_INFOR_SIZE)
+ 712   1        {
+ 713   2          scene_data.delete_scenc_send_cnt = 0;
+ 714   2          scene_data.delete_scenc_send_cyc_time = 0;
+ 715   2          scene_data.delete_scenc_send_cyc_flag = 0;
+ 716   2          p->edit_sta = 0;
+ 717   2          infor_clear_sta = 0;
+ 718   2          // USER_PRINTF("-->%bd scene name delete ok!\n", p->scene_name_index);
+ 719   2          clear_temp_scenc_infor();
+ 720   2        }
+ 721   1      }
+ 722          // ³¡¾°Ãû×ÖÁÐ±í²Ù×÷modbus·¢ËÍÊý¾Ý
+ 723          void scene_name_ctrl_send(name_scene_t *p)
+ 724          {
+ 725   1        static unsigned char i = 0;
+ 726   1        unsigned char j = 0;
+ 727   1        unsigned char index = 0;
+ 728   1        scenc_infor_t scenc_infor[4] = {
+ 729   1            {0, 0, 0, SINGLE_RELAY_MODULE, 0, 0, 0, 0, 0, 0, 337, 0, 0},
+ 730   1            {0, 0, 0, DOUBLE_RELAY_MODULE, 0, 0, 0, 0, 0, 0, 400, 0, 0},
+ 731   1            {0, 0, 0, VOL_DIM_MODULE, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+ 732   1            {0, 0, 0, SCR_DIM_MODULE, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+ 733   1        };
+ 734   1        //  USER_PRINTF("module_scene.edit_sta is %bd\n",p->edit_sta);
+ 735   1        //  index = get_scene_name_select_sequence_number();
+ 736   1        //  if(index)
+ 737   1        //  {
+ 738   1        //    USER_PRINTF("-->index is %bd\n",index);
+ 739   1        //  }
+ 740   1        if ((1 == p->edit_sta) || (0 == p->edit_sta))
  741   1        {
- 742   2          if (0xff == if_all_scene_name_blank())
- 743   2          {
- 744   3            scene_data.scenc_send_name_cyc_flag = 0;
- 745   3            pop_menu_key_ctrl(0xf0); // ¹Ø±Õ²Ù×÷µ¯´°
- 746   3            p->edit_sta = 0;
- 747   3            return;
- 748   3          }
- 749   2          scenc_infor[0].edit_sta = 3;
- 750   2          scenc_infor[1].edit_sta = 3;
- 751   2          scenc_infor[2].edit_sta = 3;
- 752   2          scenc_infor[3].edit_sta = 3;
- 753   2        }
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 14  
+ 742   2          //    mbHost.scene_send_cyc_time = 0;
+ 743   2          scene_data.scenc_send_name_cyc_flag = 0;
+ 744   2          return;
+ 745   2        }
+ 746   1        else if (3 == p->edit_sta) // Çå¿Õ
+ 747   1        {
+ 748   2          if (0xff == if_all_scene_name_blank())
+ 749   2          {
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 14  
 
- 754   1        //  else if(2 == p->edit_sta)//É¾³ý
- 755   1        //  {
- 756   1      
- 757   1        //    if(0 == p->scene_name_index)
- 758   1        //    {
- 759   1        //      USER_PRINTF("-->delete index is zero\n");
- 760   1        ////      mbHost.scene_send_cyc_time = 0;
- 761   1        //      scene_data.scenc_send_name_cyc_flag = 0;
- 762   1        //      pop_menu_key_ctrl(0xf0);//¹Ø±Õ²Ù×÷µ¯´°
- 763   1        //      p->edit_sta = 0;
- 764   1        //      return;
- 765   1        //    }
- 766   1      
- 767   1        //    for(j = 0;j<4;j++)
- 768   1        //    {
- 769   1        //      scenc_infor[j].edit_sta = 2;
- 770   1        //      scenc_infor[j].scene_infor_index = p->scene_name_index;
+ 750   3            scene_data.scenc_send_name_cyc_flag = 0;
+ 751   3            pop_menu_key_ctrl(0xf0); // ¹Ø±Õ²Ù×÷µ¯´°
+ 752   3            p->edit_sta = 0;
+ 753   3            return;
+ 754   3          }
+ 755   2          scenc_infor[0].edit_sta = 3;
+ 756   2          scenc_infor[1].edit_sta = 3;
+ 757   2          scenc_infor[2].edit_sta = 3;
+ 758   2          scenc_infor[3].edit_sta = 3;
+ 759   2        }
+ 760   1        //  else if(2 == p->edit_sta)//É¾³ý
+ 761   1        //  {
+ 762   1      
+ 763   1        //    if(0 == p->scene_name_index)
+ 764   1        //    {
+ 765   1        //      USER_PRINTF("-->delete index is zero\n");
+ 766   1        ////      mbHost.scene_send_cyc_time = 0;
+ 767   1        //      scene_data.scenc_send_name_cyc_flag = 0;
+ 768   1        //      pop_menu_key_ctrl(0xf0);//¹Ø±Õ²Ù×÷µ¯´°
+ 769   1        //      p->edit_sta = 0;
+ 770   1        //      return;
  771   1        //    }
- 772   1        ////    USER_PRINTF("-->enter_delete_state\n");
- 773   1        //  }
- 774   1      
- 775   1        if ((1 == scene_data.scenc_send_name_cyc_flag) && (0 == mbHost.scene_send_cyc_time))
- 776   1        {
- 777   2          mbHost.scene_send_cyc_time = MBH_CYC_TIME;
- 778   2          module_relay_scene_send(scenc_infor + i);
- 779   2          module_dim_scene_send(scenc_infor + i);
- 780   2          USER_PRINTF("-->scene_name_ctrl_send\n");
- 781   2          i++;
- 782   2        }
- 783   1        if (i > 2)
- 784   1        {
- 785   2          // USER_PRINTF("module_scene.edit_sta is %bd\n", p->edit_sta);
- 786   2          //    write_dgus(0x107f,0xff);
- 787   2          i = 0;
- 788   2          scene_data.scenc_send_name_cyc_flag = 0;
- 789   2          //    mbHost.scene_send_cyc_time = 0;
- 790   2          //    pic_set(1);
- 791   2      
- 792   2          p->edit_sta = 0;
- 793   2          //    p->scene_name_index = 0;
- 794   2          USER_PRINTF("-->scene_name_ctrl_send_over\n");
- 795   2          //    T5L_Flash(0x5A,0X4100, SCENE_NAME_FLASH_ADR_SATRT,SCENE_NAME_NUB*NAME_SCENE_T_SIZE); //¶ÁÎª0³¡¾°Ãû³Æ
+ 772   1      
+ 773   1        //    for(j = 0;j<4;j++)
+ 774   1        //    {
+ 775   1        //      scenc_infor[j].edit_sta = 2;
+ 776   1        //      scenc_infor[j].scene_infor_index = p->scene_name_index;
+ 777   1        //    }
+ 778   1        ////    USER_PRINTF("-->enter_delete_state\n");
+ 779   1        //  }
+ 780   1      
+ 781   1        if ((1 == scene_data.scenc_send_name_cyc_flag) && (0 == mbHost.scene_send_cyc_time))
+ 782   1        {
+ 783   2          mbHost.scene_send_cyc_time = MBH_CYC_TIME;
+ 784   2          module_relay_scene_send(scenc_infor + i);
+ 785   2          module_dim_scene_send(scenc_infor + i);
+ 786   2          USER_PRINTF("-->scene_name_ctrl_send\n");
+ 787   2          i++;
+ 788   2        }
+ 789   1        if (i > 2)
+ 790   1        {
+ 791   2          // USER_PRINTF("module_scene.edit_sta is %bd\n", p->edit_sta);
+ 792   2          //    write_dgus(0x107f,0xff);
+ 793   2          i = 0;
+ 794   2          scene_data.scenc_send_name_cyc_flag = 0;
+ 795   2          //    mbHost.scene_send_cyc_time = 0;
+ 796   2          //    pic_set(1);
+ 797   2      
+ 798   2          p->edit_sta = 0;
+ 799   2          //    p->scene_name_index = 0;
+ 800   2          USER_PRINTF("-->scene_name_ctrl_send_over\n");
+ 801   2          //    T5L_Flash(0x5A,0X4100, SCENE_NAME_FLASH_ADR_SATRT,SCENE_NAME_NUB*NAME_SCENE_T_SIZE); //¶ÁÎª0³¡¾°Ãû³Æ
              -ÐÅÏ¢
- 796   2          //    USER_PRINTF("-->scene_display_name_clear_ok\n");
- 797   2          pop_menu_key_ctrl(0xf0); // ¹Ø±Õ²Ù×÷µ¯´°
- 798   2        }
- 799   1      }
- 800          // ³¡¾°ÐÅÏ¢·¢ËÍËùÓÐÄ£¿é
- 801          void module_scene_send(void)
- 802          {
- 803   1        static unsigned char i = 0;
- 804   1        if ((1 == scene_data.scenc_send_infor_cyc_flag) && (0 == mbHost.scene_send_cyc_time))
- 805   1        {
- 806   2          //    USER_PRINTF("-->module_scene_send_cyc\n");
- 807   2          //        USER_PRINTF("-->i value is %bd\n",i);
- 808   2          if ((FULL == temp_scenc_infor[i].data_sta) && (0 != temp_scenc_infor[i].edit_sta))
- 809   2          {
- 810   3            mbHost.scene_send_cyc_time = MBH_CYC_TIME;
- 811   3            module_relay_scene_send(temp_scenc_infor + i);
- 812   3            module_dim_scene_send(temp_scenc_infor + i);
- 813   3            USER_PRINTF("-->module_scene_send\n");
- 814   3            i++;
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 15  
+ 802   2          //    USER_PRINTF("-->scene_display_name_clear_ok\n");
+ 803   2          pop_menu_key_ctrl(0xf0); // ¹Ø±Õ²Ù×÷µ¯´°
+ 804   2        }
+ 805   1      }
+ 806          // ³¡¾°ÐÅÏ¢·¢ËÍËùÓÐÄ£¿é
+ 807          void module_scene_send(void)
+ 808          {
+ 809   1        static unsigned char i = 0;
+ 810   1        if ((1 == scene_data.scenc_send_infor_cyc_flag) && (0 == mbHost.scene_send_cyc_time))
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 15  
 
- 815   3          }
- 816   2          else if (BLANK == temp_scenc_infor[i++].data_sta)
- 817   2          {
- 818   3            //      USER_PRINTF("-->BLANK == temp_scenc_infor[i].data_sta\n");
- 819   3            //      mbHost.scene_send_cyc_time = 200;
- 820   3            ;
+ 811   1        {
+ 812   2          //    USER_PRINTF("-->module_scene_send_cyc\n");
+ 813   2          //        USER_PRINTF("-->i value is %bd\n",i);
+ 814   2          if ((FULL == temp_scenc_infor[i].data_sta) && (0 != temp_scenc_infor[i].edit_sta))
+ 815   2          {
+ 816   3            mbHost.scene_send_cyc_time = MBH_CYC_TIME;
+ 817   3            module_relay_scene_send(temp_scenc_infor + i);
+ 818   3            module_dim_scene_send(temp_scenc_infor + i);
+ 819   3            USER_PRINTF("-->module_scene_send\n");
+ 820   3            i++;
  821   3          }
- 822   2        }
- 823   1        if (i > 63)
- 824   1        {
- 825   2          //    CLEAR_BIT(module_scene_select_key_bak[(module_scene.scene_name_index-1)*((temp_module_index-1)/8)],(
+ 822   2          else if (BLANK == temp_scenc_infor[i++].data_sta)
+ 823   2          {
+ 824   3            //      USER_PRINTF("-->BLANK == temp_scenc_infor[i].data_sta\n");
+ 825   3            //      mbHost.scene_send_cyc_time = 200;
+ 826   3            ;
+ 827   3          }
+ 828   2        }
+ 829   1        if (i > 63)
+ 830   1        {
+ 831   2          //    CLEAR_BIT(module_scene_select_key_bak[(module_scene.scene_name_index-1)*((temp_module_index-1)/8)],(
              -temp_module_index-1)%8);
- 826   2          memset((unsigned char *)module_scene_select_key_bak, 0, 8);
- 827   2          temp_module_index = 0;
- 828   2          i = 0;
- 829   2          mbHost.scene_send_cyc_time = 0;
- 830   2          scene_data.scenc_send_infor_cyc_flag = 0;
- 831   2          clear_temp_scenc_infor(); // Çå¿Õ³¡¾°ÐÅÏ¢ÁÙÊ±±äÁ¿
- 832   2          clear_all_scene_infor();  // Çå¿Õ³¡¾°ÐÅÏ¢ÏÔÊ¾
- 833   2          pic_set(22);
- 834   2        }
- 835   1      }
- 836          // ÏÔÊ¾¾ßÌå³¡¾°Ö´ÐÐÐÅÏ¢
- 837          void display_scene_infor(scenc_infor_t *p_scenc_infor)
- 838          {
- 839   1        unsigned char mod_infom_tab[141] = {0};
- 840   1        unsigned char module_name_1[17] = {0};
- 841   1        unsigned char led_on_tb[49] = {0};
- 842   1        unsigned char led_off_tb[49] = {0};
- 843   1        unsigned short on_sta = 0, off_sta = 0;
- 844   1        unsigned char i = 0, j = 0, k = 0, l = 0;
- 845   1        unsigned char dim_duty_tb[40] = {0};
- 846   1        unsigned char dim_duty_str[10] = {0};
- 847   1        unsigned char str_len_cal = 0;
- 848   1        unsigned char str_adr = 0;
- 849   1        char channel[48] = "01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,";
- 850   1        module_t module_read = {0};
- 851   1        if ((p_scenc_infor->type < 2) || (4 == p_scenc_infor->type) || (5 == p_scenc_infor->type))
- 852   1        {
- 853   2          on_sta = p_scenc_infor->led_enable & (p_scenc_infor->led_sta);
- 854   2          // USER_PRINTF("on_sta is 0x%x\n", on_sta);
- 855   2          off_sta = p_scenc_infor->led_enable & (~p_scenc_infor->led_sta);
- 856   2          // USER_PRINTF("off_sta is 0x%x\n", off_sta);
- 857   2          for (i = 0; i < 16; i++)
- 858   2          {
- 859   3            if (GET_BIT(on_sta, i))
- 860   3            {
- 861   4              strncpy(led_on_tb + j * 3, &channel[i * 3], 3);
- 862   4              j++;
- 863   4            }
- 864   3          }
- 865   2          for (i = 0; i < 16; i++)
- 866   2          {
- 867   3            if (GET_BIT(off_sta, i))
- 868   3            {
- 869   4              strncpy(led_off_tb + k * 3, &channel[i * 3], 3);
- 870   4              k++;
- 871   4            }
- 872   3          }
- 873   2          // USER_PRINTF("led_on_tb is %s\n", led_on_tb);
- 874   2          // USER_PRINTF("led_off_tb is %s\n", led_off_tb);
- 875   2          //    strncpy(module_name_1,&module_name_tab[p_scenc_infor->type],8);
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 16  
+ 832   2          memset((unsigned char *)module_scene_select_key_bak, 0, 8);
+ 833   2          temp_module_index = 0;
+ 834   2          i = 0;
+ 835   2          mbHost.scene_send_cyc_time = 0;
+ 836   2          scene_data.scenc_send_infor_cyc_flag = 0;
+ 837   2          clear_temp_scenc_infor(); // Çå¿Õ³¡¾°ÐÅÏ¢ÁÙÊ±±äÁ¿
+ 838   2          clear_all_scene_infor();  // Çå¿Õ³¡¾°ÐÅÏ¢ÏÔÊ¾
+ 839   2          pop_menu_key_ctrl(0xf0);
+ 840   2          // pic_set(22);
+ 841   2        }
+ 842   1      }
+ 843          // ÏÔÊ¾¾ßÌå³¡¾°Ö´ÐÐÐÅÏ¢
+ 844          void display_scene_infor(scenc_infor_t *p_scenc_infor)
+ 845          {
+ 846   1        unsigned char mod_infom_tab[141] = {0};
+ 847   1        unsigned char module_name_1[17] = {0};
+ 848   1        unsigned char led_on_tb[49] = {0};
+ 849   1        unsigned char led_off_tb[49] = {0};
+ 850   1        unsigned short on_sta = 0, off_sta = 0;
+ 851   1        unsigned char i = 0, j = 0, k = 0, l = 0;
+ 852   1        unsigned char dim_duty_tb[40] = {0};
+ 853   1        unsigned char dim_duty_str[10] = {0};
+ 854   1        unsigned char str_len_cal = 0;
+ 855   1        unsigned char str_adr = 0;
+ 856   1        char channel[48] = "01,02,03,04,05,06,07,08,09,10,11,12,13,14,15,16,";
+ 857   1        module_t module_read = {0};
+ 858   1        if ((p_scenc_infor->type < 2) || (4 == p_scenc_infor->type) || (5 == p_scenc_infor->type))
+ 859   1        {
+ 860   2          on_sta = p_scenc_infor->led_enable & (p_scenc_infor->led_sta);
+ 861   2          // USER_PRINTF("on_sta is 0x%x\n", on_sta);
+ 862   2          off_sta = p_scenc_infor->led_enable & (~p_scenc_infor->led_sta);
+ 863   2          // USER_PRINTF("off_sta is 0x%x\n", off_sta);
+ 864   2          for (i = 0; i < 16; i++)
+ 865   2          {
+ 866   3            if (GET_BIT(on_sta, i))
+ 867   3            {
+ 868   4              strncpy(led_on_tb + j * 3, &channel[i * 3], 3);
+ 869   4              j++;
+ 870   4            }
+ 871   3          }
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 16  
 
- 876   2        }
- 877   1        else
- 878   1        {
- 879   2          for (i = 0; i < 4; i++)
- 880   2          {
- 881   3            if (GET_BIT(p_scenc_infor->diming_enable, i))
- 882   3            {
- 883   4      
- 884   4              sprintf(dim_duty_str, "%d%%;", p_scenc_infor->type == 2 ? p_scenc_infor->dimming_duty[i] * 10 : p_scen
+ 872   2          for (i = 0; i < 16; i++)
+ 873   2          {
+ 874   3            if (GET_BIT(off_sta, i))
+ 875   3            {
+ 876   4              strncpy(led_off_tb + k * 3, &channel[i * 3], 3);
+ 877   4              k++;
+ 878   4            }
+ 879   3          }
+ 880   2          // USER_PRINTF("led_on_tb is %s\n", led_on_tb);
+ 881   2          // USER_PRINTF("led_off_tb is %s\n", led_off_tb);
+ 882   2          //    strncpy(module_name_1,&module_name_tab[p_scenc_infor->type],8);
+ 883   2        }
+ 884   1        else
+ 885   1        {
+ 886   2          for (i = 0; i < 4; i++)
+ 887   2          {
+ 888   3            if (GET_BIT(p_scenc_infor->diming_enable, i))
+ 889   3            {
+ 890   4      
+ 891   4              sprintf(dim_duty_str, "%d%%;", p_scenc_infor->type == 2 ? p_scenc_infor->dimming_duty[i] * 10 : p_scen
              -c_infor->dimming_duty[i]);
- 885   4      
- 886   4              str_len_cal = strlen(dim_duty_str);
- 887   4              // USER_PRINTF("dim_duty_str str_len_cal is %bd\n", str_len_cal);
- 888   4              strncpy(dim_duty_tb + str_adr, &channel[i * 3], 3);
- 889   4              str_adr += 3;
- 890   4              // USER_PRINTF("dim_duty_str is %s\n", dim_duty_str);
- 891   4              strncpy(dim_duty_tb + str_adr, &dim_duty_str, str_len_cal);
- 892   4              str_adr += str_len_cal;
- 893   4              l++;
- 894   4            }
- 895   3          }
- 896   2          // USER_PRINTF("dim_duty_infor is %s\n", dim_duty_tb);
- 897   2          //    strncpy(module_name_1,&module_name_tab[p_scenc_infor->type],10);
- 898   2        }
- 899   1      
- 900   1        // USER_PRINTF("-->display_scene_infor p_scenc_infor->module_index is %bd\n", p_scenc_infor->module_index
+ 892   4      
+ 893   4              str_len_cal = strlen(dim_duty_str);
+ 894   4              // USER_PRINTF("dim_duty_str str_len_cal is %bd\n", str_len_cal);
+ 895   4              strncpy(dim_duty_tb + str_adr, &channel[i * 3], 3);
+ 896   4              str_adr += 3;
+ 897   4              // USER_PRINTF("dim_duty_str is %s\n", dim_duty_str);
+ 898   4              strncpy(dim_duty_tb + str_adr, &dim_duty_str, str_len_cal);
+ 899   4              str_adr += str_len_cal;
+ 900   4              l++;
+ 901   4            }
+ 902   3          }
+ 903   2          // USER_PRINTF("dim_duty_infor is %s\n", dim_duty_tb);
+ 904   2          //    strncpy(module_name_1,&module_name_tab[p_scenc_infor->type],10);
+ 905   2        }
+ 906   1      
+ 907   1        // USER_PRINTF("-->display_scene_infor p_scenc_infor->module_index is %bd\n", p_scenc_infor->module_index
              -);
- 901   1        norflash_read((p_scenc_infor->module_index) * 140, (unsigned char *)&module_read, 140);
- 902   1      
- 903   1        strncpy(module_name_1, &module_read.module_name[0], 16);
- 904   1        strrpl(module_name_1, " ", "");
- 905   1      
- 906   1        // if((on_sta)&&(off_sta))
- 907   1        //  sprintf(mod_infom_tab,"%s;µØÖ·:%bd;%bdÂ·;%s¿ª;%s¹Ø",module_name_1,p_scenc_infor->adr,p_scenc_infor->c
+ 908   1        norflash_read((p_scenc_infor->module_index) * 140, (unsigned char *)&module_read, 140);
+ 909   1      
+ 910   1        strncpy(module_name_1, &module_read.module_name[0], 16);
+ 911   1        strrpl(module_name_1, " ", "");
+ 912   1      
+ 913   1        // if((on_sta)&&(off_sta))
+ 914   1        //  sprintf(mod_infom_tab,"%s;µØÖ·:%bd;%bdÂ·;%s¿ª;%s¹Ø",module_name_1,p_scenc_infor->adr,p_scenc_infor->c
              -hannel_nb,led_on_tb,led_off_tb);
- 908   1        // else if((on_sta)&&( 0 == off_sta))
- 909   1        //  sprintf(mod_infom_tab,"%s;µØÖ·:%bd;%bdÂ·;%s¿ª",module_name_1,p_scenc_infor->adr,p_scenc_infor->channe
+ 915   1        // else if((on_sta)&&( 0 == off_sta))
+ 916   1        //  sprintf(mod_infom_tab,"%s;µØÖ·:%bd;%bdÂ·;%s¿ª",module_name_1,p_scenc_infor->adr,p_scenc_infor->channe
              -l_nb,led_on_tb);
- 910   1        // else if(( 0 == on_sta)&&(off_sta))
- 911   1        //  sprintf(mod_infom_tab,"%s;µØÖ·:%bd;%bdÂ·;%s¹Ø",module_name_1,p_scenc_infor->adr,p_scenc_infor->channe
+ 917   1        // else if(( 0 == on_sta)&&(off_sta))
+ 918   1        //  sprintf(mod_infom_tab,"%s;µØÖ·:%bd;%bdÂ·;%s¹Ø",module_name_1,p_scenc_infor->adr,p_scenc_infor->channe
              -l_nb,led_off_tb);
- 912   1        // else if(p_scenc_infor->diming_enable)
- 913   1        //  sprintf(mod_infom_tab,"%s;µØÖ·:%bd;%bdÂ·;%s",module_name_1,p_scenc_infor->adr,p_scenc_infor->channel_
+ 919   1        // else if(p_scenc_infor->diming_enable)
+ 920   1        //  sprintf(mod_infom_tab,"%s;µØÖ·:%bd;%bdÂ·;%s",module_name_1,p_scenc_infor->adr,p_scenc_infor->channel_
              -nb,dim_duty_tb);
- 914   1        // else
- 915   1        //  sprintf(mod_infom_tab,"%s;µØÖ·:%bd;%bdÂ·;Î´ÅäÖÃ³¡¾°",module_name_1,p_scenc_infor->adr,p_scenc_infor->
+ 921   1        // else
+ 922   1        //  sprintf(mod_infom_tab,"%s;µØÖ·:%bd;%bdÂ·;Î´ÅäÖÃ³¡¾°",module_name_1,p_scenc_infor->adr,p_scenc_infor->
              -channel_nb);
- 916   1        if ((on_sta) && (off_sta))
- 917   1          sprintf(mod_infom_tab, "µØÖ·:%bd;%bdÂ·;%s¿ª;%s¹Ø;Ä£¿é:%s", p_scenc_infor->adr, p_scenc_infor->channel_nb
+ 923   1        if ((on_sta) && (off_sta))
+ 924   1          sprintf(mod_infom_tab, "µØÖ·:%bd;%bdÂ·;%s¿ª;%s¹Ø;Ä£¿é:%s", p_scenc_infor->adr, p_scenc_infor->channel_nb
              -, led_on_tb, led_off_tb, module_name_1);
- 918   1        else if ((on_sta) && (0 == off_sta))
- 919   1          sprintf(mod_infom_tab, "µØÖ·:%bd;%bdÂ·;%s¿ª;Ä£¿é:%s", p_scenc_infor->adr, p_scenc_infor->channel_nb, led
+ 925   1        else if ((on_sta) && (0 == off_sta))
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 17  
+
+ 926   1          sprintf(mod_infom_tab, "µØÖ·:%bd;%bdÂ·;%s¿ª;Ä£¿é:%s", p_scenc_infor->adr, p_scenc_infor->channel_nb, led
              -_on_tb, module_name_1);
- 920   1        else if ((0 == on_sta) && (off_sta))
- 921   1          sprintf(mod_infom_tab, "µØÖ·:%bd;%bdÂ·;%s¹Ø;Ä£¿é:%s", p_scenc_infor->adr, p_scenc_infor->channel_nb, led
+ 927   1        else if ((0 == on_sta) && (off_sta))
+ 928   1          sprintf(mod_infom_tab, "µØÖ·:%bd;%bdÂ·;%s¹Ø;Ä£¿é:%s", p_scenc_infor->adr, p_scenc_infor->channel_nb, led
              -_off_tb, module_name_1);
- 922   1        else if (p_scenc_infor->diming_enable)
- 923   1          sprintf(mod_infom_tab, "µØÖ·:%bd;%bdÂ·;%s;Ä£¿é:%s", p_scenc_infor->adr, p_scenc_infor->channel_nb, dim_d
+ 929   1        else if (p_scenc_infor->diming_enable)
+ 930   1          sprintf(mod_infom_tab, "µØÖ·:%bd;%bdÂ·;%s;Ä£¿é:%s", p_scenc_infor->adr, p_scenc_infor->channel_nb, dim_d
              -uty_tb, module_name_1);
- 924   1        else
- 925   1          sprintf(mod_infom_tab, "µØÖ·:%bd;%bdÂ·;Î´ÅäÖÃ³¡¾°;%s", p_scenc_infor->adr, p_scenc_infor->channel_nb, mo
+ 931   1        else
+ 932   1          sprintf(mod_infom_tab, "µØÖ·:%bd;%bdÂ·;Î´ÅäÖÃ³¡¾°;%s", p_scenc_infor->adr, p_scenc_infor->channel_nb, mo
              -dule_name_1);
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 17  
-
- 926   1      
- 927   1        // USER_PRINTF("-->module_message %s\n", mod_infom_tab);
- 928   1        //  USER_PRINTF("-->module->index %bd\n",p_scenc_infor->index);
- 929   1        write_dgusii_vp(0x5000 + (p_scenc_infor->index - 1) * 70, (unsigned char *)mod_infom_tab, 43);
- 930   1        // USER_PRINTF("-->display_scene_infor_scenc_infor_index %d\n", p_scenc_infor->index);
- 931   1      }
- 932          // ³¡¾°ÁÐ±íÌí¼ÓÄ£¿éÐÅÏ¢
- 933          void add_module_scene_infor(module_t *p, scenc_infor_t *p_scenc_infor, name_scene_t *p_module_scene)
- 934          {
- 935   1        unsigned short key_nb = 0;
- 936   1        unsigned char i = 0;
- 937   1        unsigned short j = 0;
- 938   1        //  unsigned char temp_index = 0;
- 939   1        get_key_value(0x102e, &key_nb);
- 940   1        if ((1 == key_nb) && (0x31 == p_scenc_infor->edit_sta)) // È·ÈÏÔö¼Ó
- 941   1        {
- 942   2          // USER_PRINTF("p_scenc_infor->edit_sta -->%bx\n", p_scenc_infor->edit_sta);
- 943   2          //    p_scenc_infor->edit_sta = 1;
- 944   2          p_scenc_infor->scene_infor_index = p_module_scene->scene_name_index;
- 945   2          //    USER_PRINTF("p_module_scene->scene_name_index -->%bd\n",p_module_scene->scene_name_index);
- 946   2          // USER_PRINTF("p_scenc_infor->scene_infor_index -->%bd\n", p_scenc_infor->scene_infor_index);
- 947   2          p_scenc_infor->index = get_blank_scene_infor_index();
- 948   2          // USER_PRINTF("get_scene_infor_blank_index -->%d\n", p_scenc_infor->index);
- 949   2          module_relay_scene_set(p, temp_scenc_infor + p_scenc_infor->index, p_module_scene, p_scenc_infor->index,
+ 933   1      
+ 934   1        // USER_PRINTF("-->module_message %s\n", mod_infom_tab);
+ 935   1        //  USER_PRINTF("-->module->index %bd\n",p_scenc_infor->index);
+ 936   1        write_dgusii_vp(0x5000 + (p_scenc_infor->index - 1) * 70, (unsigned char *)mod_infom_tab, 43);
+ 937   1        // USER_PRINTF("-->display_scene_infor_scenc_infor_index %d\n", p_scenc_infor->index);
+ 938   1      }
+ 939          // ³¡¾°ÁÐ±íÌí¼ÓÄ£¿éÐÅÏ¢
+ 940          void add_module_scene_infor(module_t *p, scenc_infor_t *p_scenc_infor, name_scene_t *p_module_scene)
+ 941          {
+ 942   1        unsigned short key_nb = 0;
+ 943   1        unsigned char i = 0;
+ 944   1        unsigned short j = 0;
+ 945   1        //  unsigned char temp_index = 0;
+ 946   1        get_key_value(0x102e, &key_nb);
+ 947   1        if ((1 == key_nb) && (0x31 == p_scenc_infor->edit_sta)) // È·ÈÏÔö¼Ó
+ 948   1        {
+ 949   2          // USER_PRINTF("p_scenc_infor->edit_sta -->%bx\n", p_scenc_infor->edit_sta);
+ 950   2          //    p_scenc_infor->edit_sta = 1;
+ 951   2          p_scenc_infor->scene_infor_index = p_module_scene->scene_name_index;
+ 952   2          //    USER_PRINTF("p_module_scene->scene_name_index -->%bd\n",p_module_scene->scene_name_index);
+ 953   2          // USER_PRINTF("p_scenc_infor->scene_infor_index -->%bd\n", p_scenc_infor->scene_infor_index);
+ 954   2          p_scenc_infor->index = get_blank_scene_infor_index();
+ 955   2          // USER_PRINTF("get_scene_infor_blank_index -->%d\n", p_scenc_infor->index);
+ 956   2          module_relay_scene_set(p, temp_scenc_infor + p_scenc_infor->index, p_module_scene, p_scenc_infor->index,
              - p_scenc_infor->edit_sta);
- 950   2          module_dim_scene_set(p, temp_scenc_infor + p_scenc_infor->index, p_module_scene, p_scenc_infor->index, p
+ 957   2          module_dim_scene_set(p, temp_scenc_infor + p_scenc_infor->index, p_module_scene, p_scenc_infor->index, p
              -_scenc_infor->edit_sta);
- 951   2          display_scene_infor(temp_scenc_infor + p_scenc_infor->index);
- 952   2          clear_key_value(0x102e, &key_nb);
- 953   2          //  unsigned short index;
- 954   2          //  unsigned char  type;
- 955   2          //  unsigned char  adr;
- 956   2          //  unsigned char  channel_nb;
- 957   2          //  unsigned char  edit_sta;
- 958   2          // USER_PRINTF("module_t_index -->%bd\n", p->index);
- 959   2          // printf_temp_scenc_infor(10);
- 960   2          //    SET_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index)%
+ 958   2          display_scene_infor(temp_scenc_infor + p_scenc_infor->index);
+ 959   2          clear_key_value(0x102e, &key_nb);
+ 960   2          //  unsigned short index;
+ 961   2          //  unsigned char  type;
+ 962   2          //  unsigned char  adr;
+ 963   2          //  unsigned char  channel_nb;
+ 964   2          //  unsigned char  edit_sta;
+ 965   2          // USER_PRINTF("module_t_index -->%bd\n", p->index);
+ 966   2          // printf_temp_scenc_infor(10);
+ 967   2          //    SET_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index)%
              -8);
- 961   2          //    SET_BIT(p_module_scene->module_select[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index
+ 968   2          //    SET_BIT(p_module_scene->module_select[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index
              -)%8);
- 962   2          SET_BIT(module_scene_select_key_bak[(p->index) / 8], (p->index) % 8);
- 963   2          SET_BIT(p_module_scene->module_select[(p->index) / 8], (p->index) % 8);
- 964   2          write_dgus(0X1200 + p->index, 1);
- 965   2          //    j = (p_module_scene->scene_name_index-1)*8+((p->index)/8);
- 966   2          j = ((p->index) / 8);
- 967   2          if (p_scenc_infor->index >= 5)
- 968   2          {
- 969   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_SECOND_PAGE + p_scenc_infor->index / 5 - 1;
- 970   3            pic_set(scene_infor_page);
- 971   3            
- 972   3          }
- 973   2          else
- 974   2          {
- 975   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
- 976   3            pic_set(scene_infor_page);
- 977   3          } 
- 978   2          // USER_PRINTF("module_scene_select_key_bak[%d] is %bd\n", j, module_scene_select_key_bak[j]);
- 979   2          //    printf_tab(512,module_scene_select_key_bak);
- 980   2        }
- 981   1        else if ((2 == key_nb) && (0x31 == p_scenc_infor->edit_sta)) // È¡ÏûÔö¼Ó
- 982   1        {
- 983   2          // USER_PRINTF("p_scenc_infor->edit_sta -->%bx\n", p_scenc_infor->edit_sta);
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 18  
+ 969   2          SET_BIT(module_scene_select_key_bak[(p->index) / 8], (p->index) % 8);
+ 970   2          SET_BIT(p_module_scene->module_select[(p->index) / 8], (p->index) % 8);
+ 971   2          write_dgus(0X1200 + p->index, 1);
+ 972   2          //    j = (p_module_scene->scene_name_index-1)*8+((p->index)/8);
+ 973   2          j = ((p->index) / 8);
+ 974   2          if (p_scenc_infor->index >= 5)
+ 975   2          {
+ 976   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_SECOND_PAGE + p_scenc_infor->index / 5 - 1;
+ 977   3            pic_set(scene_infor_page);
+ 978   3          }
+ 979   2          else
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 18  
 
- 984   2          //    CLEAR_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index
+ 980   2          {
+ 981   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
+ 982   3            pic_set(scene_infor_page);
+ 983   3          }
+ 984   2          // USER_PRINTF("module_scene_select_key_bak[%d] is %bd\n", j, module_scene_select_key_bak[j]);
+ 985   2          //    printf_tab(512,module_scene_select_key_bak);
+ 986   2        }
+ 987   1        else if ((2 == key_nb) && (0x31 == p_scenc_infor->edit_sta)) // È¡ÏûÔö¼Ó
+ 988   1        {
+ 989   2          // USER_PRINTF("p_scenc_infor->edit_sta -->%bx\n", p_scenc_infor->edit_sta);
+ 990   2          //    CLEAR_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index
              -)%8);
- 985   2          //    CLEAR_BIT(p_module_scene->module_select[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->ind
+ 991   2          //    CLEAR_BIT(p_module_scene->module_select[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->ind
              -ex)%8);
- 986   2          //    CLEAR_BIT(module_scene_select_key_bak[((p->index)/8)],(p->index)%8);
- 987   2          //    CLEAR_BIT(p_module_scene->module_select[((p->index)/8)],(p->index)%8);
- 988   2          //    write_dgus(0X1200+p->index,0);
- 989   2          clear_key_value(0x102e, &key_nb);
- 990   2          temp_module_index = 0;
- 991   2          pic_set(scene_infor_page);
- 992   2          //    printf_tab(512,module_scene_select_key_bak);
- 993   2        }
- 994   1        else if ((1 == key_nb) && (0x51 == p_scenc_infor->edit_sta)) // È·ÈÏÐÞ¸Ä
- 995   1        {
- 996   2          // USER_PRINTF("p_scenc_infor->edit_sta -->%bx\n", p_scenc_infor->edit_sta);
- 997   2          // USER_PRINTF("-->current infor index is %d\n", p_scenc_infor->index);
- 998   2          // USER_PRINTF("module_t_index -->%bd\n", p->index);
- 999   2          //    SET_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index)%
+ 992   2          //    CLEAR_BIT(module_scene_select_key_bak[((p->index)/8)],(p->index)%8);
+ 993   2          //    CLEAR_BIT(p_module_scene->module_select[((p->index)/8)],(p->index)%8);
+ 994   2          //    write_dgus(0X1200+p->index,0);
+ 995   2          clear_key_value(0x102e, &key_nb);
+ 996   2          temp_module_index = 0;
+ 997   2          pic_set(scene_infor_page);
+ 998   2          //    printf_tab(512,module_scene_select_key_bak);
+ 999   2        }
+1000   1        else if ((1 == key_nb) && (0x51 == p_scenc_infor->edit_sta)) // È·ÈÏÐÞ¸Ä
+1001   1        {
+1002   2          // USER_PRINTF("p_scenc_infor->edit_sta -->%bx\n", p_scenc_infor->edit_sta);
+1003   2          // USER_PRINTF("-->current infor index is %d\n", p_scenc_infor->index);
+1004   2          // USER_PRINTF("module_t_index -->%bd\n", p->index);
+1005   2          //    SET_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index)%
              -8);
-1000   2          //    SET_BIT(p_module_scene->module_select[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index
+1006   2          //    SET_BIT(p_module_scene->module_select[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index
              -)%8);
-1001   2          SET_BIT(module_scene_select_key_bak[(p->index) / 8], (p->index) % 8);
-1002   2          SET_BIT(p_module_scene->module_select[(p->index) / 8], (p->index) % 8);
-1003   2          write_dgus(0X1200 + p->index, 1);
-1004   2      
-1005   2          module_relay_scene_set(p, temp_scenc_infor + p_scenc_infor->index, p_module_scene, p_scenc_infor->index,
+1007   2          SET_BIT(module_scene_select_key_bak[(p->index) / 8], (p->index) % 8);
+1008   2          SET_BIT(p_module_scene->module_select[(p->index) / 8], (p->index) % 8);
+1009   2          write_dgus(0X1200 + p->index, 1);
+1010   2      
+1011   2          module_relay_scene_set(p, temp_scenc_infor + p_scenc_infor->index, p_module_scene, p_scenc_infor->index,
              - p_scenc_infor->edit_sta);
-1006   2          module_dim_scene_set(p, temp_scenc_infor + p_scenc_infor->index, p_module_scene, p_scenc_infor->index, p
+1012   2          module_dim_scene_set(p, temp_scenc_infor + p_scenc_infor->index, p_module_scene, p_scenc_infor->index, p
              -_scenc_infor->edit_sta);
-1007   2          display_scene_infor(temp_scenc_infor + p_scenc_infor->index);
-1008   2          clear_key_value(0x102e, &key_nb);
-1009   2          //    j = (p_module_scene->scene_name_index-1)*8+((p->index)/8);
-1010   2          j = ((p->index) / 8);
-1011   2          if (p_scenc_infor->index >= 5)
-1012   2          {
-1013   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_SECOND_PAGE + p_scenc_infor->index / 5 - 1;
-1014   3            pic_set(scene_infor_page);
-1015   3            
-1016   3          }
-1017   2          else
+1013   2          display_scene_infor(temp_scenc_infor + p_scenc_infor->index);
+1014   2          clear_key_value(0x102e, &key_nb);
+1015   2          //    j = (p_module_scene->scene_name_index-1)*8+((p->index)/8);
+1016   2          j = ((p->index) / 8);
+1017   2          if (p_scenc_infor->index >= 5)
 1018   2          {
-1019   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
+1019   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_SECOND_PAGE + p_scenc_infor->index / 5 - 1;
 1020   3            pic_set(scene_infor_page);
-1021   3          } 
-1022   2          // USER_PRINTF("module_scene_select_key_bak[%d] is %bd\n", j, module_scene_select_key_bak[j]);
-1023   2          //    printf_tab(512,module_scene_select_key_bak);
-1024   2        }
-1025   1        else if ((2 == key_nb) && (0x51 == p_scenc_infor->edit_sta)) // È¡ÏûÐÞ¸Ä
-1026   1        {
-1027   2          // USER_PRINTF("p_scenc_infor->edit_sta -->%bx\n", p_scenc_infor->edit_sta);
-1028   2          //    CLEAR_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index
+1021   3          }
+1022   2          else
+1023   2          {
+1024   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
+1025   3            pic_set(scene_infor_page);
+1026   3          }
+1027   2          // USER_PRINTF("module_scene_select_key_bak[%d] is %bd\n", j, module_scene_select_key_bak[j]);
+1028   2          //    printf_tab(512,module_scene_select_key_bak);
+1029   2        }
+1030   1        else if ((2 == key_nb) && (0x51 == p_scenc_infor->edit_sta)) // È¡ÏûÐÞ¸Ä
+1031   1        {
+1032   2          // USER_PRINTF("p_scenc_infor->edit_sta -->%bx\n", p_scenc_infor->edit_sta);
+1033   2          //    CLEAR_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index
              -)%8);
-1029   2          //    CLEAR_BIT(p_module_scene->module_select[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->ind
+1034   2          //    CLEAR_BIT(p_module_scene->module_select[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->ind
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 19  
+
              -ex)%8);
-1030   2          //    CLEAR_BIT(module_scene_select_key_bak[((p->index)/8)],(p->index)%8);
-1031   2          //    CLEAR_BIT(p_module_scene->module_select[((p->index)/8)],(p->index)%8);
-1032   2          //    if(temp_module_index_bak!=p->index)
-1033   2          //    {
-1034   2          ////      write_dgus(0X1200+p->index,0);
-1035   2          //      CLEAR_BIT(module_scene_select_key_bak[((temp_module_index_bak)/8)],(temp_module_index_bak)%8);
-1036   2          //      CLEAR_BIT(p_module_scene->module_select[((temp_module_index_bak)/8)],(temp_module_index_bak)%8);
-1037   2          //      write_dgus(0X1200+temp_module_index_bak,0);
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 19  
-
-1038   2          //      temp_module_index_bak = p->index;
-1039   2          //
-1040   2          //    }
-1041   2          clear_key_value(0x102e, &key_nb);
-1042   2          temp_module_index = 0;
-1043   2          //    j = (p_module_scene->scene_name_index-1)*8+((p->index)/8);
-1044   2          j = ((p->index) / 8);
-1045   2          // USER_PRINTF("p_module_scene->scene_name_index -->%bd\n", p_module_scene->scene_name_index);
-1046   2          // USER_PRINTF("p->index -->%bd\n", p->index);
-1047   2          // USER_PRINTF("module_scene_select_key_bak[%d] is %bd\n", j, module_scene_select_key_bak[(p_module_scen
+1035   2          //    CLEAR_BIT(module_scene_select_key_bak[((p->index)/8)],(p->index)%8);
+1036   2          //    CLEAR_BIT(p_module_scene->module_select[((p->index)/8)],(p->index)%8);
+1037   2          //    if(temp_module_index_bak!=p->index)
+1038   2          //    {
+1039   2          ////      write_dgus(0X1200+p->index,0);
+1040   2          //      CLEAR_BIT(module_scene_select_key_bak[((temp_module_index_bak)/8)],(temp_module_index_bak)%8);
+1041   2          //      CLEAR_BIT(p_module_scene->module_select[((temp_module_index_bak)/8)],(temp_module_index_bak)%8);
+1042   2          //      write_dgus(0X1200+temp_module_index_bak,0);
+1043   2          //      temp_module_index_bak = p->index;
+1044   2          //
+1045   2          //    }
+1046   2          clear_key_value(0x102e, &key_nb);
+1047   2          temp_module_index = 0;
+1048   2          //    j = (p_module_scene->scene_name_index-1)*8+((p->index)/8);
+1049   2          j = ((p->index) / 8);
+1050   2          // USER_PRINTF("p_module_scene->scene_name_index -->%bd\n", p_module_scene->scene_name_index);
+1051   2          // USER_PRINTF("p->index -->%bd\n", p->index);
+1052   2          // USER_PRINTF("module_scene_select_key_bak[%d] is %bd\n", j, module_scene_select_key_bak[(p_module_scen
              -e->scene_name_index - 1) + ((p->index) / 8)]);
-1048   2          pic_set(scene_infor_page);  
-1049   2        }
-1050   1      }
-1051          // Ìí¼Ó³¡¾°ÐòºÅ
-1052          void scene_name_add(name_scene_t *p_module_scene)
-1053          {
-1054   1        p_module_scene->scene_name_index = get_blank_scene_name_index() + 1;
-1055   1        // USER_PRINTF("-->current_scene_name_index is %bd\n", p_module_scene->scene_name_index);
-1056   1        clear_temp_scenc_infor();
-1057   1        clear_all_scene_infor();
-1058   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
-1059   1        clear_all_module_var_en(0x1200, SCENE_NUB_SIGNLE);
-1060   1        p_module_scene->edit_sta = 1;
-1061   1        // pic_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
-1062   1      }
-1063          // ³¡¾°ÐÞ¸Ä
-1064          void scene_name_modify(name_scene_t *p_module_scene)
-1065          {
-1066   1        //  p_module_scene->scene_name_index = 0;
-1067   1        unsigned char index = 0;
-1068   1        unsigned char i = 0, j = 0;
-1069   1      
-1070   1        index = get_scene_name_select_sequence_number() - 1;
-1071   1        //  USER_PRINTF("name_scene.edit_sta is %bd\n",module_scene.edit_sta);
-1072   1        USER_PRINTF("scene_name_modify index is %bd\n", index);
-1073   1        if (BLANK == if_scene_name_exists(index))
-1074   1        {
-1075   2          return;
-1076   2        }
-1077   1        // pic_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
-1078   1        pic_set(SINGLE_SCENE_INFOR_LIST_FIRST_PAGE);
-1079   1      
-1080   1        scene_name_read_flash(p_module_scene, index);
-1081   1      
-1082   1        printf_tab(8, &p_module_scene->module_select);
-1083   1        norflash_read(SCENE_INFOR_FLASH_ADR_SATRT + (index)*SINGLE_NAME_SCENC_INFOR_SIZE, (unsigned char *)(temp_
+1053   2          pic_set(scene_infor_page);
+1054   2        }
+1055   1      }
+1056          // Ìí¼Ó³¡¾°ÐòºÅ
+1057          void scene_name_add(name_scene_t *p_module_scene)
+1058          {
+1059   1        unsigned char index = 0;
+1060   1        index = get_blank_scene_name_index();
+1061   1        if (OVERFLOW_SIZE == index)
+1062   1        {
+1063   2          USER_PRINTF("-->waring! too many scene \n");
+1064   2          pop_menu_key_ctrl(OVERFLOW_WARING_CODE);
+1065   2          return;
+1066   2        }
+1067   1        pic_set(SCENE_ADD_PAGE);
+1068   1        p_module_scene->scene_name_index = index + 1;
+1069   1        // USER_PRINTF("-->current_scene_name_index is %bd\n", p_module_scene->scene_name_index);
+1070   1        clear_temp_scenc_infor();
+1071   1        clear_all_scene_infor();
+1072   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
+1073   1        clear_all_module_var_en(0x1200, SINGLE_SCENE_NAME_INFOR_SIZE);
+1074   1        p_module_scene->edit_sta = 1;
+1075   1        set_default_scene_name();
+1076   1        // pic_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
+1077   1      }
+1078          // ³¡¾°ÐÞ¸Ä
+1079          void scene_name_modify(name_scene_t *p_module_scene)
+1080          {
+1081   1        //  p_module_scene->scene_name_index = 0;
+1082   1        unsigned char index = 0;
+1083   1        unsigned char i = 0, j = 0;
+1084   1      
+1085   1        index = get_scene_name_select_sequence_number() - 1;
+1086   1        //  USER_PRINTF("name_scene.edit_sta is %bd\n",module_scene.edit_sta);
+1087   1        USER_PRINTF("scene_name_modify index is %bd\n", index);
+1088   1        if (BLANK == if_scene_name_exists(index))
+1089   1        {
+1090   2          return;
+1091   2        }
+1092   1        // pic_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
+1093   1        pic_set(SINGLE_SCENE_INFOR_LIST_FIRST_PAGE);
+1094   1      
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 20  
+
+1095   1        scene_name_read_flash(p_module_scene, index);
+1096   1      
+1097   1        printf_tab(8, &p_module_scene->module_select);
+1098   1        norflash_read(SCENE_INFOR_FLASH_ADR_SATRT + (index)*SINGLE_NAME_SCENC_INFOR_SIZE, (unsigned char *)(temp_
              -scenc_infor), SINGLE_NAME_SCENC_INFOR_SIZE);
-1084   1        memcpy((unsigned char *)&module_scene_select_key_bak, (unsigned char *)&(p_module_scene->module_select), 
+1099   1        memcpy((unsigned char *)&module_scene_select_key_bak, (unsigned char *)&(p_module_scene->module_select), 
              -8);
-1085   1        printf_tab(8, &module_scene_select_key_bak);
-1086   1        for (i = 0; i < 8; i++)
-1087   1        {
-1088   2          for (j = 0; j < 8; j++)
-1089   2          {
-1090   3            if (GET_BIT(module_scene_select_key_bak[i], j))
-1091   3            {
-1092   4              write_dgus(0X1200 + i * 8 + j, 1);
-1093   4            }
-1094   3            else
-1095   3            {
-1096   4              write_dgus(0X1200 + i * 8 + j, 0);
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 20  
-
-1097   4            }
-1098   3          }
-1099   2        }
-1100   1      
-1101   1        for (i = 0; i < SCENE_NUB_SIGNLE; i++)
+1100   1        printf_tab(8, &module_scene_select_key_bak);
+1101   1        for (i = 0; i < 8; i++)
 1102   1        {
-1103   2          if (FULL == (temp_scenc_infor + i)->data_sta)
-1104   2            display_scene_infor(temp_scenc_infor + i);
-1105   2          else
-1106   2            clear_single_scene(i);
-1107   2        }
-1108   1        p_module_scene->edit_sta = 4;
-1109   1        //  USER_PRINTF("name_scene.edit_sta is %bd\n",module_scene.edit_sta);
-1110   1      }
-1111          // ³¡¾°Çå³ý
-1112          void scene_name_clear(name_scene_t *p_module_scene)
-1113          {
-1114   1      
-1115   1        scene_name_clear_flash();
-1116   1        clear_scene_list_name();
-1117   1        USER_PRINTF("clear_scene_name_flash \n");
-1118   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
-1119   1        memset((unsigned char *)p_module_scene->module_select, 0, 8);
-1120   1        mbHost.scene_send_cyc_time = 200;
-1121   1        scene_data.scenc_send_name_cyc_flag = 1;
-1122   1        p_module_scene->edit_sta = 3;
-1123   1      }
-1124          // ³¡¾°É¾³ý
-1125          void scene_name_delete(name_scene_t *p_module_scene)
-1126          {
-1127   1        scene_name_delete_flash(p_module_scene->scene_name_index - 1);
-1128   1        delete_scene_list_name(p_module_scene->scene_name_index - 1);
-1129   1        USER_PRINTF("delete_single_scene_name_flash \n");
-1130   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
-1131   1        memset((unsigned char *)p_module_scene->module_select, 0, 8);
-1132   1        //  mbHost.scene_send_cyc_time  = 200;
-1133   1        //  scene_data.scenc_send_name_cyc_flag  = 1;
-1134   1        p_module_scene->edit_sta = 2;
-1135   1      }
-1136          // ³¡¾°Ãû³ÆÁÐ±í¿ØÖÆ²Ù×÷
-1137          void scene_name_key_ctrl(name_scene_t *p_module_scene)
-1138          {
-1139   1        unsigned short key_nb = 0;
-1140   1        unsigned char edit_sta = 0;
-1141   1        //  unsigned short index = 0;
-1142   1        get_key_value(0x1072, &key_nb);
-1143   1        if ((key_nb))
-1144   1        {
-1145   2          switch (key_nb)
-1146   2          {
-1147   3          case 1: // Ìí¼Ó
-1148   3            scene_name_add(p_module_scene);
-1149   3            
-1150   3            break;
-1151   3          case 3: // ÐÞ¸Ä
-1152   3            //        edit_sta = 2;
-1153   3            //        memcpy(get_module_scene_module_select());
-1154   3            scene_name_modify(p_module_scene);
-1155   3            break;
-1156   3          }
-1157   2          clear_key_value(0x1072, &key_nb);
-1158   2        }
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 21  
+1103   2          for (j = 0; j < 8; j++)
+1104   2          {
+1105   3            if (GET_BIT(module_scene_select_key_bak[i], j))
+1106   3            {
+1107   4              write_dgus(0X1200 + i * 8 + j, 1);
+1108   4            }
+1109   3            else
+1110   3            {
+1111   4              write_dgus(0X1200 + i * 8 + j, 0);
+1112   4            }
+1113   3          }
+1114   2        }
+1115   1      
+1116   1        for (i = 0; i < SINGLE_SCENE_NAME_INFOR_SIZE; i++)
+1117   1        {
+1118   2          if (FULL == (temp_scenc_infor + i)->data_sta)
+1119   2            display_scene_infor(temp_scenc_infor + i);
+1120   2          else
+1121   2            clear_single_scene(i);
+1122   2        }
+1123   1        p_module_scene->edit_sta = 4;
+1124   1        //  USER_PRINTF("name_scene.edit_sta is %bd\n",module_scene.edit_sta);
+1125   1      }
+1126          // ³¡¾°Çå³ý
+1127          void scene_name_clear(name_scene_t *p_module_scene)
+1128          {
+1129   1      
+1130   1        scene_name_clear_flash();
+1131   1        clear_scene_list_name();
+1132   1        USER_PRINTF("clear_scene_name_flash \n");
+1133   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
+1134   1        memset((unsigned char *)p_module_scene->module_select, 0, 8);
+1135   1        mbHost.scene_send_cyc_time = 200;
+1136   1        scene_data.scenc_send_name_cyc_flag = 1;
+1137   1        p_module_scene->edit_sta = 3;
+1138   1      }
+1139          // ³¡¾°É¾³ý
+1140          void scene_name_delete(name_scene_t *p_module_scene)
+1141          {
+1142   1        scene_name_delete_flash(p_module_scene->scene_name_index - 1);
+1143   1        delete_scene_list_name(p_module_scene->scene_name_index - 1);
+1144   1        USER_PRINTF("delete_single_scene_name_flash \n");
+1145   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
+1146   1        memset((unsigned char *)p_module_scene->module_select, 0, 8);
+1147   1        //  mbHost.scene_send_cyc_time  = 200;
+1148   1        //  scene_data.scenc_send_name_cyc_flag  = 1;
+1149   1        p_module_scene->edit_sta = 2;
+1150   1      }
+1151          // ³¡¾°Ãû³ÆÁÐ±í¿ØÖÆ²Ù×÷
+1152          void scene_name_key_ctrl(name_scene_t *p_module_scene)
+1153          {
+1154   1        unsigned short key_nb = 0;
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 21  
 
-1159   1        get_key_value(0x1073, &key_nb); // ³¡¾°Ãû³ÆÇå¿Õ
-1160   1        if ((1 == key_nb))
-1161   1        {
-1162   2          clear_key_value(0x1073, &key_nb);
-1163   2          pop_menu_key_ctrl(1);
-1164   2      
-1165   2          scene_name_clear(p_module_scene);
-1166   2          USER_PRINTF("scene name clear ok!\n");
-1167   2          //    USER_PRINTF("clear_scene_name \n");
-1168   2      
-1169   2          //    pop_menu_0xb0(read_pic(),1,17);
-1170   2        }
-1171   1        get_key_value(0x1074, &key_nb); // ³¡¾°Ãû³ÆÉ¾³ý
-1172   1        if ((1 == key_nb))
-1173   1        {
-1174   2          clear_key_value(0x1074, &key_nb);
-1175   2      
-1176   2          p_module_scene->scene_name_index = get_scene_name_select_sequence_number();
-1177   2          if (BLANK == if_scene_name_exists(p_module_scene->scene_name_index - 1))
-1178   2          {
-1179   3            return;
-1180   3          }
-1181   2          if (0 == p_module_scene->scene_name_index)
-1182   2            return;
-1183   2          pop_menu_key_ctrl(1);
-1184   2          norflash_read(SCENE_INFOR_FLASH_ADR_SATRT + (get_scene_name_select_sequence_number() - 1) * SINGLE_NAME_
+1155   1        unsigned char edit_sta = 0;
+1156   1        //  unsigned short index = 0;
+1157   1        get_key_value(0x1072, &key_nb);
+1158   1        if ((key_nb))
+1159   1        {
+1160   2          switch (key_nb)
+1161   2          {
+1162   3          case 1: // Ìí¼Ó
+1163   3            scene_name_add(p_module_scene);
+1164   3      
+1165   3            break;
+1166   3          case 3: // ÐÞ¸Ä
+1167   3            //        edit_sta = 2;
+1168   3            //        memcpy(get_module_scene_module_select());
+1169   3            scene_name_modify(p_module_scene);
+1170   3            break;
+1171   3          }
+1172   2          clear_key_value(0x1072, &key_nb);
+1173   2        }
+1174   1        get_key_value(0x1073, &key_nb); // ³¡¾°Ãû³ÆÇå¿Õ
+1175   1        if ((1 == key_nb))
+1176   1        {
+1177   2          clear_key_value(0x1073, &key_nb);
+1178   2          pop_menu_key_ctrl(1);
+1179   2      
+1180   2          scene_name_clear(p_module_scene);
+1181   2          USER_PRINTF("scene name clear ok!\n");
+1182   2          //    USER_PRINTF("clear_scene_name \n");
+1183   2      
+1184   2          //    pop_menu_0xb0(read_pic(),1,17);
+1185   2        }
+1186   1        get_key_value(0x1074, &key_nb); // ³¡¾°Ãû³ÆÉ¾³ý
+1187   1        if ((1 == key_nb))
+1188   1        {
+1189   2          clear_key_value(0x1074, &key_nb);
+1190   2      
+1191   2          p_module_scene->scene_name_index = get_scene_name_select_sequence_number();
+1192   2          if (BLANK == if_scene_name_exists(p_module_scene->scene_name_index - 1))
+1193   2          {
+1194   3            return;
+1195   3          }
+1196   2          if (0 == p_module_scene->scene_name_index)
+1197   2            return;
+1198   2          pop_menu_key_ctrl(1);
+1199   2          norflash_read(SCENE_INFOR_FLASH_ADR_SATRT + (get_scene_name_select_sequence_number() - 1) * SINGLE_NAME_
              -SCENC_INFOR_SIZE, (unsigned char *)(temp_scenc_infor), SINGLE_NAME_SCENC_INFOR_SIZE);
-1185   2          scene_name_delete(p_module_scene);
-1186   2          USER_PRINTF("scene name delete ok!\n");
-1187   2      
-1188   2          //    pop_menu_0xb0(read_pic(),1,17);
-1189   2        }
-1190   1      }
-1191          
-1192          // ³¡¾°ÐÅÏ¢ÁÐ±íÈ·ÈÏ±£´æ
-1193          void scene_infor_confirm_ctrl(name_scene_t *p_module_scene)
-1194          {
-1195   1        if (0xff == if_all_scene_infor_blank()) // Î´Ìí¼Ó³¡¾°Ä£¿éÐÅÏ¢
-1196   1        {
-1197   2          return;
-1198   2        }
-1199   1        mbHost.scene_send_cyc_time = 200;
-1200   1        scene_data.scenc_send_infor_cyc_flag = 1;
-1201   1        pop_menu_key_ctrl(1);
-1202   1        USER_PRINTF("-->scene_infor_confirm_ctrl \n");
-1203   1        scene_infor_save_flash(p_module_scene);
-1204   1        scene_name_save(p_module_scene);
-1205   1        if (p_module_scene->scene_name_index > 6)
-1206   1        {
-1207   2          pic_page = SINGLE_SCENE_NAME_MANGE_SECOND_PAGE + p_module_scene->scene_name_index / 6 - 1;
-1208   2          pic_set(pic_page);
-1209   2          
-1210   2        }
-1211   1        else
-1212   1        {
-1213   2          pic_page = SINGLE_SCENE_NAME_MANGE_FIRST_PAGE;
-1214   2          pic_set(pic_page);
-1215   2        }
-1216   1        // if()
-1217   1      }
-1218          // ³¡¾°ÐÅÏ¢ÁÐ±íÈ¡Ïû±£´æ
-1219          void scene_infor_cancel_ctrl(name_scene_t *p_module_scene, scenc_infor_t *p_scenc_infor)
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 22  
+1200   2          scene_name_delete(p_module_scene);
+1201   2          USER_PRINTF("scene name delete ok!\n");
+1202   2      
+1203   2          //    pop_menu_0xb0(read_pic(),1,17);
+1204   2        }
+1205   1      }
+1206          
+1207          // ³¡¾°ÐÅÏ¢ÁÐ±íÈ·ÈÏ±£´æ
+1208          void scene_infor_confirm_ctrl(name_scene_t *p_module_scene)
+1209          {
+1210   1        if (0xff == if_all_scene_infor_blank()) // Î´Ìí¼Ó³¡¾°Ä£¿éÐÅÏ¢
+1211   1        {
+1212   2          return;
+1213   2        }
+1214   1        mbHost.scene_send_cyc_time = 200;
+1215   1        scene_data.scenc_send_infor_cyc_flag = 1;
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 22  
 
-1220          {
-1221   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
-1222   1        clear_temp_scenc_infor();                                         // Çå¿ÕÁÙÊ±³¡¾°ÐÅÏ¢±äÁ¿
-1223   1        memset((unsigned char *)p_scenc_infor, 0, sizeof(scenc_infor_t)); // Çå¿Õ³¡¾°ÐÅÏ¢±äÁ¿
-1224   1        memset((unsigned char *)p_module_scene, 0, sizeof(name_scene_t)); // Çå¿Õ³¡¾°Ãû×Ö±äÁ¿
-1225   1        clear_all_scene_infor();                                          // Çå¿Õ³¡¾°ÐÅÏ¢ÏÔÊ¾
-1226   1        clear_all_module_var_en(0x1200, SCENE_NUB_SIGNLE);
-1227   1        pic_set(pic_page);
-1228   1      }
-1229          ////³¡¾°ÐÅÏ¢ÁÐ±íÇå¿Õ·¢ËÍÉ¾³ý³¡¾°Ö¸Áî
-1230          // void scene_infor_clear_send(name_scene_t *p_module_scene,scenc_infor_t *p_scenc_infor)
-1231          //{
-1232          ////  if(2 == get_module_scene_edit_sta())//Èç¹û´¦ÓÚÐÞ¸Ä³¡¾°×´Ì¬£¬ÐèÒªÏÂ·¢Ö¸ÁîÉ¾³ýËùÓÐ³¡¾°
-1233          ////  {
-1234          ////    scene_name_delete(p_module_scene);
-1235          ////    scene_infor_clear_flash(p_scenc_infor);
-1236          ////  }
-1237          ////  else
-1238          ////  {
-1239          ////
-1240          ////  }
-1241          //}
-1242          // ³¡¾°ÐÅÏ¢ÁÐ±íÇå¿Õ
-1243          void scene_infor_clear_ctrl(name_scene_t *p_module_scene, scenc_infor_t *p_scenc_infor)
-1244          {
-1245   1        //  if(2 == get_module_scene_edit_sta())//Èç¹û´¦ÓÚÐÞ¸Ä³¡¾°×´Ì¬£¬ÐèÒªÏÂ·¢Ö¸ÁîÉ¾³ýËùÓÐ³¡¾°
-1246   1        //  {
-1247   1        //    (temp_scenc_infor+p_scenc_infor->index)->edit_sta = 2;
-1248   1        //    module_relay_scene_send(temp_scenc_infor+p_scenc_infor->index);
-1249   1        //    module_dim_scene_send(temp_scenc_infor+p_scenc_infor->index);
-1250   1        //  }
-1251   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
-1252   1        clear_temp_scenc_infor();                                         // Çå¿ÕÁÙÊ±³¡¾°ÐÅÏ¢±äÁ¿
-1253   1        memset((unsigned char *)p_scenc_infor, 0, sizeof(scenc_infor_t)); // Çå¿Õ³¡¾°ÐÅÏ¢±äÁ¿
-1254   1        memset((unsigned char *)p_module_scene, 0, sizeof(name_scene_t)); // Çå¿Õ³¡¾°Ãû×Ö±äÁ¿
-1255   1        clear_all_scene_infor();                                          // Çå¿Õ³¡¾°ÐÅÏ¢ÏÔÊ¾
-1256   1        clear_all_module_var_en(0x1200, SCENE_NUB_SIGNLE);
-1257   1      }
-1258          // ³¡¾°ÐÅÏ¢ÁÐ±íÐÞ¸Ä
-1259          void scene_infor_modify_ctrl(scenc_infor_t *p_scenc_infor)
+1216   1        pop_menu_key_ctrl(1);
+1217   1        USER_PRINTF("-->scene_infor_confirm_ctrl \n");
+1218   1        scene_infor_save_flash(p_module_scene);
+1219   1        scene_name_save(p_module_scene);
+1220   1        if (p_module_scene->scene_name_index > 6)
+1221   1        {
+1222   2      
+1223   2          pic_page = SINGLE_SCENE_NAME_MANGE_SECOND_PAGE + (p_module_scene->scene_name_index - 1) / 6;
+1224   2          pic_set(pic_page);
+1225   2        }
+1226   1        else
+1227   1        {
+1228   2      
+1229   2          pic_page = SINGLE_SCENE_NAME_MANGE_FIRST_PAGE;
+1230   2          pic_set(pic_page);
+1231   2        }
+1232   1        // if()
+1233   1      }
+1234          // ³¡¾°ÐÅÏ¢ÁÐ±íÈ¡Ïû±£´æ
+1235          void scene_infor_cancel_ctrl(name_scene_t *p_module_scene, scenc_infor_t *p_scenc_infor)
+1236          {
+1237   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
+1238   1        clear_temp_scenc_infor();                                         // Çå¿ÕÁÙÊ±³¡¾°ÐÅÏ¢±äÁ¿
+1239   1        memset((unsigned char *)p_scenc_infor, 0, sizeof(scenc_infor_t)); // Çå¿Õ³¡¾°ÐÅÏ¢±äÁ¿
+1240   1        memset((unsigned char *)p_module_scene, 0, sizeof(name_scene_t)); // Çå¿Õ³¡¾°Ãû×Ö±äÁ¿
+1241   1        clear_all_scene_infor();                                          // Çå¿Õ³¡¾°ÐÅÏ¢ÏÔÊ¾
+1242   1        clear_all_module_var_en(0x1200, SINGLE_SCENE_NAME_INFOR_SIZE);
+1243   1        pic_set(pic_page);
+1244   1      }
+1245          ////³¡¾°ÐÅÏ¢ÁÐ±íÇå¿Õ·¢ËÍÉ¾³ý³¡¾°Ö¸Áî
+1246          // void scene_infor_clear_send(name_scene_t *p_module_scene,scenc_infor_t *p_scenc_infor)
+1247          //{
+1248          ////  if(2 == get_module_scene_edit_sta())//Èç¹û´¦ÓÚÐÞ¸Ä³¡¾°×´Ì¬£¬ÐèÒªÏÂ·¢Ö¸ÁîÉ¾³ýËùÓÐ³¡¾°
+1249          ////  {
+1250          ////    scene_name_delete(p_module_scene);
+1251          ////    scene_infor_clear_flash(p_scenc_infor);
+1252          ////  }
+1253          ////  else
+1254          ////  {
+1255          ////
+1256          ////  }
+1257          //}
+1258          // ³¡¾°ÐÅÏ¢ÁÐ±íÇå¿Õ
+1259          void scene_infor_clear_ctrl(name_scene_t *p_module_scene, scenc_infor_t *p_scenc_infor)
 1260          {
-1261   1        unsigned char index = 0;
-1262   1        //  module_t temp_module = {0};
-1263   1        p_scenc_infor->edit_sta = 0x51; // Ìí¼ÓÐÞ¸Ä
-1264   1        index = get_scene_infor_select_sequence_number();
-1265   1        //  USER_PRINTF("-->get_scene_infor_select_sequence_number is bd\n",index);
-1266   1        p_scenc_infor->index = get_scene_infor_select_sequence_number() - 1;
-1267   1        // USER_PRINTF("-->current scene infor select index is d\n", p_scenc_infor->index);
-1268   1        if (BLANK == (temp_scenc_infor + p_scenc_infor->index)->data_sta)
-1269   1          return;
-1270   1        p_scenc_infor->edit_sta = 0x51; // Ìí¼ÓÐÞ¸Ä
-1271   1        // USER_PRINTF("-->current scene infor select index is %d\n", p_scenc_infor->index);
-1272   1      
-1273   1        norflash_read((temp_scenc_infor + p_scenc_infor->index)->module_index * 140, (unsigned char *)&st_module,
+1261   1        //  if(2 == get_module_scene_edit_sta())//Èç¹û´¦ÓÚÐÞ¸Ä³¡¾°×´Ì¬£¬ÐèÒªÏÂ·¢Ö¸ÁîÉ¾³ýËùÓÐ³¡¾°
+1262   1        //  {
+1263   1        //    (temp_scenc_infor+p_scenc_infor->index)->edit_sta = 2;
+1264   1        //    module_relay_scene_send(temp_scenc_infor+p_scenc_infor->index);
+1265   1        //    module_dim_scene_send(temp_scenc_infor+p_scenc_infor->index);
+1266   1        //  }
+1267   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
+1268   1        clear_temp_scenc_infor();                                         // Çå¿ÕÁÙÊ±³¡¾°ÐÅÏ¢±äÁ¿
+1269   1        memset((unsigned char *)p_scenc_infor, 0, sizeof(scenc_infor_t)); // Çå¿Õ³¡¾°ÐÅÏ¢±äÁ¿
+1270   1        memset((unsigned char *)p_module_scene, 0, sizeof(name_scene_t)); // Çå¿Õ³¡¾°Ãû×Ö±äÁ¿
+1271   1        clear_all_scene_infor();                                          // Çå¿Õ³¡¾°ÐÅÏ¢ÏÔÊ¾
+1272   1        clear_all_module_var_en(0x1200, SINGLE_SCENE_NAME_INFOR_SIZE);
+1273   1      }
+1274          // ³¡¾°ÐÅÏ¢ÁÐ±íÐÞ¸Ä
+1275          void scene_infor_modify_ctrl(scenc_infor_t *p_scenc_infor)
+1276          {
+1277   1        unsigned char index = 0;
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 23  
+
+1278   1        //  module_t temp_module = {0};
+1279   1        p_scenc_infor->edit_sta = 0x51; // Ìí¼ÓÐÞ¸Ä
+1280   1        index = get_scene_infor_select_sequence_number();
+1281   1        //  USER_PRINTF("-->get_scene_infor_select_sequence_number is bd\n",index);
+1282   1        p_scenc_infor->index = get_scene_infor_select_sequence_number() - 1;
+1283   1        // USER_PRINTF("-->current scene infor select index is d\n", p_scenc_infor->index);
+1284   1        if (BLANK == (temp_scenc_infor + p_scenc_infor->index)->data_sta)
+1285   1          return;
+1286   1        p_scenc_infor->edit_sta = 0x51; // Ìí¼ÓÐÞ¸Ä
+1287   1        // USER_PRINTF("-->current scene infor select index is %d\n", p_scenc_infor->index);
+1288   1      
+1289   1        norflash_read((temp_scenc_infor + p_scenc_infor->index)->module_index * 140, (unsigned char *)&st_module,
              - 140);
-1274   1        //  temp_module_index_bak = st_module.index;
-1275   1        //  USER_PRINTF("scene_modify_module_index is %bd\n",temp_module_index_bak);
-1276   1        //  CLEAR_BIT(module_scene_select_key_bak[(p_scenc_infor->scene_infor_index-1)*(((temp_scenc_infor+index)-
+1290   1        //  temp_module_index_bak = st_module.index;
+1291   1        //  USER_PRINTF("scene_modify_module_index is %bd\n",temp_module_index_bak);
+1292   1        //  CLEAR_BIT(module_scene_select_key_bak[(p_scenc_infor->scene_infor_index-1)*(((temp_scenc_infor+index)-
              ->module_index-1)/8)],((temp_scenc_infor+index)->module_index-1)%8);
-1277   1        display_scene_interface(&st_module);
-1278   1        module_scene_infor_dis(temp_scenc_infor + p_scenc_infor->index);
-1279   1      }
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 23  
-
-1280          // ³¡¾°ÐÅÏ¢ÁÐ±íÉ¾³ý
-1281          void scene_infor_delete_ctrl(scenc_infor_t *p_scenc_infor)
-1282          {
-1283   1        unsigned char index = 0;
-1284   1        //  USER_PRINTF("-->delete_p_scenc_infor->index %bx\n",p_scenc_infor->index);
-1285   1        //  if(BLANK == (temp_scenc_infor+p_scenc_infor->index)->data_sta)
-1286   1        //    return;
-1287   1        index = get_scene_infor_select_sequence_number();
-1288   1        if (0 == index)
-1289   1        {
-1290   2          return;
-1291   2        }
-1292   1        p_scenc_infor->index = index - 1;
-1293   1        // USER_PRINTF("-->select_scene_infor_index is %d\n", p_scenc_infor->index);
-1294   1        // USER_PRINTF("-->select_p_scenc_infor->module_index is %bd\n", p_scenc_infor->module_index);
-1295   1        clear_single_scene(p_scenc_infor->index); // Çå³ýÑ¡ÖÐ³¡¾°ÐÅÏ¢ÏÔÊ¾
-1296   1        if (4 == get_module_scene_edit_sta())     // Èç¹û´¦ÓÚÐÞ¸Ä³¡¾°×´Ì¬£¬ÐèÒªÏÂ·¢Ö¸ÁîÉ¾³ý³¡¾°
-1297   1        {
-1298   2          (temp_scenc_infor + p_scenc_infor->index)->edit_sta = 2;
-1299   2          module_relay_scene_send(temp_scenc_infor + p_scenc_infor->index);
-1300   2          module_dim_scene_send(temp_scenc_infor + p_scenc_infor->index);
-1301   2          scene_infor_delete_flash(temp_scenc_infor + p_scenc_infor->index);
-1302   2      
-1303   2          //    CLEAR_BIT(module_scene.module_select[p_scenc_infor->module_index/8],(p_scenc_infor->module_index)%8)
+1293   1        display_scene_interface(&st_module);
+1294   1        module_scene_infor_dis(temp_scenc_infor + p_scenc_infor->index);
+1295   1      }
+1296          // ³¡¾°ÐÅÏ¢ÁÐ±íÉ¾³ý
+1297          void scene_infor_delete_ctrl(scenc_infor_t *p_scenc_infor)
+1298          {
+1299   1        unsigned char index = 0;
+1300   1        //  USER_PRINTF("-->delete_p_scenc_infor->index %bx\n",p_scenc_infor->index);
+1301   1        //  if(BLANK == (temp_scenc_infor+p_scenc_infor->index)->data_sta)
+1302   1        //    return;
+1303   1        index = get_scene_infor_select_sequence_number();
+1304   1        if (0 == index)
+1305   1        {
+1306   2          return;
+1307   2        }
+1308   1        p_scenc_infor->index = index - 1;
+1309   1        // USER_PRINTF("-->select_scene_infor_index is %d\n", p_scenc_infor->index);
+1310   1        // USER_PRINTF("-->select_p_scenc_infor->module_index is %bd\n", p_scenc_infor->module_index);
+1311   1        clear_single_scene(p_scenc_infor->index); // Çå³ýÑ¡ÖÐ³¡¾°ÐÅÏ¢ÏÔÊ¾
+1312   1        if (4 == get_module_scene_edit_sta())     // Èç¹û´¦ÓÚÐÞ¸Ä³¡¾°×´Ì¬£¬ÐèÒªÏÂ·¢Ö¸ÁîÉ¾³ý³¡¾°
+1313   1        {
+1314   2          (temp_scenc_infor + p_scenc_infor->index)->edit_sta = 2;
+1315   2          module_relay_scene_send(temp_scenc_infor + p_scenc_infor->index);
+1316   2          module_dim_scene_send(temp_scenc_infor + p_scenc_infor->index);
+1317   2          scene_infor_delete_flash(temp_scenc_infor + p_scenc_infor->index);
+1318   2      
+1319   2          //    CLEAR_BIT(module_scene.module_select[p_scenc_infor->module_index/8],(p_scenc_infor->module_index)%8)
              -;
-1304   2      
-1305   2          CLEAR_BIT(module_scene_select_key_bak[((temp_scenc_infor + p_scenc_infor->index)->module_index) / 8], ((
+1320   2      
+1321   2          CLEAR_BIT(module_scene_select_key_bak[((temp_scenc_infor + p_scenc_infor->index)->module_index) / 8], ((
              -temp_scenc_infor + p_scenc_infor->index)->module_index) % 8);
-1306   2          CLEAR_BIT(module_scene.module_select[((temp_scenc_infor + p_scenc_infor->index)->module_index) / 8], ((t
+1322   2          CLEAR_BIT(module_scene.module_select[((temp_scenc_infor + p_scenc_infor->index)->module_index) / 8], ((t
              -emp_scenc_infor + p_scenc_infor->index)->module_index) % 8);
-1307   2          scene_name_save_flash(&module_scene);
-1308   2        }
-1309   1        else
-1310   1        {
-1311   2          CLEAR_BIT(module_scene_select_key_bak[(temp_module_index - 1) / 8], (temp_module_index - 1) % 8);
-1312   2        }
-1313   1        memset((unsigned char *)(temp_scenc_infor + p_scenc_infor->index), 0, sizeof(scenc_infor_t)); // Çå³ý³¡¾°
+1323   2          scene_name_save_flash(&module_scene);
+1324   2        }
+1325   1        else
+1326   1        {
+1327   2          CLEAR_BIT(module_scene_select_key_bak[(temp_module_index - 1) / 8], (temp_module_index - 1) % 8);
+1328   2        }
+1329   1        memset((unsigned char *)(temp_scenc_infor + p_scenc_infor->index), 0, sizeof(scenc_infor_t)); // Çå³ý³¡¾°
              -ÐÅÏ¢±äÁ¿
-1314   1        memset((unsigned char *)p_scenc_infor, 0, sizeof(scenc_infor_t));                             // Çå¿Õ³¡¾°ÐÅÏ¢±äÁ¿
-1315   1      
-1316   1        clear_single_module_var_en(0x1200 + p_scenc_infor->index);
-1317   1        //  clear_all_module_var_en(SCENE_INFOR_LIST_SELECT_ADR,SCENE_NAME_NUB);
-1318   1        USER_PRINTF("-->scene_infor_delete_ctrl\n");
-1319   1      }
-1320          // ³¡¾°±à¼­×´Ì¬Çå¿ÕÐÅÏ¢
-1321          void scene_edit_sta_clear_infor(name_scene_t *p_module_scene, scenc_infor_t *p_scenc_infor)
-1322          {
-1323   1        clear_all_module_var_en(0x1200, SCENE_NUB_SIGNLE);
-1324   1        // USER_PRINTF("clear scene_name_index is %bd\n", p_module_scene->scene_name_index);
-1325   1        T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p_module_scene->scene_name_index - 1) * SINGLE_NAM
+1330   1        memset((unsigned char *)p_scenc_infor, 0, sizeof(scenc_infor_t));                             // Çå¿Õ³¡¾°ÐÅÏ¢±äÁ¿
+1331   1      
+1332   1        clear_single_module_var_en(0x1200 + p_scenc_infor->index);
+1333   1        //  clear_all_module_var_en(SCENE_INFOR_LIST_SELECT_ADR,SCENE_NAME_NUB);
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 24  
+
+1334   1        USER_PRINTF("-->scene_infor_delete_ctrl\n");
+1335   1      }
+1336          // ³¡¾°±à¼­×´Ì¬Çå¿ÕÐÅÏ¢
+1337          void scene_edit_sta_clear_infor(name_scene_t *p_module_scene, scenc_infor_t *p_scenc_infor)
+1338          {
+1339   1        clear_all_module_var_en(0x1200, SINGLE_SCENE_NAME_INFOR_SIZE);
+1340   1        // USER_PRINTF("clear scene_name_index is %bd\n", p_module_scene->scene_name_index);
+1341   1        T5L_Flash(0xA5, 0Xe000, SCENE_INFOR_FLASH_ADR_SATRT + (p_module_scene->scene_name_index - 1) * SINGLE_NAM
              -E_SCENC_INFOR_SIZE, SINGLE_NAME_SCENC_INFOR_SIZE); // Ð´0FLASHscencinforÇå³ý
-1326   1        clear_all_scene_infor();                                                                                                                                    // Çå¿Õ³¡¾°ÁÐ±í
+1342   1        clear_all_scene_infor();                                                                                                                                    // Çå¿Õ³¡¾°ÁÐ±í
              -ÐÅÏ¢ÏÔÊ¾
-1327   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
-1328   1        memset((unsigned char *)p_scenc_infor, 0, sizeof(scenc_infor_t)); // Çå¿Õ³¡¾°ÐÅÏ¢±äÁ¿
-1329   1        memset((unsigned char *)p_module_scene->module_select, 0, 8);
-1330   1        scene_name_save_flash(&module_scene);
-1331   1        p_module_scene->edit_sta = 2;
-1332   1        infor_clear_sta = 1;
-1333   1        USER_PRINTF("-->clear single scene name information\n");
-1334   1      
-1335   1        //  memset((unsigned char *)module_scene_select_key_bak,0,8);
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 24  
-
-1336   1        //  clear_temp_scenc_infor();//Çå¿ÕÁÙÊ±³¡¾°ÐÅÏ¢±äÁ¿
-1337   1        //  memset((unsigned char *)p_scenc_infor,0,sizeof(scenc_infor_t));//Çå¿Õ³¡¾°ÐÅÏ¢±äÁ¿
-1338   1        //  memset((unsigned char *)p_module_scene,0,sizeof(name_scene_t));//Çå¿Õ³¡¾°Ãû×Ö±äÁ¿
-1339   1        //  clear_all_scene_infor();//Çå¿Õ³¡¾°ÐÅÏ¢ÏÔÊ¾
-1340   1        //  clear_all_module_var_en(0x1200,SCENE_NUB_SIGNLE);
-1341   1      }
-1342          
-1343          // ³¡¾°ÐÅÏ¢ÁÐ±í°´¼ü¿ØÖÆ
-1344          void scene_infor_key_ctrl(name_scene_t *p_module_scene, scenc_infor_t *p_scenc_infor)
-1345          {
-1346   1        unsigned short key_nb = 0;
-1347   1        get_key_value(0x1071, &key_nb);
-1348   1        if ((key_nb))
-1349   1        {
-1350   2          //    set_scene_infor_edit_sta(p_scenc_infor,key_nb);
-1351   2          switch (key_nb)
-1352   2          {
-1353   3          case CONFIRM:
-1354   3      
-1355   3            scene_infor_confirm_ctrl(p_module_scene);
-1356   3            break;
-1357   3          case CANCEL:
-1358   3            scene_infor_cancel_ctrl(p_module_scene, p_scenc_infor);
-1359   3            break;
-1360   3          case ADD:
-1361   3            p_scenc_infor->edit_sta = 0x31; // Ìí¼ÓÐÞ¸Ä
-1362   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
-1363   3            break;
-1364   3          case CLEAR:
-1365   3            //        p_scenc_infor->edit_sta = 0x43;//Çå¿Õ
-1366   3      
-1367   3            break;
-1368   3          case MODIFY:
-1369   3      
-1370   3            scene_infor_modify_ctrl(p_scenc_infor);
-1371   3            break;
-1372   3          case DELETE:
-1373   3            //        p_scenc_infor->edit_sta = 0x62;//É¾³ý
-1374   3      
+1343   1        memset((unsigned char *)module_scene_select_key_bak, 0, 8);
+1344   1        memset((unsigned char *)p_scenc_infor, 0, sizeof(scenc_infor_t)); // Çå¿Õ³¡¾°ÐÅÏ¢±äÁ¿
+1345   1        memset((unsigned char *)p_module_scene->module_select, 0, 8);
+1346   1        scene_name_save_flash(&module_scene);
+1347   1        p_module_scene->edit_sta = 2;
+1348   1        infor_clear_sta = 1;
+1349   1        USER_PRINTF("-->clear single scene name information\n");
+1350   1      
+1351   1        //  memset((unsigned char *)module_scene_select_key_bak,0,8);
+1352   1        //  clear_temp_scenc_infor();//Çå¿ÕÁÙÊ±³¡¾°ÐÅÏ¢±äÁ¿
+1353   1        //  memset((unsigned char *)p_scenc_infor,0,sizeof(scenc_infor_t));//Çå¿Õ³¡¾°ÐÅÏ¢±äÁ¿
+1354   1        //  memset((unsigned char *)p_module_scene,0,sizeof(name_scene_t));//Çå¿Õ³¡¾°Ãû×Ö±äÁ¿
+1355   1        //  clear_all_scene_infor();//Çå¿Õ³¡¾°ÐÅÏ¢ÏÔÊ¾
+1356   1        //  clear_all_module_var_en(0x1200,SINGLE_SCENE_NAME_INFOR_SIZE);
+1357   1      }
+1358          
+1359          // ³¡¾°ÐÅÏ¢ÁÐ±í°´¼ü¿ØÖÆ
+1360          void scene_infor_key_ctrl(name_scene_t *p_module_scene, scenc_infor_t *p_scenc_infor)
+1361          {
+1362   1        unsigned short key_nb = 0;
+1363   1        get_key_value(0x1071, &key_nb);
+1364   1        if ((key_nb))
+1365   1        {
+1366   2          //    set_scene_infor_edit_sta(p_scenc_infor,key_nb);
+1367   2          switch (key_nb)
+1368   2          {
+1369   3          case CONFIRM:
+1370   3      
+1371   3            scene_infor_confirm_ctrl(p_module_scene);
+1372   3            break;
+1373   3          case CANCEL:
+1374   3            scene_infor_cancel_ctrl(p_module_scene, p_scenc_infor);
 1375   3            break;
-1376   3          default:
-1377   3            break;
-1378   3          }
-1379   2          clear_key_value(0x1071, &key_nb);
-1380   2        }
-1381   1        /***
-1382   1        ½øÈëÐÞ¸Ä³¡¾°Ä£Ê½Ê±£¬É¾³ý»òÕßÇå¿Õ³¡¾°ÐÅÏ¢£¬ÐèÒªÏÂ·¢¶ÔÓ¦µÄmodbus Ö¸Áî
-1383   1        **/
-1384   1        get_key_value(0x1075, &key_nb); // ³¡¾°ÐÅÏ¢Çå¿Õ
-1385   1        if ((1 == key_nb))
-1386   1        {
-1387   2          if (4 == get_module_scene_edit_sta()) // Èç¹û´¦ÓÚÐÞ¸Ä³¡¾°×´Ì¬£¬ÐèÒªÏÂ·¢Ö¸ÁîÉ¾³ýËùÓÐ³¡¾°
-1388   2          {
-1389   3            USER_PRINTF("-->scene edit sta need to clear scene information!\n");
-1390   3            scene_edit_sta_clear_infor(p_module_scene, p_scenc_infor);
-1391   3            //      scene_name_delete(p_module_scene);
-1392   3            //      scene_infor_clear_flash(p_scenc_infor);
-1393   3          }
-1394   2          else
-1395   2          {
-1396   3            scene_infor_clear_ctrl(p_module_scene, p_scenc_infor);
-1397   3          }
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 25  
+1376   3          case ADD:
+1377   3            p_scenc_infor->edit_sta = 0x31; // Ìí¼ÓÐÞ¸Ä
+1378   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
+1379   3            break;
+1380   3          case CLEAR:
+1381   3            //        p_scenc_infor->edit_sta = 0x43;//Çå¿Õ
+1382   3      
+1383   3            break;
+1384   3          case MODIFY:
+1385   3      
+1386   3            scene_infor_modify_ctrl(p_scenc_infor);
+1387   3            break;
+1388   3          case DELETE:
+1389   3            //        p_scenc_infor->edit_sta = 0x62;//É¾³ý
+1390   3      
+1391   3            break;
+1392   3          default:
+1393   3            break;
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 25  
 
-1398   2          //    scene_infor_clear_send(p_module_scene,p_scenc_infor);
-1399   2          //
-1400   2          clear_key_value(0x1075, &key_nb);
-1401   2        }
-1402   1        get_key_value(0x1076, &key_nb); // ³¡¾°ÐÅÏ¢É¾³ý
-1403   1        if ((1 == key_nb))
-1404   1        {
-1405   2          scene_infor_delete_ctrl(p_scenc_infor);
-1406   2          clear_key_value(0x1076, &key_nb);
-1407   2        }
-1408   1      }
-1409          //ÉèÖÃ³¡¾°ÐÅÏ¢ÁÐ±í½çÃæ
-1410          void set_scene_infor_page(void)
-1411          {
-1412   1        unsigned short key_nb = 0;
-1413   1        get_key_value(0x1b25, &key_nb);
-1414   1        if (key_nb)
-1415   1        {
-1416   2          scene_infor_page = key_nb;
-1417   2          clear_key_value(0x1b25, &key_nb);
-1418   2        }
-1419   1      }
-1420          // ³¡¾°ÅäÖÃ
-1421          void scene_modify(void)
-1422          {
-1423   1        //  unsigned short page = 0;
-1424   1        //  page = read_dgus(0x14);
-1425   1        //  USER_PRINTF("module_scene.scene_name_index -->%bd\n",module_scene.scene_name_index);
-1426   1      
-1427   1        scene_name_key_ctrl(&module_scene);
-1428   1        add_module_scene_infor(&st_module, &scenc_infor, &module_scene);
-1429   1        module_scene_select_ctrl(&scenc_infor);
-1430   1      
-1431   1        scene_infor_key_ctrl(&module_scene, &scenc_infor);
-1432   1        set_scene_infor_page();
-1433   1      }
-1434          // void scene_key_run(void)
-1435          //{
-1436          //  scene_infor_key_ctrl((temp_scenc_infor+scenc_infor.index),&module_scene);
-1437          // }
-1438          // ´¥ÃþÉùÒô¿ØÖÆ
-1439          void beep_ctrl(unsigned char enable)
-1440          {
-1441   1        unsigned char config_sys_cmd_80[4] = {0};
-1442   1        read_dgusii_vp(0x80, config_sys_cmd_80, 2);
-1443   1        sys_delay_about_ms(5);
-1444   1        if (enable)
-1445   1          config_sys_cmd_80[3] |= (1 << 3);
-1446   1        else
-1447   1          config_sys_cmd_80[3] &= ~(1 << 3);
-1448   1        config_sys_cmd_80[0] = 0x5a;
-1449   1        write_dgusii_vp(0x80, config_sys_cmd_80, 2);
-1450   1        while (config_sys_cmd_80[0])
-1451   1        {
-1452   2          read_dgusii_vp(0x80, config_sys_cmd_80, 2);
-1453   2        }
-1454   1      }
-1455          // ÆÁÄ»×Ô¶¯´ý»úÐÝÃß¿ØÖÆ
-1456          void back_light_ctrl(unsigned char enable)
-1457          {
-1458   1        unsigned char config_sys_cmd_80[4] = {0};
-1459   1        read_dgusii_vp(0x80, config_sys_cmd_80, 2);
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 26  
+1394   3          }
+1395   2          clear_key_value(0x1071, &key_nb);
+1396   2        }
+1397   1        /***
+1398   1        ½øÈëÐÞ¸Ä³¡¾°Ä£Ê½Ê±£¬É¾³ý»òÕßÇå¿Õ³¡¾°ÐÅÏ¢£¬ÐèÒªÏÂ·¢¶ÔÓ¦µÄmodbus Ö¸Áî
+1399   1        **/
+1400   1        get_key_value(0x1075, &key_nb); // ³¡¾°ÐÅÏ¢Çå¿Õ
+1401   1        if ((1 == key_nb))
+1402   1        {
+1403   2          if (4 == get_module_scene_edit_sta()) // Èç¹û´¦ÓÚÐÞ¸Ä³¡¾°×´Ì¬£¬ÐèÒªÏÂ·¢Ö¸ÁîÉ¾³ýËùÓÐ³¡¾°
+1404   2          {
+1405   3            USER_PRINTF("-->scene edit sta need to clear scene information!\n");
+1406   3            scene_edit_sta_clear_infor(p_module_scene, p_scenc_infor);
+1407   3            //      scene_name_delete(p_module_scene);
+1408   3            //      scene_infor_clear_flash(p_scenc_infor);
+1409   3          }
+1410   2          else
+1411   2          {
+1412   3            scene_infor_clear_ctrl(p_module_scene, p_scenc_infor);
+1413   3          }
+1414   2          //    scene_infor_clear_send(p_module_scene,p_scenc_infor);
+1415   2          //
+1416   2          clear_key_value(0x1075, &key_nb);
+1417   2        }
+1418   1        get_key_value(0x1076, &key_nb); // ³¡¾°ÐÅÏ¢É¾³ý
+1419   1        if ((1 == key_nb))
+1420   1        {
+1421   2          scene_infor_delete_ctrl(p_scenc_infor);
+1422   2          clear_key_value(0x1076, &key_nb);
+1423   2        }
+1424   1      }
+1425          // ÉèÖÃ³¡¾°ÐÅÏ¢ÁÐ±í½çÃæ
+1426          void set_scene_infor_page(void)
+1427          {
+1428   1        unsigned short key_nb = 0;
+1429   1        get_key_value(0x1b25, &key_nb);
+1430   1        if (key_nb)
+1431   1        {
+1432   2          scene_infor_page = key_nb;
+1433   2          clear_key_value(0x1b25, &key_nb);
+1434   2        }
+1435   1      }
+1436          void scene_touch_ctrl(unsigned char index)
+1437          {
+1438   1        unsigned char action = 0;
+1439   1        action = read_dgus(0x1b30);
+1440   1        if (action)
+1441   1        {
+1442   2          set_master_send_hr(master_send_hr, 7, index);
+1443   2          set_master_send_hr(master_send_hr, 8, action);
+1444   2          pack_data_send(&user_modbus, 0, MD_FR_MHR, 7, 2);
+1445   2          action = 0;
+1446   2          write_dgus(0x1b30, action);
+1447   2        }
+1448   1      }
+1449          // ³¡¾°ÅäÖÃ
+1450          void scene_modify(void)
+1451          {
+1452   1        //  unsigned short page = 0;
+1453   1        //  page = read_dgus(0x14);
+1454   1        //  USER_PRINTF("module_scene.scene_name_index -->%bd\n",module_scene.scene_name_index);
+1455   1      
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 26  
 
-1460   1        sys_delay_about_ms(5);
-1461   1        if (enable)
-1462   1          config_sys_cmd_80[3] |= (1 << 2);
-1463   1        else
-1464   1          config_sys_cmd_80[3] &= ~(1 << 2);
-1465   1        config_sys_cmd_80[0] = 0x5a;
-1466   1        write_dgusii_vp(0x80, config_sys_cmd_80, 2);
-1467   1        while (config_sys_cmd_80[0])
-1468   1        {
-1469   2          read_dgusii_vp(0x80, config_sys_cmd_80, 2);
-1470   2        }
-1471   1      }
-1472          // ´¥ÃþÆÁ±³¹âÁÁ¶È,×Ô¶¯ÐÝÃßÊ±¼äÉèÖÃ
-1473          // work_light:Õý³£¹¤×÷Ê±µÄ±³¹âÁÁ¶È,·¶Î§:[0,100]
-1474          // sleep_light:ÐÝÃßÊ±µÄ±³¹âÁÁ¶È,·¶Î§:[0,100]
-1475          // sleep_interval:ÎÞÈÎºÎ²Ù×÷,¸ôsleep_interval*10msºó»á×Ô¶¯½øÈëÐÝÃß×´Ì¬
-1476          void sys_led_config(unsigned char work_light, unsigned char sleep_light, unsigned short sleep_interval)
-1477          {
-1478   1      #define LED_CONFIG_ADDR 0x82
-1479   1        unsigned char led_cmd[4] = {0};
-1480   1        led_cmd[0] = work_light > 1 ? work_light : 1;
-1481   1        led_cmd[1] = sleep_light;
-1482   1        led_cmd[2] = sleep_interval >> 8;
-1483   1        led_cmd[3] = sleep_interval & 0xff;
-1484   1        write_dgusii_vp(LED_CONFIG_ADDR, led_cmd, 2);
-1485   1        //  while(led_cmd[0])
-1486   1        //  {
-1487   1        //    read_dgusii_vp(LED_CONFIG_ADDR,led_cmd,2);
-1488   1        //  }
-1489   1      }
-1490          // µ¯³ö²Ëµ¥ÉèÖÃ
-1491          void pop_menu_key_ctrl(unsigned char menu_key_value)
-1492          {
-1493   1        unsigned char temp_tab[8] = {0};
-1494   1        unsigned char beep_enable = 0;
-1495   1        beep_ctrl(0);
-1496   1        temp_tab[0] = 0x5a;
-1497   1        temp_tab[1] = 0xa5;
-1498   1        temp_tab[2] = 0x00;
-1499   1        temp_tab[3] = 0x04;
-1500   1        temp_tab[4] = 0xff;
-1501   1        temp_tab[5] = menu_key_value;
-1502   1        temp_tab[6] = 0x00;
-1503   1        temp_tab[7] = 1;
-1504   1        sys_delay_about_ms(2);
-1505   1        write_dgusii_vp(0xd4, temp_tab, 4);
-1506   1        sys_delay_about_ms(2);
-1507   1        beep_enable = read_dgus(BEEP_ENABLE_DGUS_ADR);
-1508   1        // USER_PRINTF("-->beep_enable is %bd\n", beep_enable);
-1509   1        //  sys_delay_about_ms(2);
-1510   1        beep_ctrl(beep_enable); // control·äÃùÆ÷ÉùÒô
-1511   1        sys_delay_about_ms(2);
-1512   1      }
-1513          // ³¡¾°´¥ÃþÖ´ÐÐ
-1514          void scene_touch_run(void)
-1515          {
-1516   1        unsigned short key_nb = 0;
-1517   1        static unsigned char action_sta[SCENE_NAME_NUB] = {1};
-1518   1        name_scene_t module_scene_r = {0};
-1519   1        get_key_value(0x102d, &key_nb);
-1520   1        if ((key_nb))
-1521   1        {
-C51 COMPILER V9.60.0.0   SCENE                                                             09/27/2023 17:05:16 PAGE 27  
+1456   1        scene_name_key_ctrl(&module_scene);
+1457   1        add_module_scene_infor(&st_module, &scenc_infor, &module_scene);
+1458   1        module_scene_select_ctrl(&scenc_infor);
+1459   1      
+1460   1        scene_infor_key_ctrl(&module_scene, &scenc_infor);
+1461   1        set_scene_infor_page();
+1462   1        scene_touch_ctrl(scene_index);
+1463   1      }
+1464          // void scene_key_run(void)
+1465          //{
+1466          //  scene_infor_key_ctrl((temp_scenc_infor+scenc_infor.index),&module_scene);
+1467          // }
+1468          // ´¥ÃþÉùÒô¿ØÖÆ
+1469          void beep_ctrl(unsigned char enable)
+1470          {
+1471   1        unsigned char config_sys_cmd_80[4] = {0};
+1472   1        read_dgusii_vp(0x80, config_sys_cmd_80, 2);
+1473   1        sys_delay_about_ms(5);
+1474   1        if (enable)
+1475   1          config_sys_cmd_80[3] |= (1 << 3);
+1476   1        else
+1477   1          config_sys_cmd_80[3] &= ~(1 << 3);
+1478   1        config_sys_cmd_80[0] = 0x5a;
+1479   1        write_dgusii_vp(0x80, config_sys_cmd_80, 2);
+1480   1        while (config_sys_cmd_80[0])
+1481   1        {
+1482   2          read_dgusii_vp(0x80, config_sys_cmd_80, 2);
+1483   2        }
+1484   1      }
+1485          // ÆÁÄ»×Ô¶¯´ý»úÐÝÃß¿ØÖÆ
+1486          void back_light_ctrl(unsigned char enable)
+1487          {
+1488   1        unsigned char config_sys_cmd_80[4] = {0};
+1489   1        read_dgusii_vp(0x80, config_sys_cmd_80, 2);
+1490   1        sys_delay_about_ms(5);
+1491   1        if (enable)
+1492   1          config_sys_cmd_80[3] |= (1 << 2);
+1493   1        else
+1494   1          config_sys_cmd_80[3] &= ~(1 << 2);
+1495   1        config_sys_cmd_80[0] = 0x5a;
+1496   1        write_dgusii_vp(0x80, config_sys_cmd_80, 2);
+1497   1        while (config_sys_cmd_80[0])
+1498   1        {
+1499   2          read_dgusii_vp(0x80, config_sys_cmd_80, 2);
+1500   2        }
+1501   1      }
+1502          // ´¥ÃþÆÁ±³¹âÁÁ¶È,×Ô¶¯ÐÝÃßÊ±¼äÉèÖÃ
+1503          // work_light:Õý³£¹¤×÷Ê±µÄ±³¹âÁÁ¶È,·¶Î§:[0,100]
+1504          // sleep_light:ÐÝÃßÊ±µÄ±³¹âÁÁ¶È,·¶Î§:[0,100]
+1505          // sleep_interval:ÎÞÈÎºÎ²Ù×÷,¸ôsleep_interval*10msºó»á×Ô¶¯½øÈëÐÝÃß×´Ì¬
+1506          void sys_led_config(unsigned char work_light, unsigned char sleep_light, unsigned short sleep_interval)
+1507          {
+1508   1      #define LED_CONFIG_ADDR 0x82
+1509   1        unsigned char led_cmd[4] = {0};
+1510   1        led_cmd[0] = work_light > 1 ? work_light : 1;
+1511   1        led_cmd[1] = sleep_light;
+1512   1        led_cmd[2] = sleep_interval >> 8;
+1513   1        led_cmd[3] = sleep_interval & 0xff;
+1514   1        write_dgusii_vp(LED_CONFIG_ADDR, led_cmd, 2);
+1515   1        //  while(led_cmd[0])
+1516   1        //  {
+1517   1        //    read_dgusii_vp(LED_CONFIG_ADDR,led_cmd,2);
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 27  
 
-1522   2          //    nor_read_flash
-1523   2          norflash_read(MODULE_FLASH_ADR_END + (key_nb - 1) * NAME_SCENE_T_SIZE, (unsigned char *)&module_scene_r,
+1518   1        //  }
+1519   1      }
+1520          // µ¯³ö²Ëµ¥ÉèÖÃ
+1521          void pop_menu_key_ctrl(unsigned char menu_key_value)
+1522          {
+1523   1        unsigned char temp_tab[8] = {0};
+1524   1        unsigned char beep_enable = 0;
+1525   1        beep_ctrl(0);
+1526   1        temp_tab[0] = 0x5a;
+1527   1        temp_tab[1] = 0xa5;
+1528   1        temp_tab[2] = 0x00;
+1529   1        temp_tab[3] = 0x04;
+1530   1        temp_tab[4] = 0xff;
+1531   1        temp_tab[5] = menu_key_value;
+1532   1        temp_tab[6] = 0x00;
+1533   1        temp_tab[7] = 1;
+1534   1        sys_delay_about_ms(2);
+1535   1        write_dgusii_vp(0xd4, temp_tab, 4);
+1536   1        sys_delay_about_ms(2);
+1537   1        beep_enable = read_dgus(BEEP_ENABLE_DGUS_ADR);
+1538   1        // USER_PRINTF("-->beep_enable is %bd\n", beep_enable);
+1539   1        //  sys_delay_about_ms(2);
+1540   1        beep_ctrl(beep_enable); // control·äÃùÆ÷ÉùÒô
+1541   1        sys_delay_about_ms(2);
+1542   1      }
+1543          // ³¡¾°´¥ÃþÖ´ÐÐ
+1544          void scene_touch_run(void)
+1545          {
+1546   1        unsigned short key_nb = 0;
+1547   1        // static unsigned char action_sta[SCENE_NAME_NUB_LIMIT] = {1};
+1548   1        name_scene_t module_scene_r = {0};
+1549   1        get_key_value(0x102d, &key_nb);
+1550   1        if ((key_nb))
+1551   1        {
+1552   2          //    nor_read_flash
+1553   2          norflash_read(MODULE_FLASH_ADR_END + (key_nb - 1) * NAME_SCENE_T_SIZE, (unsigned char *)&module_scene_r,
              - NAME_SCENE_T_SIZE);
-1524   2          if (FULL == module_scene_r.data_sta)
-1525   2          {
-1526   3            action_sta[key_nb - 1] = 0;
-1527   3            set_master_send_hr(master_send_hr, 7, key_nb);
-1528   3            set_master_send_hr(master_send_hr, 8, action_sta[key_nb - 1] + 1);
-1529   3            pack_data_send(&user_modbus, 0, MD_FR_MHR, 7, 2);
-1530   3          }
-1531   2          clear_key_value(0x102d, &key_nb);
-1532   2        }
-1533   1      }
+1554   2          if (FULL == module_scene_r.data_sta)
+1555   2          {
+1556   3            pop_menu_key_ctrl(0x14);
+1557   3            scene_index = key_nb;
+1558   3            // action_sta[key_nb - 1] = 0;
+1559   3            // set_master_send_hr(master_send_hr, 7, key_nb);
+1560   3            // set_master_send_hr(master_send_hr, 8, action_sta[key_nb - 1] + 1);
+1561   3            // pack_data_send(&user_modbus, 0, MD_FR_MHR, 7, 2);
+1562   3          }
+1563   2          clear_key_value(0x102d, &key_nb);
+1564   2        }
+1565   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   9492    ----
-   CONSTANT SIZE    =   1593    ----
-   XDATA SIZE       =   1830    1059
+   CODE SIZE        =   9595    ----
+   CONSTANT SIZE    =   1621    ----
+   XDATA SIZE       =   1784    1062
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----
@@ -1690,6 +1726,8 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    EDATA SIZE       =   ----    ----
    HDATA SIZE       =   ----    ----
    XDATA CONST SIZE =   ----    ----
+C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 28  
+
    FAR CONST SIZE   =   ----    ----
 END OF MODULE INFORMATION.
 

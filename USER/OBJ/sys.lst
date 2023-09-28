@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 1   
+C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE SYS
@@ -12,7 +12,7 @@ line level    source
    2           * @Author: xw.qu
    3           * @Date: 2023-08-31 09:22:42
    4           * @LastEditors: xw.qu
-   5           * @LastEditTime: 2023-09-26 10:47:02
+   5           * @LastEditTime: 2023-10-27 09:45:12
    6           * @FilePath: \USER\sys.c
    7           * @Description: about system function
    8           *
@@ -62,7 +62,7 @@ line level    source
   52   1        //  if(g_var_module.batch_relay_send_cyc_time>0) g_var_module.batch_relay_send_cyc_time--;
   53   1        if (g_var_module.auto_retrieve_cyc_time > 0)
   54   1          g_var_module.auto_retrieve_cyc_time--;
-C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 2   
+C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 2   
 
   55   1        if (scene_data.delete_scenc_send_cyc_time > 0)
   56   1          scene_data.delete_scenc_send_cyc_time--;
@@ -126,7 +126,7 @@ line level    source
  112   1        ADR_H = 0x00;
  113   1        ADR_M = (u8)((Dgus_Addr / 2) >> 8);
  114   1        ADR_L = (u8)(Dgus_Addr / 2);
-C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 3   
+C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 3   
 
  115   1        RAMMODE = 0xAF; // 读操作
  116   1        // while(!APP_ACK); //test LKC
@@ -190,7 +190,7 @@ line level    source
  174           * @brief 添加数组数据
  175           * @param {unsigned char} *t_arr 添加目标数组
  176           * @param {unsigned char} element 添加数据
-C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 4   
+C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 4   
 
  177           * @param {unsigned char} pos 添加位置
  178           * @return {*} 0:添加失败 1:添加成功
@@ -228,113 +228,127 @@ line level    source
  210   2        }
  211   1      }
  212          /**
- 213           * @brief 查找数据是否存在数组中
- 214           * @param {unsigned char} *t_arr 目标数组
- 215           * @param {unsigned char} num_to_find 需查找数据
- 216           * @return {*}1:存在数据 0:不存在数据
- 217           */
- 218          unsigned char find_nub_index(unsigned char *t_arr, unsigned char num_to_find)
- 219          {
- 220   1        unsigned char i = 0;
- 221   1        for (i = 0; i < MAX_DEVICE_ADR; i++)
- 222   1        {
- 223   2          if (t_arr[i] == num_to_find)
- 224   2          {
- 225   3            return 1;
- 226   3          }
- 227   2        }
- 228   1        return 0;
- 229   1      }
- 230          /**
- 231           * @brief 查找存在的字符替换为指定的字符
- 232           * @param {char} *s 字符串
- 233           * @param {char} *old_str 替换的字符
- 234           * @param {char} *new_str 新的字符
- 235           * @return {*}
- 236           */
- 237          char *strrpl(char *s, const char *old_str, const char *new_str)
- 238          {
-C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 5   
+ 213           * @brief 清空数组
+ 214           * @param {unsigned char} *t_arr
+ 215           * @return {*}
+ 216           */
+ 217          void clear_arr_data(unsigned char *t_arr,unsigned char size)
+ 218          {
+ 219   1        unsigned char i = 0;
+ 220   1        for(i = 0;i<size;i++)
+ 221   1        {
+ 222   2          delete_arr_data(t_arr,i);
+ 223   2        }
+ 224   1      }
+ 225          /**
+ 226           * @brief 查找数据是否存在数组中
+ 227           * @param {unsigned char} *t_arr 目标数组
+ 228           * @param {unsigned char} num_to_find 需查找数据
+ 229           * @return {*}1:存在数据 0:不存在数据
+ 230           */
+ 231          unsigned char find_nub_index(unsigned char *t_arr, unsigned char num_to_find)
+ 232          {
+ 233   1        unsigned char i = 0;
+ 234   1        for (i = 0; i < MAX_DEVICE_ADR; i++)
+ 235   1        {
+ 236   2          if (t_arr[i] == num_to_find)
+ 237   2          {
+ 238   3            return 1;
+C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 5   
 
- 239   1        char *ptr;
- 240   1        while (ptr = strstr(s, old_str)) /* 如果在s中找到s1 */
- 241   1        {
- 242   2          memmove(ptr + strlen(new_str), ptr + strlen(old_str), strlen(ptr) - strlen(old_str) + 1);
- 243   2          memcpy(ptr, &new_str[0], strlen(new_str));
- 244   2        }
- 245   1        return s;
- 246   1      }
- 247          /**
- 248           * @brief 返回正确的天数
- 249           * @param {unsigned short} year 输入年
- 250           * @param {unsigned char} month 输入月
- 251           * @return {*}当月天数
- 252           */
- 253          unsigned char get_days_in_month(unsigned short year, unsigned char month)
- 254          {
- 255   1        unsigned char days = 0;
- 256   1        switch (month)
- 257   1        {
- 258   2        case 1:
- 259   2        case 3:
- 260   2        case 5:
- 261   2        case 7:
- 262   2        case 8:
- 263   2        case 10:
- 264   2        case 12:
- 265   2          days = 31;
- 266   2          break;
- 267   2        case 4:
- 268   2        case 6:
- 269   2        case 9:
- 270   2        case 11:
- 271   2          days = 30;
- 272   2          break;
- 273   2        case 2:
- 274   2          if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
- 275   2          {
- 276   3            days = 29;
- 277   3          }
- 278   2          else
- 279   2          {
- 280   3            days = 28;
- 281   3          }
- 282   2          break;
- 283   2        default:
- 284   2          USER_PRINTF("invalid month!\n");
- 285   2          return -1;
- 286   2        }
- 287   1        return days;
- 288   1      }
- 289          /**
- 290           * @brief 判断输入值和之前值是否一致
- 291           * @param {unsigned short} var 输入的值
- 292           * @param {unsigned char} *pre_var 之前的值
- 293           * @return {*}
- 294           */
- 295          unsigned char check_constant(unsigned short var,unsigned char *pre_var)
- 296          {
- 297   1        // static unsigned short previous_value = 0;
- 298   1        // USER_PRINTF("--new var is %bd\n", var);
- 299   1        // USER_PRINTF("--pre var is %bd\n", previous_value);
- 300   1        if (var != *pre_var)
-C51 COMPILER V9.60.0.0   SYS                                                               09/27/2023 17:05:14 PAGE 6   
+ 239   3          }
+ 240   2        }
+ 241   1        return 0;
+ 242   1      }
+ 243          
+ 244          /**
+ 245           * @brief 查找存在的字符替换为指定的字符
+ 246           * @param {char} *s 字符串
+ 247           * @param {char} *old_str 替换的字符
+ 248           * @param {char} *new_str 新的字符
+ 249           * @return {*}
+ 250           */
+ 251          char *strrpl(char *s, const char *old_str, const char *new_str)
+ 252          {
+ 253   1        char *ptr;
+ 254   1        while (ptr = strstr(s, old_str)) /* 如果在s中找到s1 */
+ 255   1        {
+ 256   2          memmove(ptr + strlen(new_str), ptr + strlen(old_str), strlen(ptr) - strlen(old_str) + 1);
+ 257   2          memcpy(ptr, &new_str[0], strlen(new_str));
+ 258   2        }
+ 259   1        return s;
+ 260   1      }
+ 261          /**
+ 262           * @brief 返回正确的天数
+ 263           * @param {unsigned short} year 输入年
+ 264           * @param {unsigned char} month 输入月
+ 265           * @return {*}当月天数
+ 266           */
+ 267          unsigned char get_days_in_month(unsigned short year, unsigned char month)
+ 268          {
+ 269   1        unsigned char days = 0;
+ 270   1        switch (month)
+ 271   1        {
+ 272   2        case 1:
+ 273   2        case 3:
+ 274   2        case 5:
+ 275   2        case 7:
+ 276   2        case 8:
+ 277   2        case 10:
+ 278   2        case 12:
+ 279   2          days = 31;
+ 280   2          break;
+ 281   2        case 4:
+ 282   2        case 6:
+ 283   2        case 9:
+ 284   2        case 11:
+ 285   2          days = 30;
+ 286   2          break;
+ 287   2        case 2:
+ 288   2          if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
+ 289   2          {
+ 290   3            days = 29;
+ 291   3          }
+ 292   2          else
+ 293   2          {
+ 294   3            days = 28;
+ 295   3          }
+ 296   2          break;
+ 297   2        default:
+ 298   2          USER_PRINTF("invalid month!\n");
+ 299   2          return -1;
+ 300   2        }
+C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 6   
 
- 301   1        {
- 302   2          *pre_var = var;
- 303   2          return 1; // 变量的值已经发生变化
- 304   2        }
- 305   1        else
- 306   1        {
- 307   2          return 0; // 变量的值一直没有发生变化
- 308   2        }
- 309   1      }
+ 301   1        return days;
+ 302   1      }
+ 303          /**
+ 304           * @brief 判断输入值和之前值是否一致
+ 305           * @param {unsigned short} var 输入的值
+ 306           * @param {unsigned char} *pre_var 之前的值
+ 307           * @return {*}
+ 308           */
+ 309          unsigned char check_constant(unsigned short var,unsigned char *pre_var)
+ 310          {
+ 311   1        // static unsigned short previous_value = 0;
+ 312   1        // USER_PRINTF("--new var is %bd\n", var);
+ 313   1        // USER_PRINTF("--pre var is %bd\n", previous_value);
+ 314   1        if (var != *pre_var)
+ 315   1        {
+ 316   2          *pre_var = var;
+ 317   2          return 1; // 变量的值已经发生变化
+ 318   2        }
+ 319   1        else
+ 320   1        {
+ 321   2          return 0; // 变量的值一直没有发生变化
+ 322   2        }
+ 323   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1120    ----
+   CODE SIZE        =   1150    ----
    CONSTANT SIZE    =     45    ----
-   XDATA SIZE       =     17      28
+   XDATA SIZE       =     17      31
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----

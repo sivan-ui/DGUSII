@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   MB_HOST                                                           09/27/2023 17:05:15 PAGE 1   
+C51 COMPILER V9.60.0.0   MB_HOST                                                           11/02/2023 16:36:10 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MB_HOST
@@ -12,7 +12,7 @@ line level    source
    2           * @Author: xw.qu
    3           * @Date: 2023-08-31 09:22:42
    4           * @LastEditors: xw.qu
-   5           * @LastEditTime: 2023-09-26 17:01:27
+   5           * @LastEditTime: 2023-11-02 16:34:14
    6           * @FilePath: \USER\mb_host.c
    7           * @Description:
    8           *
@@ -35,273 +35,281 @@ line level    source
   25          {
   26   1        return mbHost.state;
   27   1      }
-  28          
-  29          // 发送一帧命令
-  30          char mbh_send(unsigned char add, unsigned char cmd, unsigned char *dat, unsigned short data_len)
-  31          {
-  32   1        unsigned short crc = 0;
-  33   1        //  USER_PRINTF("%bd\n",mbHost.state);
-  34   1        //  if(mbHost.state!=MBH_STATE_IDLE)return -1; //busy state
-  35   1      
-  36   1        mbHost.txCounter = 0;
-  37   1        mbHost.rxCounter = 0;
-  38   1        mbHost.errTimes = 0;
-  39   1        mbHost.txBuf[0] = add;
-  40   1        mbHost.txBuf[1] = cmd;
-  41   1        memcpy((mbHost.txBuf + 2), dat, data_len);
-  42   1        mbHost.txLen = data_len + 2; // data(n)+add(1)+cmd(1)
-  43   1        USER_PRINTF("TX LEN %d\n",mbHost.txLen);
-  44   1        crc = mb_crc16(mbHost.txBuf, mbHost.txLen);
-  45   1        mbHost.txBuf[mbHost.txLen++] = (unsigned char)(crc & 0xff);
-  46   1        mbHost.txBuf[mbHost.txLen++] = (unsigned char)(crc >> 8);
-  47   1      
-  48   1        mbHost.state = MBH_STATE_TX;
-  49   1        mb_port_uartEnable(1, 0); // enable tx,disable rx
-  50   1      
-  51   1        // printf("%d ", mbHost.txLen);
-  52   1        /*当打开TXE中断以后，立马就会触发一次，所以这里不用先发送一个byte*/
-  53   1        //  mb_port_putchar(mbHost.txBuf[mbHost.txCounter++]); //send first char,then enter tx isr
-  54   1        return 0;
-C51 COMPILER V9.60.0.0   MB_HOST                                                           09/27/2023 17:05:15 PAGE 2   
+  28          unsigned char mbh_getRecHookState(void)
+  29          {
+  30   1        return mbHost.rec_hook_state;
+  31   1      }
+  32          void mbh_clearRecHookState(void)
+  33          {
+  34   1        mbHost.rec_hook_state = 0;
+  35   1      }
+  36          
+  37          // 发送一帧命令
+  38          char mbh_send(unsigned char add, unsigned char cmd, unsigned char *dat, unsigned short data_len)
+  39          {
+  40   1        unsigned short crc = 0;
+  41   1        //  USER_PRINTF("%bd\n",mbHost.state);
+  42   1        //  if(mbHost.state!=MBH_STATE_IDLE)return -1; //busy state
+  43   1      
+  44   1        mbHost.txCounter = 0;
+  45   1        mbHost.rxCounter = 0;
+  46   1        mbHost.errTimes = 0;
+  47   1        mbHost.txBuf[0] = add;
+  48   1        mbHost.txBuf[1] = cmd;
+  49   1        memcpy((mbHost.txBuf + 2), dat, data_len);
+  50   1        mbHost.txLen = data_len + 2; // data(n)+add(1)+cmd(1)
+  51   1        USER_PRINTF("TX LEN %d\n",mbHost.txLen);
+  52   1        crc = mb_crc16(mbHost.txBuf, mbHost.txLen);
+  53   1        mbHost.txBuf[mbHost.txLen++] = (unsigned char)(crc & 0xff);
+  54   1        mbHost.txBuf[mbHost.txLen++] = (unsigned char)(crc >> 8);
+C51 COMPILER V9.60.0.0   MB_HOST                                                           11/02/2023 16:36:10 PAGE 2   
 
-  55   1      }
-  56          // 接收正确,进行解析处理
-  57          void mbh_exec(unsigned char *pframe, unsigned *len)
-  58          {
-  59   1        unsigned short datalen = *len - 2;
-  60   1        switch (pframe[1]) // cmd
-  61   1        {
-  62   2        case 1:
-  63   2          mbh_hook_rec01(pframe[0], (pframe + 2), &datalen);
-  64   2          break;
-  65   2        case 2:
-  66   2          mbh_hook_rec02(pframe[0], (pframe + 2), &datalen);
-  67   2          break;
-  68   2        case 3:
-  69   2          mbh_hook_rec03(pframe[0], (pframe + 2), &datalen);
-  70   2          break;
-  71   2        case 4:
-  72   2          mbh_hook_rec04(pframe[0], (pframe + 2), &datalen);
-  73   2          break;
-  74   2        case 5:
-  75   2          mbh_hook_rec05(pframe[0], (pframe + 2), &datalen);
-  76   2          break;
-  77   2        case 6:
-  78   2          mbh_hook_rec06(pframe[0], (pframe + 2), &datalen);
-  79   2          break;
-  80   2        case 15:
-  81   2          mbh_hook_rec15(pframe[0], (pframe + 2), &datalen);
-  82   2          break;
-  83   2        case 16:
-  84   2          mbh_hook_rec16(pframe[0], (pframe + 2), &datalen);
-  85   2          break;
-  86   2        }
-  87   1      }
-  88          void mbh_poll()
-  89          {
-  90   1      
-  91   1        switch (mbHost.state)
-  92   1        {
-  93   2        /*接收完一帧数据,开始进行校验*/
-  94   2        case MBH_STATE_RX_CHECK: // 接收完成，对一帧数据进行检查
-  95   2          //      USER_PRINTF("STATE--MBH_STATE_RX_CHECK\n");
-  96   2          if ((mbHost.rxCounter >= MBH_RTU_MIN_SIZE) && (mb_crc16(mbHost.rxBuf, mbHost.rxCounter) == 0)) // 接收
+  55   1      
+  56   1        mbHost.state = MBH_STATE_TX;
+  57   1        mb_port_uartEnable(1, 0); // enable tx,disable rx
+  58   1      
+  59   1        // printf("%d ", mbHost.txLen);
+  60   1        /*当打开TXE中断以后，立马就会触发一次，所以这里不用先发送一个byte*/
+  61   1        //  mb_port_putchar(mbHost.txBuf[mbHost.txCounter++]); //send first char,then enter tx isr
+  62   1        return 0;
+  63   1      }
+  64          // 接收正确,进行解析处理
+  65          void mbh_exec(unsigned char *pframe, unsigned *len)
+  66          {
+  67   1        unsigned short datalen = *len - 2;
+  68   1        switch (pframe[1]) // cmd
+  69   1        {
+  70   2        case 1:
+  71   2          mbh_hook_rec01(pframe[0], (pframe + 2), &datalen);
+  72   2          break;
+  73   2        case 2:
+  74   2          mbh_hook_rec02(pframe[0], (pframe + 2), &datalen);
+  75   2          break;
+  76   2        case 3:
+  77   2          mbh_hook_rec03(pframe[0], (pframe + 2), &datalen);
+  78   2          break;
+  79   2        case 4:
+  80   2          mbh_hook_rec04(pframe[0], (pframe + 2), &datalen);
+  81   2          break;
+  82   2        case 5:
+  83   2          mbh_hook_rec05(pframe[0], (pframe + 2), &datalen);
+  84   2          break;
+  85   2        case 6:
+  86   2          mbh_hook_rec06(pframe[0], (pframe + 2), &datalen);
+  87   2          break;
+  88   2        case 15:
+  89   2          mbh_hook_rec15(pframe[0], (pframe + 2), &datalen);
+  90   2          break;
+  91   2        case 16:
+  92   2          mbh_hook_rec16(pframe[0], (pframe + 2), &datalen);
+  93   2          break;
+  94   2        }
+  95   1      }
+  96          void mbh_poll()
+  97          {
+  98   1      
+  99   1        switch (mbHost.state)
+ 100   1        {
+ 101   2        /*接收完一帧数据,开始进行校验*/
+ 102   2        case MBH_STATE_RX_CHECK: // 接收完成，对一帧数据进行检查
+ 103   2          //      USER_PRINTF("STATE--MBH_STATE_RX_CHECK\n");
+ 104   2          if ((mbHost.rxCounter >= MBH_RTU_MIN_SIZE) && (mb_crc16(mbHost.rxBuf, mbHost.rxCounter) == 0)) // 接收
              -的一帧数据正确
-  97   2          {
-  98   3            //        USER_PRINTF("%bd\n",mbHost.state);
-  99   3            if (((mbHost.txBuf[0] == mbHost.rxBuf[0]) && (mbHost.txBuf[1] == mbHost.rxBuf[1]))) // 发送帧数据�
+ 105   2          {
+ 106   3            //        USER_PRINTF("%bd\n",mbHost.state);
+ 107   3            if (((mbHost.txBuf[0] == mbHost.rxBuf[0]) && (mbHost.txBuf[1] == mbHost.rxBuf[1]))) // 发送帧数据�
              -��接收到的帧数据地址和功能码一样
- 100   3            {
- 101   4      
- 102   4              mbHost.state = MBH_STATE_EXEC;
- 103   4            }
- 104   3            else
- 105   3            {
- 106   4              mbHost.state = MBH_STATE_REC_ERR;
- 107   4              mbHost.re_send_time = MBH_RESEND_TIME;
- 108   4              //          USER_PRINTF("-->check_error\n");
- 109   4            }
- 110   3          }
- 111   2          else
- 112   2          {
- 113   3            mbHost.state = MBH_STATE_REC_ERR;
- 114   3            USER_PRINTF("-->check_error\n");
-C51 COMPILER V9.60.0.0   MB_HOST                                                           09/27/2023 17:05:15 PAGE 3   
+ 108   3            {
+ 109   4      
+ 110   4              mbHost.state = MBH_STATE_EXEC;
+ 111   4            }
+ 112   3            else
+ 113   3            {
+ 114   4              mbHost.state = MBH_STATE_REC_ERR;
+C51 COMPILER V9.60.0.0   MB_HOST                                                           11/02/2023 16:36:10 PAGE 3   
 
- 115   3            ;
- 116   3          }
- 117   2          break;
- 118   2        /*接收一帧数据出错*/
- 119   2        case MBH_STATE_REC_ERR:
- 120   2      
- 121   2          //      retransmission_time++;
- 122   2          //      if(retransmission_time>50000)
- 123   2          //      {
- 124   2          //        retransmission_time = 0;
- 125   2      
- 126   2          //      }
- 127   2          mbHost.scene_send_cyc_time = MBH_CYC_TIME;
- 128   2          if (0 == mbHost.re_send_time)
- 129   2          {
- 130   3            mbHost.errTimes++;
- 131   3            if (mbHost.errTimes >= MBH_ERR_MAX_TIMES)
- 132   3            {
- 133   4              mbHost.state = MBH_STATE_TIMES_ERR;
- 134   4            }
- 135   3            else // 重新再启动一次传输
- 136   3            {
- 137   4              mbHost.txCounter = 0;
- 138   4              mbHost.rxCounter = 0;
- 139   4              mbHost.state = MBH_STATE_TX;
- 140   4      
- 141   4              mb_port_uartEnable(1, 0); // enable tx,disable rx
+ 115   4              mbHost.re_send_time = MBH_RESEND_TIME;
+ 116   4              //          USER_PRINTF("-->check_error\n");
+ 117   4            }
+ 118   3          }
+ 119   2          else
+ 120   2          {
+ 121   3            mbHost.state = MBH_STATE_REC_ERR;
+ 122   3            USER_PRINTF("-->check_error\n");
+ 123   3            ;
+ 124   3          }
+ 125   2          break;
+ 126   2        /*接收一帧数据出错*/
+ 127   2        case MBH_STATE_REC_ERR:
+ 128   2      
+ 129   2          //      retransmission_time++;
+ 130   2          //      if(retransmission_time>50000)
+ 131   2          //      {
+ 132   2          //        retransmission_time = 0;
+ 133   2      
+ 134   2          //      }
+ 135   2          mbHost.scene_send_cyc_time = MBH_CYC_TIME;
+ 136   2          if (0 == mbHost.re_send_time)
+ 137   2          {
+ 138   3            mbHost.errTimes++;
+ 139   3            if (mbHost.errTimes >= MBH_ERR_MAX_TIMES)
+ 140   3            {
+ 141   4              mbHost.state = MBH_STATE_TIMES_ERR;
  142   4            }
- 143   3            USER_PRINTF("STATE--MBH_STATE_REC_ERR\n");
- 144   3          }
- 145   2          //      USER_PRINTF("mbHost.errTimes-->>%bd\n",mbHost.errTimes);
- 146   2          break;
- 147   2        /*超过最大错误传输次数*/
- 148   2        case MBH_STATE_TIMES_ERR:
- 149   2          USER_PRINTF("STATE--MBH_STATE_TIMES_ERR\n");
- 150   2          mbh_hook_timesErr(mbHost.txBuf[0], mbHost.txBuf[1]);
- 151   2          mbHost.txCounter = 0;
- 152   2          mbHost.rxCounter = 0;
- 153   2          //      mbHost.re_send_time = MBH_RESEND_TIME;
- 154   2          //      USER_PRINTF("%bd\n",mbHost.state);
- 155   2          break;
- 156   2        /*确定接收正确执行回调*/
- 157   2        case MBH_STATE_EXEC: // 主机发送接收完成，执行回调
- 158   2          USER_PRINTF("STATE--MBH_STATE_EXEC\n");
- 159   2          mbh_exec(mbHost.rxBuf, &mbHost.rxCounter);
- 160   2          mbHost.state = MBH_STATE_IDLE;
- 161   2          mbHost.scene_send_cyc_time = 200;
+ 143   3            else // 重新再启动一次传输
+ 144   3            {
+ 145   4              mbHost.txCounter = 0;
+ 146   4              mbHost.rxCounter = 0;
+ 147   4              mbHost.state = MBH_STATE_TX;
+ 148   4      
+ 149   4              mb_port_uartEnable(1, 0); // enable tx,disable rx
+ 150   4            }
+ 151   3            USER_PRINTF("STATE--MBH_STATE_REC_ERR\n");
+ 152   3          }
+ 153   2          //      USER_PRINTF("mbHost.errTimes-->>%bd\n",mbHost.errTimes);
+ 154   2          break;
+ 155   2        /*超过最大错误传输次数*/
+ 156   2        case MBH_STATE_TIMES_ERR:
+ 157   2          USER_PRINTF("STATE--MBH_STATE_TIMES_ERR\n");
+ 158   2          mbh_hook_timesErr(mbHost.txBuf[0], mbHost.txBuf[1]);
+ 159   2          mbHost.txCounter = 0;
+ 160   2          mbHost.rxCounter = 0;
+ 161   2          //      mbHost.re_send_time = MBH_RESEND_TIME;
  162   2          //      USER_PRINTF("%bd\n",mbHost.state);
  163   2          break;
- 164   2        }
- 165   1      }
- 166          
- 167          void mbh_timer3T5Isr()
- 168          {
- 169   1        switch (mbHost.state)
- 170   1        {
- 171   2        /*发送完但没有接收到数据*/
- 172   2        case MBH_STATE_TX_END:
- 173   2          //      USER_PRINTF("--->RxISR_MBH_STATE_TX_END\n");
- 174   2          //      if(1 == mbHost.recDataFlag)
- 175   2          //      {
- 176   2          mbHost.rxTimeOut--;
-C51 COMPILER V9.60.0.0   MB_HOST                                                           09/27/2023 17:05:15 PAGE 4   
+ 164   2        /*确定接收正确执行回调*/
+ 165   2        case MBH_STATE_EXEC: // 主机发送接收完成，执行回调
+ 166   2          USER_PRINTF("STATE--MBH_STATE_EXEC\n");
+ 167   2          mbh_exec(mbHost.rxBuf, &mbHost.rxCounter);
+ 168   2          mbHost.state = MBH_STATE_IDLE;
+ 169   2          mbHost.scene_send_cyc_time = 200;
+ 170   2          //      USER_PRINTF("%bd\n",mbHost.state);
+ 171   2          break;
+ 172   2        }
+ 173   1      }
+ 174          
+ 175          void mbh_timer3T5Isr()
+ 176          {
+C51 COMPILER V9.60.0.0   MB_HOST                                                           11/02/2023 16:36:10 PAGE 4   
 
- 177   2          //      }
- 178   2          if (mbHost.rxTimeOut == 0) // 接收超时
- 179   2          {
- 180   3            mbHost.rxTimeOut = MBH_REC_TIMEOUT;
- 181   3            mbHost.state = MBH_STATE_REC_ERR;
- 182   3            mbHost.re_send_time = MBH_RESEND_TIME;
- 183   3            //        USER_PRINTF("-->rec time out\n");
- 184   3            //        mb_port_timerDisable();   //关闭定时器
- 185   3            //        mbHost.recDataFlag = 0;
- 186   3            //        mb_port_uartEnable(0,0);  //串口tx、rx都关闭
- 187   3          }
- 188   2          break;
- 189   2        case MBH_STATE_RX: // 3.5T到,接收一帧完成
- 190   2          if (mbHost.rxTimeOut != 0 && --mbHost.rxTimeOut == 0)
- 191   2          {
- 192   3            mbHost.state = MBH_STATE_RX_CHECK;
- 193   3            mbHost.re_send_time = 0;
- 194   3            //        mbHost.recDataFlag = 0;
- 195   3            //        mbHost.rxTimeOut = 0;
- 196   3            //        mb_port_timerDisable();   //关闭定时器
- 197   3            //        mb_port_uartEnable(0,0);  //串口tx、rx都关闭
- 198   3          }
- 199   2          break;
- 200   2        }
- 201   1      }
- 202          void mbh_uartRxIsr()
- 203          {
- 204   1        unsigned char ch;
- 205   1        mb_port_getchar(&ch);
- 206   1        switch (mbHost.state)
- 207   1        {
- 208   2        case MBH_STATE_TX_END:
- 209   2          mbHost.rxCounter = 0;
- 210   2          mbHost.rxBuf[mbHost.rxCounter++] = ch;
- 211   2          mbHost.state = MBH_STATE_RX;
- 212   2          mb_port_timerEnable();
- 213   2          break;
- 214   2        case MBH_STATE_RX:
- 215   2          if (mbHost.rxCounter < MBH_RTU_MAX_SIZE)
- 216   2          {
- 217   3            mbHost.rxBuf[mbHost.rxCounter++] = ch;
- 218   3          }
- 219   2          mb_port_timerEnable();
- 220   2          mbHost.rxTimeOut = mbhRecTimeout;
+ 177   1        switch (mbHost.state)
+ 178   1        {
+ 179   2        /*发送完但没有接收到数据*/
+ 180   2        case MBH_STATE_TX_END:
+ 181   2          //      USER_PRINTF("--->RxISR_MBH_STATE_TX_END\n");
+ 182   2          //      if(1 == mbHost.recDataFlag)
+ 183   2          //      {
+ 184   2          mbHost.rxTimeOut--;
+ 185   2          //      }
+ 186   2          if (mbHost.rxTimeOut == 0) // 接收超时
+ 187   2          {
+ 188   3            mbHost.rxTimeOut = MBH_REC_TIMEOUT;
+ 189   3            mbHost.state = MBH_STATE_REC_ERR;
+ 190   3            mbHost.re_send_time = MBH_RESEND_TIME;
+ 191   3            //        USER_PRINTF("-->rec time out\n");
+ 192   3            //        mb_port_timerDisable();   //关闭定时器
+ 193   3            //        mbHost.recDataFlag = 0;
+ 194   3            //        mb_port_uartEnable(0,0);  //串口tx、rx都关闭
+ 195   3          }
+ 196   2          break;
+ 197   2        case MBH_STATE_RX: // 3.5T到,接收一帧完成
+ 198   2          if (mbHost.rxTimeOut != 0 && --mbHost.rxTimeOut == 0)
+ 199   2          {
+ 200   3            mbHost.state = MBH_STATE_RX_CHECK;
+ 201   3            mbHost.re_send_time = 0;
+ 202   3            //        mbHost.recDataFlag = 0;
+ 203   3            //        mbHost.rxTimeOut = 0;
+ 204   3            //        mb_port_timerDisable();   //关闭定时器
+ 205   3            //        mb_port_uartEnable(0,0);  //串口tx、rx都关闭
+ 206   3          }
+ 207   2          break;
+ 208   2        }
+ 209   1      }
+ 210          void mbh_uartRxIsr()
+ 211          {
+ 212   1        unsigned char ch;
+ 213   1        mb_port_getchar(&ch);
+ 214   1        switch (mbHost.state)
+ 215   1        {
+ 216   2        case MBH_STATE_TX_END:
+ 217   2          mbHost.rxCounter = 0;
+ 218   2          mbHost.rxBuf[mbHost.rxCounter++] = ch;
+ 219   2          mbHost.state = MBH_STATE_RX;
+ 220   2          mb_port_timerEnable();
  221   2          break;
- 222   2        default:
+ 222   2        case MBH_STATE_RX:
  223   2          if (mbHost.rxCounter < MBH_RTU_MAX_SIZE)
  224   2          {
  225   3            mbHost.rxBuf[mbHost.rxCounter++] = ch;
  226   3          }
  227   2          mb_port_timerEnable();
- 228   2          break;
- 229   2        }
- 230   1      }
- 231          void mbh_uartTxIsr()
- 232          {
- 233   1        switch (mbHost.state)
- 234   1        {
- 235   2        case MBH_STATE_TX:
- 236   2          if (mbHost.txCounter == mbHost.txLen) // 全部发送完
- 237   2          {
- 238   3            mbHost.state = MBH_STATE_TX_END;
-C51 COMPILER V9.60.0.0   MB_HOST                                                           09/27/2023 17:05:15 PAGE 5   
+ 228   2          mbHost.rxTimeOut = mbhRecTimeout;
+ 229   2          break;
+ 230   2        default:
+ 231   2          if (mbHost.rxCounter < MBH_RTU_MAX_SIZE)
+ 232   2          {
+ 233   3            mbHost.rxBuf[mbHost.rxCounter++] = ch;
+ 234   3          }
+ 235   2          mb_port_timerEnable();
+ 236   2          break;
+ 237   2        }
+ 238   1      }
+C51 COMPILER V9.60.0.0   MB_HOST                                                           11/02/2023 16:36:10 PAGE 5   
 
- 239   3            mb_port_uartEnable(0, 1); // disable tx,enable rx
- 240   3            mbHost.rxTimeOut = 0;     // 清除接收超时计数
- 241   3            mb_port_timerEnable();    // open timer
- 242   3            mb_set_receive_state();
- 243   3          }
- 244   2          else
+ 239          void mbh_uartTxIsr()
+ 240          {
+ 241   1        switch (mbHost.state)
+ 242   1        {
+ 243   2        case MBH_STATE_TX:
+ 244   2          if (mbHost.txCounter == mbHost.txLen) // 全部发送完
  245   2          {
- 246   3            if (0 == time_scene_var.send_delay_time)
- 247   3            {
- 248   4              if (mbHost.rxCounter)
- 249   4              {
- 250   5                mbHost.rxCounter = 0;
- 251   5                time_scene_var.send_delay_time = 50;
- 252   5              }
- 253   4              mb_port_putchar(mbHost.txBuf[mbHost.txCounter++]);
- 254   4            }
- 255   3          }
- 256   2      
- 257   2          break;
- 258   2        case MBH_STATE_TX_END:
- 259   2          //      USER_PRINTF("--->TxISR_MBH_STATE_TX_END\n");
- 260   2          //      mbHost.re_send_time = MBH_RESEND_TIME;
- 261   2          mb_port_uartEnable(0, 1); // disable tx,enable rx
- 262   2          break;
- 263   2        }
- 264   1      }
- 265          void clear_mbh_rec_one_frame_sta(void)
- 266          {
- 267   1        mbHost.receive_frame_state = 0;
- 268   1      }
- 269          unsigned char get_mbh_rec_one_frame_sta(void)
- 270          {
- 271   1        if ((mbHost.rxCounter >= MBH_RTU_MIN_SIZE) && (mb_crc16(mbHost.rxBuf, mbHost.rxCounter) == 0))
- 272   1        {
- 273   2          mbHost.receive_frame_state = 1;
- 274   2      
- 275   2          mbHost.rxCounter = 0;
- 276   2        }
- 277   1        return mbHost.receive_frame_state;
- 278   1      }
+ 246   3            mbHost.state = MBH_STATE_TX_END;
+ 247   3            mb_port_uartEnable(0, 1); // disable tx,enable rx
+ 248   3            mbHost.rxTimeOut = 0;     // 清除接收超时计数
+ 249   3            mb_port_timerEnable();    // open timer
+ 250   3            mb_set_receive_state();
+ 251   3          }
+ 252   2          else
+ 253   2          {
+ 254   3            if (0 == time_scene_var.send_delay_time)
+ 255   3            {
+ 256   4              if (mbHost.rxCounter)
+ 257   4              {
+ 258   5                mbHost.rxCounter = 0;
+ 259   5                time_scene_var.send_delay_time = 50;
+ 260   5              }
+ 261   4              mb_port_putchar(mbHost.txBuf[mbHost.txCounter++]);
+ 262   4            }
+ 263   3          }
+ 264   2      
+ 265   2          break;
+ 266   2        case MBH_STATE_TX_END:
+ 267   2          //      USER_PRINTF("--->TxISR_MBH_STATE_TX_END\n");
+ 268   2          //      mbHost.re_send_time = MBH_RESEND_TIME;
+ 269   2          mb_port_uartEnable(0, 1); // disable tx,enable rx
+ 270   2          break;
+ 271   2        }
+ 272   1      }
+ 273          void clear_mbh_rec_one_frame_sta(void)
+ 274          {
+ 275   1        mbHost.receive_frame_state = 0;
+ 276   1      }
+ 277          unsigned char get_mbh_rec_one_frame_sta(void)
+ 278          {
+ 279   1        if ((mbHost.rxCounter >= MBH_RTU_MIN_SIZE) && (mb_crc16(mbHost.rxBuf, mbHost.rxCounter) == 0))
+ 280   1        {
+ 281   2          mbHost.receive_frame_state = 1;
+ 282   2      
+ 283   2          mbHost.rxCounter = 0;
+ 284   2        }
+ 285   1        return mbHost.receive_frame_state;
+ 286   1      }
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =   1097    ----
+   CODE SIZE        =   1109    ----
    CONSTANT SIZE    =    104    ----
-   XDATA SIZE       =   2065      21
+   XDATA SIZE       =   2066      21
    PDATA SIZE       =   ----    ----
    DATA SIZE        =   ----    ----
    IDATA SIZE       =   ----    ----
@@ -310,6 +318,8 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    HDATA SIZE       =   ----    ----
    XDATA CONST SIZE =   ----    ----
    FAR CONST SIZE   =   ----    ----
+C51 COMPILER V9.60.0.0   MB_HOST                                                           11/02/2023 16:36:10 PAGE 6   
+
 END OF MODULE INFORMATION.
 
 

@@ -2,7 +2,7 @@
  * @Author: xw.qu
  * @Date: 2023-08-31 09:22:42
  * @LastEditors: xw.qu
- * @LastEditTime: 2023-09-26 10:47:02
+ * @LastEditTime: 2023-10-27 09:45:12
  * @FilePath: \USER\sys.c
  * @Description: about system function
  *
@@ -210,6 +210,19 @@ unsigned char delete_arr_data(unsigned char *t_arr, unsigned char pos)
 	}
 }
 /**
+ * @brief 清空数组
+ * @param {unsigned char} *t_arr
+ * @return {*}
+ */
+void clear_arr_data(unsigned char *t_arr,unsigned char size)
+{
+	unsigned char i = 0;
+	for(i = 0;i<size;i++)
+	{
+		delete_arr_data(t_arr,i);
+	}
+}
+/**
  * @brief 查找数据是否存在数组中
  * @param {unsigned char} *t_arr 目标数组
  * @param {unsigned char} num_to_find 需查找数据
@@ -227,6 +240,7 @@ unsigned char find_nub_index(unsigned char *t_arr, unsigned char num_to_find)
 	}
 	return 0;
 }
+
 /**
  * @brief 查找存在的字符替换为指定的字符
  * @param {char} *s 字符串

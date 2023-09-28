@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   MB_HOOK                                                           09/27/2023 17:05:15 PAGE 1   
+C51 COMPILER V9.60.0.0   MB_HOOK                                                           11/02/2023 18:44:51 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MB_HOOK
@@ -12,7 +12,7 @@ line level    source
    2           * @Author: xw.qu
    3           * @Date: 2023-08-31 09:22:42
    4           * @LastEditors: xw.qu
-   5           * @LastEditTime: 2023-09-26 10:15:50
+   5           * @LastEditTime: 2023-11-02 18:44:44
    6           * @FilePath: \USER\mb_hook.c
    7           * @Description: modbus callback function
    8           * 
@@ -43,73 +43,75 @@ line level    source
   27   1        {
   28   2      
   29   2          short_copy_xch(HR+user_modbus.da_adr,(dat+1),*datalen-3,0);//copy数据
-  30   2      //    USER_PRINTF("03 receive datalen = %d \n",*datalen);
-  31   2      //    USER_PRINTF("03 receive datalen = %d \n",*datalen);
-  32   2          
-  33   2          // USER_PRINTF("HR[32] = 0x%x \n",*(HR+32));
-  34   2        } 
-  35   1        // USER_PRINTF("HR[32] = 0x%x \n",*(HR+32));  
-  36   1        g_var_module.slave_adr = add;
-  37   1      //  printf_tab(80,(unsigned char *)HR);
-  38   1      //    USER_PRINTF("HR[49] = 0x%x \n",*(HR+49));
-  39   1      //  USER_PRINTF("HR[161] = 0x%x \n",*(HR+161));
-  40   1      
-  41   1      }
-  42          void mbh_hook_rec04(unsigned char add,unsigned char *dat,unsigned short *datalen)
-  43          {
-  44   1      
-  45   1      }
-*** WARNING C280 IN LINE 42 OF mb_hook.c: 'add': unreferenced local variable
-*** WARNING C280 IN LINE 42 OF mb_hook.c: 'dat': unreferenced local variable
-*** WARNING C280 IN LINE 42 OF mb_hook.c: 'datalen': unreferenced local variable
-C51 COMPILER V9.60.0.0   MB_HOOK                                                           09/27/2023 17:05:15 PAGE 2   
+  30   2          if(35 == user_modbus.da_adr) mbHost.rec_hook_state = 3;
+  31   2          
+  32   2      //    USER_PRINTF("03 receive datalen = %d \n",*datalen);
+  33   2      //    USER_PRINTF("03 receive datalen = %d \n",*datalen);
+  34   2          
+  35   2          // USER_PRINTF("HR[32] = 0x%x \n",*(HR+32));
+  36   2        } 
+  37   1        // USER_PRINTF("HR[32] = 0x%x \n",*(HR+32));  
+  38   1        g_var_module.slave_adr = add;
+  39   1        printf_tab(80,(unsigned char *)(HR+49));
+  40   1      //    USER_PRINTF("HR[49] = 0x%x \n",*(HR+49));
+  41   1      //  USER_PRINTF("HR[161] = 0x%x \n",*(HR+161));
+  42   1      
+  43   1      }
+  44          void mbh_hook_rec04(unsigned char add,unsigned char *dat,unsigned short *datalen)
+  45          {
+  46   1      
+  47   1      }
+*** WARNING C280 IN LINE 44 OF mb_hook.c: 'add': unreferenced local variable
+C51 COMPILER V9.60.0.0   MB_HOOK                                                           11/02/2023 18:44:51 PAGE 2   
 
-  46          void mbh_hook_rec05(unsigned char add,unsigned char *dat,unsigned short *datalen)
-  47          {
-  48   1      
-  49   1      }
-*** WARNING C280 IN LINE 46 OF mb_hook.c: 'add': unreferenced local variable
-*** WARNING C280 IN LINE 46 OF mb_hook.c: 'dat': unreferenced local variable
-*** WARNING C280 IN LINE 46 OF mb_hook.c: 'datalen': unreferenced local variable
-  50          void mbh_hook_rec06(unsigned char add,unsigned char *dat,unsigned short *datalen)
-  51          {
-  52   1      
-  53   1      }
-*** WARNING C280 IN LINE 50 OF mb_hook.c: 'add': unreferenced local variable
-*** WARNING C280 IN LINE 50 OF mb_hook.c: 'dat': unreferenced local variable
-*** WARNING C280 IN LINE 50 OF mb_hook.c: 'datalen': unreferenced local variable
-  54          void mbh_hook_rec15(unsigned char add,unsigned char *dat,unsigned short *datalen)
-  55          {
-  56   1      
-  57   1      }
-*** WARNING C280 IN LINE 54 OF mb_hook.c: 'add': unreferenced local variable
-*** WARNING C280 IN LINE 54 OF mb_hook.c: 'dat': unreferenced local variable
-*** WARNING C280 IN LINE 54 OF mb_hook.c: 'datalen': unreferenced local variable
-  58          void mbh_hook_rec16(unsigned char add,unsigned char *dat,unsigned short *datalen)
-  59          {
-  60   1        
-  61   1      }
-*** WARNING C280 IN LINE 58 OF mb_hook.c: 'add': unreferenced local variable
-*** WARNING C280 IN LINE 58 OF mb_hook.c: 'dat': unreferenced local variable
-*** WARNING C280 IN LINE 58 OF mb_hook.c: 'datalen': unreferenced local variable
-  62          
-  63          
-  64          void mbh_hook_timesErr(unsigned char add,unsigned char cmd)
-  65          {
-  66   1        mbHost.state=MBH_STATE_IDLE;
-  67   1        mbHost.re_send_time = 0;
-  68   1      }
-*** WARNING C280 IN LINE 64 OF mb_hook.c: 'add': unreferenced local variable
-*** WARNING C280 IN LINE 64 OF mb_hook.c: 'cmd': unreferenced local variable
-  69          void mbh_resend_time_run(void)
-  70          {
-  71   1        if(mbHost.re_send_time>0)mbHost.re_send_time--;
-  72   1      }
-  73          
+*** WARNING C280 IN LINE 44 OF mb_hook.c: 'dat': unreferenced local variable
+*** WARNING C280 IN LINE 44 OF mb_hook.c: 'datalen': unreferenced local variable
+  48          void mbh_hook_rec05(unsigned char add,unsigned char *dat,unsigned short *datalen)
+  49          {
+  50   1      
+  51   1      }
+*** WARNING C280 IN LINE 48 OF mb_hook.c: 'add': unreferenced local variable
+*** WARNING C280 IN LINE 48 OF mb_hook.c: 'dat': unreferenced local variable
+*** WARNING C280 IN LINE 48 OF mb_hook.c: 'datalen': unreferenced local variable
+  52          void mbh_hook_rec06(unsigned char add,unsigned char *dat,unsigned short *datalen)
+  53          {
+  54   1      
+  55   1      }
+*** WARNING C280 IN LINE 52 OF mb_hook.c: 'add': unreferenced local variable
+*** WARNING C280 IN LINE 52 OF mb_hook.c: 'dat': unreferenced local variable
+*** WARNING C280 IN LINE 52 OF mb_hook.c: 'datalen': unreferenced local variable
+  56          void mbh_hook_rec15(unsigned char add,unsigned char *dat,unsigned short *datalen)
+  57          {
+  58   1      
+  59   1      }
+*** WARNING C280 IN LINE 56 OF mb_hook.c: 'add': unreferenced local variable
+*** WARNING C280 IN LINE 56 OF mb_hook.c: 'dat': unreferenced local variable
+*** WARNING C280 IN LINE 56 OF mb_hook.c: 'datalen': unreferenced local variable
+  60          void mbh_hook_rec16(unsigned char add,unsigned char *dat,unsigned short *datalen)
+  61          {
+  62   1        
+  63   1      }
+*** WARNING C280 IN LINE 60 OF mb_hook.c: 'add': unreferenced local variable
+*** WARNING C280 IN LINE 60 OF mb_hook.c: 'dat': unreferenced local variable
+*** WARNING C280 IN LINE 60 OF mb_hook.c: 'datalen': unreferenced local variable
+  64          
+  65          
+  66          void mbh_hook_timesErr(unsigned char add,unsigned char cmd)
+  67          {
+  68   1        mbHost.state=MBH_STATE_IDLE;
+  69   1        mbHost.re_send_time = 0;
+  70   1      }
+*** WARNING C280 IN LINE 66 OF mb_hook.c: 'add': unreferenced local variable
+*** WARNING C280 IN LINE 66 OF mb_hook.c: 'cmd': unreferenced local variable
+  71          void mbh_resend_time_run(void)
+  72          {
+  73   1        if(mbHost.re_send_time>0)mbHost.re_send_time--;
+  74   1      }
+  75          
 
 
 MODULE INFORMATION:   STATIC OVERLAYABLE
-   CODE SIZE        =    213    ----
+   CODE SIZE        =    243    ----
    CONSTANT SIZE    =   ----    ----
    XDATA SIZE       =   ----      58
    PDATA SIZE       =   ----    ----
