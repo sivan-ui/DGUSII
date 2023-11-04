@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 1   
+C51 COMPILER V9.60.0.0   SYS                                                               11/04/2023 11:13:36 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE SYS
@@ -62,7 +62,7 @@ line level    source
   52   1        //  if(g_var_module.batch_relay_send_cyc_time>0) g_var_module.batch_relay_send_cyc_time--;
   53   1        if (g_var_module.auto_retrieve_cyc_time > 0)
   54   1          g_var_module.auto_retrieve_cyc_time--;
-C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 2   
+C51 COMPILER V9.60.0.0   SYS                                                               11/04/2023 11:13:36 PAGE 2   
 
   55   1        if (scene_data.delete_scenc_send_cyc_time > 0)
   56   1          scene_data.delete_scenc_send_cyc_time--;
@@ -126,7 +126,7 @@ line level    source
  112   1        ADR_H = 0x00;
  113   1        ADR_M = (u8)((Dgus_Addr / 2) >> 8);
  114   1        ADR_L = (u8)(Dgus_Addr / 2);
-C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 3   
+C51 COMPILER V9.60.0.0   SYS                                                               11/04/2023 11:13:36 PAGE 3   
 
  115   1        RAMMODE = 0xAF; // 读操作
  116   1        // while(!APP_ACK); //test LKC
@@ -190,7 +190,7 @@ line level    source
  174           * @brief 添加数组数据
  175           * @param {unsigned char} *t_arr 添加目标数组
  176           * @param {unsigned char} element 添加数据
-C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 4   
+C51 COMPILER V9.60.0.0   SYS                                                               11/04/2023 11:13:36 PAGE 4   
 
  177           * @param {unsigned char} pos 添加位置
  178           * @return {*} 0:添加失败 1:添加成功
@@ -254,7 +254,7 @@ line level    source
  236   2          if (t_arr[i] == num_to_find)
  237   2          {
  238   3            return 1;
-C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 5   
+C51 COMPILER V9.60.0.0   SYS                                                               11/04/2023 11:13:36 PAGE 5   
 
  239   3          }
  240   2        }
@@ -318,7 +318,7 @@ line level    source
  298   2          USER_PRINTF("invalid month!\n");
  299   2          return -1;
  300   2        }
-C51 COMPILER V9.60.0.0   SYS                                                               11/02/2023 16:36:08 PAGE 6   
+C51 COMPILER V9.60.0.0   SYS                                                               11/04/2023 11:13:36 PAGE 6   
 
  301   1        return days;
  302   1      }

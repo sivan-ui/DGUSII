@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 1   
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE TIME_SCENE
@@ -12,8 +12,8 @@ line level    source
    2           * @Author: xw.qu
    3           * @Date: 2023-08-31 09:22:43
    4           * @LastEditors: xw.qu
-   5           * @LastEditTime: 2023-10-28 15:32:19
-   6           * @FilePath: \USER\time_scene.c
+   5           * @LastEditTime: 2023-11-04 11:12:21
+   6           * @FilePath: \Binaryd:\七寸屏\NEW_UI\PROJ_V1.0-20231102 - 13\C51\template\USER\time_scene.c
    7           * @Description: module time scene modify
    8           *
    9           * Copyright (c) 2023 by xw.qu, All Rights Reserved.
@@ -52,9 +52,9 @@ line level    source
   41   1        for (i = 0; i < index; i++)
   42   1        {
   43   2          USER_PRINTF("timing_content[%bd].time_scene_set.index is%bd, data_sta is %bd,week_enable is %bx,led_enab
-             -le is %d,led_sta is %d\n",
+             -le is %d,led_sta is %d\n",\
   44   2                      i, timing_content[i].time_scene_set.index, timing_content[i].time_scene_set.data_sta, timing_conte
-             -nt[i].time_scene_set.week_enable,
+             -nt[i].time_scene_set.week_enable,\
   45   2                      timing_content[i].time_scene_set.time_module_scene_set.led_enable, timing_content[i].time_scene_se
              -t.time_module_scene_set.led_sta);
   46   2        }
@@ -62,7 +62,7 @@ line level    source
   48          // 清除变量
   49          void clear_timing_scene_var(void)
   50          {
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 2   
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 2   
 
   51   1        unsigned char i = 0;
   52   1        for (i = 8; i < 11; i++)
@@ -126,7 +126,7 @@ line level    source
  110          unsigned char get_timing_data_enable(void)
  111          {
  112   1        return read_dgus(0x1091);
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 3   
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 3   
 
  113   1      }
  114          // 设置日期使能
@@ -190,7 +190,7 @@ line level    source
  168          //  read_dgusii_vp(adr+(index-1)*8,(unsigned char *)scene_name,8);
  169          //  return scene_name;
  170          // }
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 4   
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 4   
 
  171          // 模块场景信息显示
  172          void dis_module_scene_infor(time_module_scene_set_t *p_time_module_scene_set)
@@ -254,7 +254,7 @@ line level    source
  229   2          write_dgus(TIMING_SCENE_START_MONTH, p_s_date->month);
  230   2          write_dgus(TIMING_SCENE_START_DAY, p_s_date->day);
  231   2      
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 5   
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 5   
 
  232   2          write_dgus(TIMING_SCENE_END_YEAR, p_e_data->year);
  233   2          write_dgus(TIMING_SCENE_END_MONTH, p_e_data->month);
@@ -318,7 +318,7 @@ line level    source
  286   1        switch (p_time_module_scene->channel_nb)
  287   1        {
  288   2        case 4:
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 6   
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 6   
 
  289   2          read_dgusii_vp(0x109a, (unsigned char *)temp_tab, 16);
  290   2          p_time_module_scene->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3;
@@ -382,7 +382,7 @@ line level    source
  336   2          p_time_module_scene->led_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 |
              - temp_tab[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
  337   2                                            temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11 | temp_
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 7   
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 7   
 
              -tab[25] << 12 | temp_tab[27] << 13 | temp_tab[29] << 14 | temp_tab[31] << 15;
  338   2          // USER_PRINTF("-->led_enable is -->0x%x\n", p_time_module_scene->led_enable);
@@ -446,7 +446,7 @@ line level    source
  391   2          set_master_send_hr(master_send_hr, 32, p_time_module_scene->led_sta);
  392   2          set_master_send_hr(master_send_hr, 33, ENTERPRISE);
  393   2          pack_data_send(&user_modbus, p_time_module_scene->adr, MD_FR_MHR, 31, 3);
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 8   
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 8   
 
  394   2        }
  395   1        else
@@ -510,7 +510,7 @@ line level    source
  453   2          break;
  454   2        default:
  455   2          break;
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 9   
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 9   
 
  456   2        }
  457   1        pic_set(time_scene_var.page_bak);
@@ -574,7 +574,7 @@ line level    source
  512   3            for (i = 0; i < 16; i++)
  513   3            {
  514   4              if (GET_BIT(on_sta, i))
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 10  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 10  
 
  515   4              {
  516   5                strncpy(led_on_tb + j * 3, &channel[i * 3], 3);
@@ -638,7 +638,7 @@ line level    source
  572   3          }
  573   2        }
  574   1        // USER_PRINTF("-->temp_week_tb is %s\n", temp_week_tb);
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 11  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 11  
 
  575   1        // USER_PRINTF("-->display_scene_infor p_scenc_infor->module_index is %bd\n", p_timing_content->time_scen
              -e_set.time_module_scene_set.module_index);
@@ -702,7 +702,7 @@ line level    source
  620   3            else
  621   3            {
  622   4              read_dgusii_vp(0x3320 + (p_timing_content->time_scene_set.scene_name_index - 1) * 8, (unsigned char *)
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 12  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 12  
 
              -sce_name, 8);
  623   4              // USER_PRINTF("-->scene_name is %s\n", sce_name);
@@ -766,7 +766,7 @@ line level    source
  661   3            {
  662   4              sprintf(mod_infom_tab, "执行时间:%s%bd:%02bd;动作:全关", temp_week_tb, p_timing_content->exectue_time.
              -hour, p_timing_content->exectue_time.min);
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 13  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 13  
 
  663   4            }
  664   3            else
@@ -830,7 +830,7 @@ line level    source
  713   2          //        clear_touch_sta();
  714   2          display_dim_timing_scene_interface(p);
  715   2          USER_PRINTF("display_dim_timing_scene_interface\n");
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 14  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 14  
 
  716   2          //        dim_read(p);
  717   2          break;
@@ -894,7 +894,7 @@ line level    source
  775   1      }
  776          void copy_to_temp_timing_content(timing_content_t *p_timing_content)
  777          {
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 15  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 15  
 
  778   1        memcpy(&temp_timing_content, p_timing_content, sizeof(timing_content_t));
  779   1      }
@@ -958,7 +958,7 @@ line level    source
  829   2          time_scene_var.all_light_select_sta = 0;
  830   2          time_scene_var.scene_select_sta = 0;
  831   2          break;
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 16  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 16  
 
  832   2        case ALL_ON_OFF_TIME:
  833   2          USER_PRINTF("-->all on off\n");
@@ -1022,7 +1022,7 @@ line level    source
  891   1        p_timing_content->time_scene_set.data_sta = 1;
  892   1        USER_PRINTF("--> select a module ok\n");
  893   1      }
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 17  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 17  
 
  894          void scene_infor_module_confim_key(module_t *p_module, timing_content_t *p_timing_content, time_scene_set_
              -t *p_time_scene_set)
@@ -1086,7 +1086,7 @@ line level    source
  948   1        timing_specified_scene_set(p_time_scene);
  949   1        display_timing_scene_infor(p_timing_content);
  950   1        clear_timing_scene_var();
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 18  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 18  
 
  951   1        timing_scene_infor_save_flash(p_timing_content);
  952   1      }
@@ -1150,7 +1150,7 @@ line level    source
 1007   3          case 4: // 指定场景确定
 1008   3            specified_scene_confim_key(&p_timing_content->time_scene_set, p_timing_content, p_time_scene_set);
 1009   3      
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 19  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 19  
 
 1010   3            break;
 1011   3          case 5:
@@ -1214,7 +1214,7 @@ line level    source
 1069   4              pic_set(46);
 1070   4              p_timing_content->time_scene_set.time_scene_exectue_type = ALL_ON_OFF_TIME;
 1071   4            }
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 20  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 20  
 
 1072   3      
 1073   3            break;
@@ -1278,7 +1278,7 @@ line level    source
 1131   3            write_dgus(0x1098, time_scene_var.all_light_on_sta ^= 1);
 1132   3            write_dgus(0x1099, 0);
 1133   3            time_scene_var.all_light_off_sta = 0;
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 21  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 21  
 
 1134   3            break;
 1135   3          case 2:
@@ -1342,7 +1342,7 @@ line level    source
 1193   1        unsigned char week = 0;
 1194   1        read_sys_time(sys_time);
 1195   1        temp_date.year = sys_time[0];
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 22  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 22  
 
 1196   1        temp_date.month = sys_time[1];
 1197   1        temp_date.day = sys_time[2];
@@ -1406,7 +1406,7 @@ line level    source
 1251   4              CLEAR_BIT(time_scene_var.scene_send_sta[i / 8], i);
 1252   4      
 1253   4              switch (timing_content[i].time_scene_set.time_scene_exectue_type)
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 23  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 23  
 
 1254   4              {
 1255   5              case MODULE_TIME:
@@ -1470,7 +1470,7 @@ line level    source
 1312   1      
 1313   1      }
 1314          void timing_scene_run(void)
-C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/02/2023 16:36:11 PAGE 24  
+C51 COMPILER V9.60.0.0   TIME_SCENE                                                        11/04/2023 11:13:38 PAGE 24  
 
 1315          {
 1316   1        module_timing_scene_select_ctrl(&timing_module);

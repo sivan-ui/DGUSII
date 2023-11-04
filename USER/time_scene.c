@@ -2,8 +2,8 @@
  * @Author: xw.qu
  * @Date: 2023-08-31 09:22:43
  * @LastEditors: xw.qu
- * @LastEditTime: 2023-10-28 15:32:19
- * @FilePath: \USER\time_scene.c
+ * @LastEditTime: 2023-11-04 11:12:21
+ * @FilePath: \Binaryd:\∆ﬂ¥Á∆¡\NEW_UI\PROJ_V1.0-20231102 - 13\C51\template\USER\time_scene.c
  * @Description: module time scene modify
  *
  * Copyright (c) 2023 by xw.qu, All Rights Reserved.
@@ -40,8 +40,8 @@ void printf_timing_content(unsigned char index)
 	unsigned char i = 0;
 	for (i = 0; i < index; i++)
 	{
-		USER_PRINTF("timing_content[%bd].time_scene_set.index is%bd, data_sta is %bd,week_enable is %bx,led_enable is %d,led_sta is %d\n",
-								i, timing_content[i].time_scene_set.index, timing_content[i].time_scene_set.data_sta, timing_content[i].time_scene_set.week_enable,
+		USER_PRINTF("timing_content[%bd].time_scene_set.index is%bd, data_sta is %bd,week_enable is %bx,led_enable is %d,led_sta is %d\n",\
+								i, timing_content[i].time_scene_set.index, timing_content[i].time_scene_set.data_sta, timing_content[i].time_scene_set.week_enable,\
 								timing_content[i].time_scene_set.time_module_scene_set.led_enable, timing_content[i].time_scene_set.time_module_scene_set.led_sta);
 	}
 }

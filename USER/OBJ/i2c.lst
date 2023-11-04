@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 1   
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE I2C
@@ -62,7 +62,7 @@ line level    source
   52   1        SDA_OUT();
   53   1        RTC_SDA = 0;
   54   1        Delayus();
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 2   
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 2   
 
   55   1        RTC_SCL = 1;
   56   1        Delayus();
@@ -126,7 +126,7 @@ line level    source
  114   1        u8 Dat;
  115   1        SDA_IN();
  116   1        for (i = 0; i < 8; i++)
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 3   
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 3   
 
  117   1        {
  118   2          Delayus();
@@ -190,7 +190,7 @@ line level    source
  176   1        for (i = 4; i < 7; i++) // 时分秒转换成HEX
  177   1        {
  178   2          N = Rtcdata[i] / 16;
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 4   
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 4   
 
  179   2          M = Rtcdata[i] % 16;
  180   2          Rtcdata[i] = N * 10 + M;
@@ -254,7 +254,7 @@ line level    source
  238          //=========================================
  239          void RTC_Set_Time()
  240          {
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 5   
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 5   
 
  241   1        u16 Va = read_dgus(0x009C); // 0x5AA5
  242   1        if (Va == 0x5AA5)
@@ -318,7 +318,7 @@ line level    source
  300   1      }
  301          //========================================================================================================
              -================================
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 6   
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 6   
 
  302          //**********************SD2058接口程序，SDA 10K上拉到3.3V**************
  303          
@@ -382,7 +382,7 @@ line level    source
  361          void mnak(void)
  362          {
  363   1        SDA_OUT();
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 7   
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 7   
 
  364   1        RTC_SDA = 1;
  365   1        delayus(5);
@@ -446,7 +446,7 @@ line level    source
  423   1        SDA_IN();
  424   1        for (i = 0; i < 8; i++)
  425   1        {
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 8   
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 8   
 
  426   2          delayus(5);
  427   2          RTC_SCL = 1;
@@ -510,7 +510,7 @@ line level    source
  485   2          i2cstart();
  486   2          i2cbw(0x64);
  487   2          i2cbw(0x10);
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 9   
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 9   
 
  488   2          i2cbw(dat1);
  489   2          i2cstop();
@@ -574,7 +574,7 @@ line level    source
  547   1        i2cbw(dat);
  548   1        i2cstop();
  549   1      
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 10  
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 10  
 
  550   1        i2cstart(); // 10-16=RTC设置值 BCD格式
  551   1        i2cbw(0x64);
@@ -638,7 +638,7 @@ line level    source
  609   1      }
  610          
  611          // void btn_click(u16 x,u16 y)
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 11  
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 11  
 
  612          //{
  613          //  u16 btn_check[4];
@@ -702,7 +702,7 @@ line level    source
  671          void Clock_1() // SD2058
  672          {
  673   1      
-C51 COMPILER V9.60.0.0   I2C                                                               11/02/2023 16:36:08 PAGE 12  
+C51 COMPILER V9.60.0.0   I2C                                                               11/04/2023 11:13:36 PAGE 12  
 
  674   1        if (RTC_Flog == 0)
  675   1        {

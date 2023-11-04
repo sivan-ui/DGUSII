@@ -2,8 +2,8 @@
  * @Author: xw.qu
  * @Date: 2023-08-31 09:22:42
  * @LastEditors: xw.qu
- * @LastEditTime: 2023-09-26 10:32:37
- * @FilePath: \USER\Parameter_Config.h
+ * @LastEditTime: 2023-11-04 11:13:34
+ * @FilePath: \Binaryd:\七寸屏\NEW_UI\PROJ_V1.0-20231102 - 13\C51\template\USER\Parameter_Config.h
  * @Description: 
  * 
  * Copyright (c) 2023 by xw.qu, All Rights Reserved. 

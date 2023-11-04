@@ -1,4 +1,4 @@
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 1   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 1   
 
 
 C51 COMPILER V9.60.0.0, COMPILATION OF MODULE SCENE
@@ -62,7 +62,7 @@ line level    source
   52   1      }
   53          void scene_init(scenc_infor_t *p_scenc_infor, name_scene_t *p)
   54          {
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 2   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 2   
 
   55   1        p->scene_name_index = 1;
   56   1        p->edit_sta = 1;
@@ -126,7 +126,7 @@ line level    source
  112   1        return 0xff;
  113   1      }
  114          // 清空一个场景信息内容
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 3   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 3   
 
  115          void clear_single_scene(unsigned char index)
  116          {
@@ -190,7 +190,7 @@ line level    source
  173   1        read_dgusii_vp(0x4100 + index * 32, (unsigned char *)&temp_dat, 1);
  174   1        ;
  175   1        if (0 == temp_dat)
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 4   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 4   
 
  176   1        {
  177   2          return BLANK;
@@ -254,7 +254,7 @@ line level    source
  229          // 删除场景列表名称
  230          void delete_scene_list_name(unsigned char index)
  231          {
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 5   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 5   
 
  232   1      
  233   1        write_dgusii_vp(0x3320 + index * 8, (unsigned char *)&name_space, 8); // 清除场景名字
@@ -318,7 +318,7 @@ line level    source
  284   1      }
  285          // 存储场景信息内容
  286          void scene_infor_save_flash(name_scene_t *p_module_scene)
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 6   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 6   
 
  287          {
  288   1      
@@ -382,7 +382,7 @@ line level    source
  338   2        case VOL_DIM_MODULE:
  339   2          for (i = 0; i < 4; i++)
  340   2          {
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 7   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 7   
 
  341   3            temp_tab[2 * i + 1] = p->diming_enable >> i & 0x1;
  342   3          }
@@ -446,7 +446,7 @@ line level    source
  400   1      }
  401          // 显示调光模块界面
  402          void display_dim_scene_interface(module_t *p)
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 8   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 8   
 
  403          {
  404   1        write_dgus(0x3f08, p->adr);
@@ -510,7 +510,7 @@ line level    source
  462   1        unsigned short key_nb = 0;
  463   1        unsigned short size_cal = 0;
  464   1        // static unsigned char i = 0;
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 9   
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 9   
 
  465   1        // if (0 == i)
  466   1        // {
@@ -574,7 +574,7 @@ line level    source
  519   1        else if ((DOUBLE_RELAY_MODULE == p->type) || (DOUBLE_TIME_RELAY_MODULE == p->type))
  520   1        {
  521   2          p_scenc_infor->led_hr_index_start = 400;
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 10  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 10  
 
  522   2        }
  523   1        else
@@ -638,7 +638,7 @@ line level    source
  574   2          p_scenc_infor->led_sta = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | temp_tab[7] << 3 | temp_tab
              -[9] << 4 | temp_tab[11] << 5 | temp_tab[13] << 6 | temp_tab[15] << 7 |
  575   2                                   temp_tab[17] << 8 | temp_tab[19] << 9 | temp_tab[21] << 10 | temp_tab[23] << 11;
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 11  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 11  
 
  576   2          break;
  577   2        case 14:
@@ -702,7 +702,7 @@ line level    source
  626   1        read_dgusii_vp(scene_dim_enable_adr, (unsigned char *)temp_tab, 4);
  627   1        p_scenc_infor->diming_enable = scene_dim_enable = temp_tab[1] | temp_tab[3] << 1 | temp_tab[5] << 2 | tem
              -p_tab[7] << 3;
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 12  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 12  
 
  628   1        // USER_PRINTF("scene_dim_enable value--->%x\n", scene_dim_enable);
  629   1        read_dgusii_vp(scene_dim_gear_adr, (unsigned char *)temp_tab, 4);
@@ -766,7 +766,7 @@ line level    source
  685   3            scene_data.delete_scenc_send_cyc_flag = 0;
  686   3            pop_menu_key_ctrl(0xf0); // 关闭操作弹窗
  687   3            p->edit_sta = 0;
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 13  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 13  
 
  688   3            return;
  689   3          }
@@ -830,7 +830,7 @@ line level    source
  747   1        {
  748   2          if (0xff == if_all_scene_name_blank())
  749   2          {
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 14  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 14  
 
  750   3            scene_data.scenc_send_name_cyc_flag = 0;
  751   3            pop_menu_key_ctrl(0xf0); // 关闭操作弹窗
@@ -894,7 +894,7 @@ line level    source
  808          {
  809   1        static unsigned char i = 0;
  810   1        if ((1 == scene_data.scenc_send_infor_cyc_flag) && (0 == mbHost.scene_send_cyc_time))
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 15  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 15  
 
  811   1        {
  812   2          //    USER_PRINTF("-->module_scene_send_cyc\n");
@@ -958,7 +958,7 @@ line level    source
  869   4              j++;
  870   4            }
  871   3          }
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 16  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 16  
 
  872   2          for (i = 0; i < 16; i++)
  873   2          {
@@ -1022,7 +1022,7 @@ line level    source
  924   1          sprintf(mod_infom_tab, "地址:%bd;%bd路;%s开;%s关;模块:%s", p_scenc_infor->adr, p_scenc_infor->channel_nb
              -, led_on_tb, led_off_tb, module_name_1);
  925   1        else if ((on_sta) && (0 == off_sta))
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 17  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 17  
 
  926   1          sprintf(mod_infom_tab, "地址:%bd;%bd路;%s开;模块:%s", p_scenc_infor->adr, p_scenc_infor->channel_nb, led
              -_on_tb, module_name_1);
@@ -1086,7 +1086,7 @@ line level    source
  977   3            pic_set(scene_infor_page);
  978   3          }
  979   2          else
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 18  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 18  
 
  980   2          {
  981   3            scene_infor_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
@@ -1150,7 +1150,7 @@ line level    source
 1033   2          //    CLEAR_BIT(module_scene_select_key_bak[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->index
              -)%8);
 1034   2          //    CLEAR_BIT(p_module_scene->module_select[(p_module_scene->scene_name_index-1)+((p->index)/8)],(p->ind
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 19  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 19  
 
              -ex)%8);
 1035   2          //    CLEAR_BIT(module_scene_select_key_bak[((p->index)/8)],(p->index)%8);
@@ -1214,7 +1214,7 @@ line level    source
 1092   1        // pic_page = SINGLE_SCENE_INFOR_LIST_FIRST_PAGE;
 1093   1        pic_set(SINGLE_SCENE_INFOR_LIST_FIRST_PAGE);
 1094   1      
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 20  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 20  
 
 1095   1        scene_name_read_flash(p_module_scene, index);
 1096   1      
@@ -1278,7 +1278,7 @@ line level    source
 1152          void scene_name_key_ctrl(name_scene_t *p_module_scene)
 1153          {
 1154   1        unsigned short key_nb = 0;
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 21  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 21  
 
 1155   1        unsigned char edit_sta = 0;
 1156   1        //  unsigned short index = 0;
@@ -1342,7 +1342,7 @@ line level    source
 1213   2        }
 1214   1        mbHost.scene_send_cyc_time = 200;
 1215   1        scene_data.scenc_send_infor_cyc_flag = 1;
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 22  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 22  
 
 1216   1        pop_menu_key_ctrl(1);
 1217   1        USER_PRINTF("-->scene_infor_confirm_ctrl \n");
@@ -1406,7 +1406,7 @@ line level    source
 1275          void scene_infor_modify_ctrl(scenc_infor_t *p_scenc_infor)
 1276          {
 1277   1        unsigned char index = 0;
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 23  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 23  
 
 1278   1        //  module_t temp_module = {0};
 1279   1        p_scenc_infor->edit_sta = 0x51; // 添加修改
@@ -1470,7 +1470,7 @@ line level    source
 1331   1      
 1332   1        clear_single_module_var_en(0x1200 + p_scenc_infor->index);
 1333   1        //  clear_all_module_var_en(SCENE_INFOR_LIST_SELECT_ADR,SCENE_NAME_NUB);
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 24  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 24  
 
 1334   1        USER_PRINTF("-->scene_infor_delete_ctrl\n");
 1335   1      }
@@ -1534,7 +1534,7 @@ line level    source
 1391   3            break;
 1392   3          default:
 1393   3            break;
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 25  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 25  
 
 1394   3          }
 1395   2          clear_key_value(0x1071, &key_nb);
@@ -1598,7 +1598,7 @@ line level    source
 1453   1        //  page = read_dgus(0x14);
 1454   1        //  USER_PRINTF("module_scene.scene_name_index -->%bd\n",module_scene.scene_name_index);
 1455   1      
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 26  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 26  
 
 1456   1        scene_name_key_ctrl(&module_scene);
 1457   1        add_module_scene_infor(&st_module, &scenc_infor, &module_scene);
@@ -1662,7 +1662,7 @@ line level    source
 1515   1        //  while(led_cmd[0])
 1516   1        //  {
 1517   1        //    read_dgusii_vp(LED_CONFIG_ADDR,led_cmd,2);
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 27  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 27  
 
 1518   1        //  }
 1519   1      }
@@ -1726,7 +1726,7 @@ MODULE INFORMATION:   STATIC OVERLAYABLE
    EDATA SIZE       =   ----    ----
    HDATA SIZE       =   ----    ----
    XDATA CONST SIZE =   ----    ----
-C51 COMPILER V9.60.0.0   SCENE                                                             11/02/2023 16:36:10 PAGE 28  
+C51 COMPILER V9.60.0.0   SCENE                                                             11/04/2023 11:13:37 PAGE 28  
 
    FAR CONST SIZE   =   ----    ----
 END OF MODULE INFORMATION.
