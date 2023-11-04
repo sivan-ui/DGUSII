@@ -13,3 +13,7 @@
 #include "sys.h"
 #include "T5LLIB.h"
 
+void scene_panel_ctrl(void)
+{
+
+}
